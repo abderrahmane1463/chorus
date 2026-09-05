@@ -1,0 +1,137 @@
+@import "tailwindcss";
+
+/* Dark mode is class-driven so hosts can toggle it, with the system
+   preference applied on first paint by the inline script in the layout. */
+@custom-variant dark (&:where(.dark, .dark *));
+
+:root {
+  --background: #ffffff;
+  --foreground: #0c1417;
+
+  --card: #ffffff;
+  --card-foreground: #0c1417;
+
+  --muted: #f4f6f7;
+  --muted-foreground: #5c6b72;
+
+  --subtle: #fafbfb;
+  --border: #e3e7e9;
+  --input: #dfe4e6;
+
+  --primary: #0f7a6c;
+  --primary-hover: #0c6357;
+  --primary-foreground: #ffffff;
+  --primary-subtle: #eaf5f3;
+
+  --accent: #d97316;
+  --accent-foreground: #ffffff;
+  --accent-subtle: #fdf3e7;
+
+  --success: #157f52;
+  --success-subtle: #e9f6ef;
+  --destructive: #c62828;
+  --destructive-subtle: #fdeceb;
+
+  --ring: #0f7a6c;
+  --radius: 0.625rem;
+}
+
+.dark {
+  --background: #0a1215;
+  --foreground: #e6edef;
+
+  --card: #101c20;
+  --card-foreground: #e6edef;
+
+  --muted: #16242a;
+  --muted-foreground: #90a3aa;
+
+  --subtle: #0d181c;
+  --border: #1d2f36;
+  --input: #24393f;
+
+  --primary: #16a394;
+  --primary-hover: #1cb8a7;
+  --primary-foreground: #04211d;
+  --primary-subtle: #0e2b28;
+
+  --accent: #e8912f;
+  --accent-foreground: #241604;
+  --accent-subtle: #2b1f0f;
+
+  --success: #2ea36e;
+  --success-subtle: #10281e;
+  --destructive: #e5534b;
+  --destructive-subtle: #2a1513;
+
+  --ring: #16a394;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-subtle: var(--subtle);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-primary: var(--primary);
+  --color-primary-hover: var(--primary-hover);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary-subtle: var(--primary-subtle);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent-subtle: var(--accent-subtle);
+  --color-success: var(--success);
+  --color-success-subtle: var(--success-subtle);
+  --color-destructive: var(--destructive);
+  --color-destructive-subtle: var(--destructive-subtle);
+  --color-ring: var(--ring);
+
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+
+  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, monospace;
+}
+
+@layer base {
+  * {
+    border-color: var(--border);
+  }
+
+  body {
+    background-color: var(--background);
+    color: var(--foreground);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* One focus treatment everywhere, so keyboard navigation is always legible. */
+  :focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: 2px;
+  }
+
+  h1, h2, h3, h4 {
+    letter-spacing: -0.02em;
+    text-wrap: balance;
+  }
+}
+
+@layer utilities {
+  /* Live result bars: width changes glide instead of snapping. */
+  .bar-fill {
+    transition: width 500ms cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .bar-fill {
+      transition: none;
+    }
+  }
+}
