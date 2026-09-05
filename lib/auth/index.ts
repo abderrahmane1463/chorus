@@ -3,15 +3,22 @@ import { redirect } from 'next/navigation';
 import Credentials from 'next-auth/providers/credentials';
 import { DrizzleAdapter } from '@auth/drizzle-adapter';
 import { eq } from 'drizzle-orm';
-import { db } from '@/lib/db';
+import { db, getDb } from '@/lib/db';
 import { accounts, sessions, users, verificationTokens } from '@/db/schema';
 import { signInSchema } from '@/lib/validations/auth';
 import { verifyPassword } from './password';
 import { authConfig } from './config';
 
-export const { handlers, auth, signIn, signOut } = NextAuth({
+/**
+ * The config is a function, not an object.
+ *
+ * Auth.js evaluates it per request, which keeps the Drizzle adapter — and the
+ * database connection it needs — out of module evaluation. Building on a host
+ * without DATABASE_URL (Vercel collecting page data) would otherwise fail.
+ */
+export const { handlers, auth, signIn, signOut } = NextAuth(() => ({
   ...authConfig,
-  adapter: DrizzleAdapter(db, {
+  adapter: DrizzleAdapter(getDb(), {
     usersTable: users,
     accountsTable: accounts,
     sessionsTable: sessions,
@@ -48,7 +55,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       },
     }),
   ],
-});
+}));
 
 /**
  * Resolves the signed-in host, or redirects to sign-in.
