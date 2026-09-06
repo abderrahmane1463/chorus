@@ -34,6 +34,10 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
+          # Webpack cache is build scratch, hundreds of MB, and not needed
+          # to run the app. GitHub rejects files that large anyway.
+          rm -rf .next/cache
+
           # Keep the build output, which .gitignore excludes on main.
           git checkout -B deploy
           git add -A -f .next
