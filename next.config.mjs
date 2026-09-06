@@ -1,4 +1,12 @@
-import type { NextConfig } from 'next';
+/**
+ * Plain JavaScript, not TypeScript, on purpose.
+ *
+ * Next compiles a .ts config with its native SWC binary before it can read it.
+ * On hosts with an older glibc that binary will not load, which fails the build
+ * and the server start. A .mjs config needs no compilation step.
+ *
+ * @type {import('next').NextConfig}
+ */
 
 /**
  * Origins allowed to invoke Server Actions.
@@ -6,7 +14,7 @@ import type { NextConfig } from 'next';
  * Next verifies the request Origin against the Host and silently rejects
  * anything it does not recognise, which makes every form appear to do nothing.
  * Add the public origin here when serving behind a reverse proxy, a custom
- * domain, or a LAN address (handy for testing on a phone).
+ * domain, or a LAN address.
  */
 const allowedOrigins = [
   'localhost:3000',
@@ -16,7 +24,7 @@ const allowedOrigins = [
     .filter(Boolean) ?? []),
 ];
 
-const nextConfig: NextConfig = {
+const nextConfig = {
   experimental: {
     serverActions: {
       allowedOrigins,
