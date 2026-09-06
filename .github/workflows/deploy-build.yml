@@ -1,0 +1,43 @@
+name: Build deploy branch
+
+# The production server runs an older glibc than Next's compiler needs, so it
+# cannot build. This builds on Linux here and publishes the finished output to
+# a `deploy` branch that the server just pulls — no compiling on the host.
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci --legacy-peer-deps
+
+      - name: Build
+        run: npm run build
+
+      - name: Publish to deploy branch
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          # Keep the build output, which .gitignore excludes on main.
+          git checkout -B deploy
+          git add -A -f .next
+          git add -A
+
+          git commit -m "Build from ${GITHUB_SHA::7}" || echo "nothing to commit"
+          git push -f origin deploy
