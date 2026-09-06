@@ -1,0 +1,22 @@
+{
+  "/_not-found/page": "app/_not-found/page.js",
+  "/_global-error/page": "app/_global-error/page.js",
+  "/favicon.ico/route": "app/favicon.ico/route.js",
+  "/api/auth/[...nextauth]/route": "app/api/auth/[...nextauth]/route.js",
+  "/api/events/[eventId]/export/route": "app/api/events/[eventId]/export/route.js",
+  "/api/realtime/route": "app/api/realtime/route.js",
+  "/event/[eventCode]/page": "app/event/[eventCode]/page.js",
+  "/(marketing)/page": "app/(marketing)/page.js",
+  "/dashboard/events/[eventId]/analytics/page": "app/dashboard/events/[eventId]/analytics/page.js",
+  "/dashboard/events/[eventId]/page": "app/dashboard/events/[eventId]/page.js",
+  "/dashboard/events/[eventId]/settings/page": "app/dashboard/events/[eventId]/settings/page.js",
+  "/(auth)/sign-in/page": "app/(auth)/sign-in/page.js",
+  "/(auth)/sign-up/page": "app/(auth)/sign-up/page.js",
+  "/dashboard/analytics/page": "app/dashboard/analytics/page.js",
+  "/dashboard/events/new/page": "app/dashboard/events/new/page.js",
+  "/dashboard/events/page": "app/dashboard/events/page.js",
+  "/dashboard/page": "app/dashboard/page.js",
+  "/join/page": "app/join/page.js",
+  "/present/[eventId]/page": "app/present/[eventId]/page.js",
+  "/settings/page": "app/settings/page.js"
+}

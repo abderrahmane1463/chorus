@@ -1,0 +1,22 @@
+{
+  "/_not-found/page": "/_not-found",
+  "/_global-error/page": "/_global-error",
+  "/favicon.ico/route": "/favicon.ico",
+  "/api/auth/[...nextauth]/route": "/api/auth/[...nextauth]",
+  "/api/events/[eventId]/export/route": "/api/events/[eventId]/export",
+  "/api/realtime/route": "/api/realtime",
+  "/event/[eventCode]/page": "/event/[eventCode]",
+  "/(marketing)/page": "/",
+  "/dashboard/events/[eventId]/analytics/page": "/dashboard/events/[eventId]/analytics",
+  "/dashboard/events/[eventId]/page": "/dashboard/events/[eventId]",
+  "/dashboard/events/[eventId]/settings/page": "/dashboard/events/[eventId]/settings",
+  "/(auth)/sign-in/page": "/sign-in",
+  "/(auth)/sign-up/page": "/sign-up",
+  "/dashboard/analytics/page": "/dashboard/analytics",
+  "/dashboard/events/new/page": "/dashboard/events/new",
+  "/dashboard/events/page": "/dashboard/events",
+  "/dashboard/page": "/dashboard",
+  "/join/page": "/join",
+  "/present/[eventId]/page": "/present/[eventId]",
+  "/settings/page": "/settings"
+}
