@@ -7,10 +7,11 @@ import { Logo } from '@/components/shared/logo';
 import { Button } from '@/components/ui/button';
 import { ThemeToggle } from '@/components/shared/theme-toggle';
 
+// Rooted at "/" so the menu still works from pages other than the homepage.
 const links = [
-  { href: '#product', label: 'Product' },
-  { href: '#use-cases', label: 'Use cases' },
-  { href: '#pricing', label: 'Pricing' },
+  { href: '/#product', label: 'Product' },
+  { href: '/#use-cases', label: 'Use cases' },
+  { href: '/#pricing', label: 'Pricing' },
 ];
 
 export function SiteNav() {

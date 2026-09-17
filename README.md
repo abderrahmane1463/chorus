@@ -92,6 +92,7 @@ Copy `.env.example` to `.env.local`.
 | `AUTH_URL` | yes | Public origin Auth.js redirects to |
 | `AUTH_TRUST_HOST` | behind a proxy | Let Auth.js trust the request host |
 | `AUTH_GOOGLE_ID`, `AUTH_GOOGLE_SECRET` | no | Enables "Continue with Google". Redirect URI: `<AUTH_URL>/api/auth/callback/google` |
+| `PRIVACY_CONTACT_EMAIL` | for Google sign-in | Contact address on `/privacy`, which Google requires before publishing |
 | `NEXT_PUBLIC_APP_URL` | yes | Builds join links and the presenter QR code |
 | `PARTICIPANT_COOKIE_SECRET` | yes | HMAC for the anonymous participant cookie |
 | `SERVER_ACTION_ALLOWED_ORIGINS` | behind a proxy | Extra origins allowed to submit forms |

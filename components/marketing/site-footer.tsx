@@ -12,11 +12,13 @@ export function SiteFooter() {
           </p>
         </div>
         <nav className="flex flex-wrap gap-x-6 gap-y-2 text-sm text-muted-foreground">
-          <a href="#product" className="hover:text-foreground">Product</a>
-          <a href="#use-cases" className="hover:text-foreground">Use cases</a>
-          <a href="#pricing" className="hover:text-foreground">Pricing</a>
+          {/* Rooted at "/" so they still work from pages other than the homepage. */}
+          <Link href="/#product" className="hover:text-foreground">Product</Link>
+          <Link href="/#use-cases" className="hover:text-foreground">Use cases</Link>
+          <Link href="/#pricing" className="hover:text-foreground">Pricing</Link>
           <Link href="/join" className="hover:text-foreground">Join an event</Link>
           <Link href="/sign-in" className="hover:text-foreground">Sign in</Link>
+          <Link href="/privacy" className="hover:text-foreground">Privacy</Link>
         </nav>
       </div>
       <div className="border-t border-border px-5 py-4">
