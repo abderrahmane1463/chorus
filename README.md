@@ -91,6 +91,7 @@ Copy `.env.example` to `.env.local`.
 | `AUTH_SECRET` | yes | Signs session JWTs (`npx auth secret`) |
 | `AUTH_URL` | yes | Public origin Auth.js redirects to |
 | `AUTH_TRUST_HOST` | behind a proxy | Let Auth.js trust the request host |
+| `AUTH_GOOGLE_ID`, `AUTH_GOOGLE_SECRET` | no | Enables "Continue with Google". Redirect URI: `<AUTH_URL>/api/auth/callback/google` |
 | `NEXT_PUBLIC_APP_URL` | yes | Builds join links and the presenter QR code |
 | `PARTICIPANT_COOKIE_SECRET` | yes | HMAC for the anonymous participant cookie |
 | `SERVER_ACTION_ALLOWED_ORIGINS` | behind a proxy | Extra origins allowed to submit forms |
@@ -170,7 +171,7 @@ refetch.
 
 ## 9. Implemented features
 
-**Hosts** — email/password auth, event CRUD, human-friendly join codes
+**Hosts** — email/password or Google sign-in, event CRUD, human-friendly join codes
 (`BRAVO-42`, ambiguous characters excluded), an interaction workspace, presenter
 mode with QR code and fullscreen, per-event analytics with charts, CSV export.
 
@@ -191,7 +192,8 @@ duplicate votes prevented by database constraints.
 
 ## 10. Future improvements
 
-- Google OAuth (the adapter is already wired; add the provider)
+- Email verification, which would make it safe to link a Google sign-in to an
+  existing password account with the same address (refused today)
 - Rate limiting on participant actions (currently constraint-bound, not throttled)
 - Collaborators UI — `event_members` exists but has no screen yet
 - Excel and PDF export alongside CSV

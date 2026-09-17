@@ -1,6 +1,7 @@
 import NextAuth from 'next-auth';
 import { redirect } from 'next/navigation';
 import Credentials from 'next-auth/providers/credentials';
+import Google from 'next-auth/providers/google';
 import { DrizzleAdapter } from '@auth/drizzle-adapter';
 import { eq } from 'drizzle-orm';
 import { db, getDb } from '@/lib/db';
@@ -8,6 +9,17 @@ import { accounts, sessions, users, verificationTokens } from '@/db/schema';
 import { signInSchema } from '@/lib/validations/auth';
 import { verifyPassword } from './password';
 import { authConfig } from './config';
+
+/**
+ * Google sign-in switches on once both credentials are configured, so the app
+ * still runs — with email and password only — on a host that has not set them.
+ *
+ * Read per request, never at build time: CI builds without secrets, and a
+ * value captured then would hide the button forever.
+ */
+export function isGoogleEnabled(): boolean {
+  return Boolean(process.env.AUTH_GOOGLE_ID && process.env.AUTH_GOOGLE_SECRET);
+}
 
 /**
  * The config is a function, not an object.
@@ -54,6 +66,12 @@ export const { handlers, auth, signIn, signOut } = NextAuth(() => ({
         };
       },
     }),
+    // No allowDangerousEmailAccountLinking. Password sign-up does not verify
+    // email ownership, so linking by address would let someone register a
+    // victim's Gmail with a password first and share their account once the
+    // real owner signs in with Google. Auth.js refuses the link instead, and
+    // the sign-in page explains what to do.
+    ...(isGoogleEnabled() ? [Google] : []),
   ],
 }));
 

@@ -52,6 +52,22 @@ export async function signUpAction(input: unknown): Promise<ActionResult> {
   return { ok: true };
 }
 
+/**
+ * Only same-site paths. `//evil.com` is protocol-relative, so a bare
+ * `startsWith('/')` check would still let a crafted link bounce a freshly
+ * signed-in host to another site.
+ */
+function safeCallback(value: FormDataEntryValue | null): string {
+  return typeof value === 'string' && value.startsWith('/') && !value.startsWith('//')
+    ? value
+    : '/dashboard';
+}
+
+/** Hands off to Google. `signIn` redirects by throwing, so this never returns. */
+export async function signInWithGoogleAction(formData: FormData): Promise<void> {
+  await signIn('google', { redirectTo: safeCallback(formData.get('callbackUrl')) });
+}
+
 export async function signInAction(
   input: unknown,
   callbackUrl?: string,

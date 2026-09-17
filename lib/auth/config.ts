@@ -7,6 +7,9 @@ import type { NextAuthConfig } from 'next-auth';
 export const authConfig = {
   pages: {
     signIn: '/sign-in',
+    // OAuth failures land back on the sign-in page with ?error=, where they
+    // are explained, instead of on Auth.js's unbranded error screen.
+    error: '/sign-in',
     newUser: '/dashboard',
   },
   session: {
