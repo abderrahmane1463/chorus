@@ -1,0 +1,15 @@
+{
+  "components/analytics/lazy-charts.tsx -> ./charts": {
+    "id": 50765,
+    "files": [
+      "static/chunks/2028.fbf7f315944d41d1.js",
+      "static/chunks/765.dbeff6e210ea3646.js"
+    ]
+  },
+  "lib/realtime/client.ts -> pusher-js": {
+    "id": 9620,
+    "files": [
+      "static/chunks/9620.e7111dd170afab1e.js"
+    ]
+  }
+}
