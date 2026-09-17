@@ -84,7 +84,10 @@ export const { handlers, auth, signIn, signOut } = NextAuth(() => ({
  */
 export async function requireUser() {
   const session = await auth();
-  if (!session?.user?.id) redirect('/sign-in');
+  if (!session?.user) redirect('/sign-in');
+  // A session the proxy accepts but this cannot use must be cleared, not sent
+  // to /sign-in, or the proxy redirects straight back. See the reset route.
+  if (!session.user.id) redirect('/api/session/reset');
 
   const [current] = await db
     .select({
@@ -97,7 +100,7 @@ export async function requireUser() {
     .where(eq(users.id, session.user.id))
     .limit(1);
 
-  if (!current) redirect('/sign-in');
+  if (!current) redirect('/api/session/reset');
 
   return current;
 }
