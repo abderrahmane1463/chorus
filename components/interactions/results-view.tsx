@@ -1,6 +1,6 @@
+import { useTranslations } from 'next-intl';
 import { EyeOff } from 'lucide-react';
 import type { InteractionResults } from '@/lib/queries/interactions';
-import { pluralize } from '@/lib/utils/format';
 import { cn } from '@/lib/utils/cn';
 
 /** Scales word size by frequency, with a floor so rare words stay readable. */
@@ -22,10 +22,12 @@ export function ResultsView({
   myOptionIds?: string[];
   myRating?: number;
 }) {
+  const t = useTranslations('results');
+
   if (results.total === 0) {
     return (
       <p className={cn('text-muted-foreground', emphasis ? 'text-2xl' : 'text-sm')}>
-        No answers yet.
+        {t('noAnswers')}
       </p>
     );
   }
@@ -47,8 +49,8 @@ export function ResultsView({
                   <span className={cn(mine && 'font-semibold text-primary')}>
                     {option.text}
                     {mine && (
-                      <span className="ml-2 text-xs font-normal text-muted-foreground">
-                        your answer
+                      <span className="ms-2 text-xs font-normal text-muted-foreground">
+                        {t('yourAnswer')}
                       </span>
                     )}
                   </span>
@@ -71,7 +73,7 @@ export function ResultsView({
             );
           })}
           <p className={cn('text-muted-foreground', emphasis ? 'text-xl' : 'text-xs')}>
-            {pluralize(results.total, 'response')}
+            {t('responses', { count: results.total })}
           </p>
         </div>
       );
@@ -92,7 +94,9 @@ export function ResultsView({
               {results.average}
             </span>
             <span className={cn('text-muted-foreground', emphasis ? 'text-2xl' : 'text-sm')}>
-              average from {pluralize(results.total, 'response')}
+              {t('averageFrom', {
+                responses: t('responses', { count: results.total }),
+              })}
             </span>
           </div>
 
@@ -139,7 +143,7 @@ export function ResultsView({
             {results.words.map((entry) => (
               <span
                 key={entry.word}
-                title={pluralize(entry.count, 'mention')}
+                title={t('mentions', { count: entry.count })}
                 className="font-medium leading-tight text-primary"
                 style={{
                   fontSize: emphasis
@@ -155,7 +159,7 @@ export function ResultsView({
           <p
             className={cn('mt-4 text-muted-foreground', emphasis ? 'text-xl' : 'text-xs')}
           >
-            {pluralize(results.total, 'submission')}
+            {t('submissions', { count: results.total })}
           </p>
         </div>
       );
@@ -191,7 +195,7 @@ export function ResultsView({
           <p
             className={cn('mt-4 text-muted-foreground', emphasis ? 'text-xl' : 'text-xs')}
           >
-            {pluralize(results.total, 'ranking')} · lower average is higher placed
+            {t('rankings', { count: results.total })} · {t('rankingHint')}
           </p>
         </div>
       );
@@ -222,7 +226,7 @@ export function ResultsView({
           <p
             className={cn('mt-4 text-muted-foreground', emphasis ? 'text-xl' : 'text-xs')}
           >
-            {pluralize(results.total, 'response')}
+            {t('responses', { count: results.total })}
           </p>
         </div>
       );
@@ -230,7 +234,7 @@ export function ResultsView({
     default:
       return (
         <p className="text-sm text-muted-foreground">
-          {pluralize(results.total, 'response')}
+          {t('responses', { count: results.total })}
         </p>
       );
   }

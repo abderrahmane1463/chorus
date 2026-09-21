@@ -3,6 +3,7 @@
 import { useRouter } from 'next/navigation';
 import { useState, useTransition } from 'react';
 import { Check, ChevronLeft, ChevronRight } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -21,6 +22,9 @@ export function SurveyPanel({
   answers: Answers;
 }) {
   const router = useRouter();
+  const t = useTranslations('survey');
+  // The open-text placeholder is shared with the standalone answer form.
+  const tAnswers = useTranslations('answers');
   const [pending, startTransition] = useTransition();
   const [index, setIndex] = useState(0);
   const [drafts, setDrafts] = useState<Answers>(answers);
@@ -32,7 +36,7 @@ export function SurveyPanel({
   if (survey.questions.length === 0) {
     return (
       <Card className="p-5 text-center text-sm text-muted-foreground">
-        This survey has no questions yet.
+        {t('noQuestions')}
       </Card>
     );
   }
@@ -57,12 +61,12 @@ export function SurveyPanel({
     <div className="space-y-5">
       <div className="flex items-center justify-between gap-3 text-sm text-muted-foreground">
         <span>
-          {answeredCount} of {survey.questions.length} answered
+          {t('answeredOf', { answered: answeredCount, total: survey.questions.length })}
         </span>
         {complete && (
           <span className="inline-flex items-center gap-1.5 font-medium text-success">
             <Check className="size-4" aria-hidden />
-            All done
+            {t('allDone')}
           </span>
         )}
       </div>
@@ -89,7 +93,7 @@ export function SurveyPanel({
             <div className="flex items-start justify-between gap-3">
               <h2 className="font-semibold leading-snug">{question.title}</h2>
               {saved && (
-                <Check className="mt-0.5 size-4 shrink-0 text-success" aria-label="Answered" />
+                <Check className="mt-0.5 size-4 shrink-0 text-success" aria-label={t('answered')} />
               )}
             </div>
 
@@ -109,7 +113,7 @@ export function SurveyPanel({
                         send(question.id, { optionIds: [option.id] });
                       }}
                       className={cn(
-                        'w-full rounded-lg border px-4 py-3 text-left text-[15px] transition-colors',
+                        'w-full rounded-lg border px-4 py-3 text-start text-[15px] transition-colors',
                         active
                           ? 'border-primary bg-primary-subtle font-medium text-primary'
                           : 'border-border hover:border-primary',
@@ -164,7 +168,7 @@ export function SurveyPanel({
                   rows={3}
                   maxLength={question.settings.maxLength ?? 280}
                   defaultValue={saved?.text ?? ''}
-                  placeholder="Type your answer…"
+                  placeholder={tAnswers('textPlaceholder')}
                   onChange={(event) =>
                     setDrafts({
                       ...drafts,
@@ -178,7 +182,7 @@ export function SurveyPanel({
                   disabled={(draft.text ?? '').trim().length === 0}
                   onClick={() => send(question.id, { text: draft.text })}
                 >
-                  {saved ? 'Update answer' : 'Save answer'}
+                  {saved ? t('updateAnswer') : t('saveAnswer')}
                 </Button>
               </div>
             )}
@@ -193,19 +197,19 @@ export function SurveyPanel({
             disabled={index === 0}
             onClick={() => setIndex(index - 1)}
           >
-            <ChevronLeft />
-            Back
+            <ChevronLeft className="rtl:rotate-180" />
+            {t('back')}
           </Button>
           <span className="text-sm text-muted-foreground">
-            {index + 1} / {survey.questions.length}
+            {t('position', { index: index + 1, total: survey.questions.length })}
           </span>
           <Button
             variant="secondary"
             disabled={index === survey.questions.length - 1}
             onClick={() => setIndex(index + 1)}
           >
-            Next
-            <ChevronRight />
+            {t('next')}
+            <ChevronRight className="rtl:rotate-180" />
           </Button>
         </div>
       )}

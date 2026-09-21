@@ -1,6 +1,7 @@
 'use server';
 
 import { redirect } from 'next/navigation';
+import { getTranslations } from 'next-intl/server';
 import { and, eq } from 'drizzle-orm';
 import { db } from '@/lib/db';
 import { events, participants } from '@/db/schema';
@@ -19,9 +20,13 @@ import type { ActionResult } from './auth';
  * makes rejoining idempotent rather than creating duplicates.
  */
 export async function joinEventAction(input: unknown): Promise<ActionResult> {
+  // Resolved here rather than returned as a key, so every caller keeps
+  // receiving a sentence it can show as-is.
+  const t = await getTranslations();
+
   const parsed = joinEventSchema.safeParse(input);
   if (!parsed.success) {
-    return { ok: false, error: parsed.error.issues[0]?.message ?? 'Invalid code' };
+    return { ok: false, error: t(parsed.error.issues[0]?.message ?? 'validation.codeRequired') };
   }
 
   const code = normalizeEventCode(parsed.data.code);
@@ -33,11 +38,11 @@ export async function joinEventAction(input: unknown): Promise<ActionResult> {
     .limit(1);
 
   if (!event) {
-    return { ok: false, error: 'No event found with that code' };
+    return { ok: false, error: t('errors.noEventWithCode') };
   }
 
   if (event.status === 'archived') {
-    return { ok: false, error: 'That event has been archived' };
+    return { ok: false, error: t('errors.eventArchived') };
   }
 
   const sessionId = await ensureSessionId();

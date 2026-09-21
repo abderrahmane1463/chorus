@@ -18,6 +18,7 @@ import {
   verticalListSortingStrategy,
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
+import { useTranslations } from 'next-intl';
 import { ChevronDown, ChevronUp, GripVertical } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils/cn';
@@ -39,6 +40,7 @@ function SortableRow({
   isLast: boolean;
   disabled: boolean;
 }) {
+  const t = useTranslations('ranking');
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } =
     useSortable({ id: option.id, disabled });
 
@@ -61,7 +63,7 @@ function SortableRow({
           'shrink-0 touch-none rounded p-1 text-muted-foreground',
           !disabled && 'cursor-grab active:cursor-grabbing hover:text-foreground',
         )}
-        aria-label={`Reorder ${option.text}`}
+        aria-label={t('reorder', { option: option.text })}
         disabled={disabled}
         {...attributes}
         {...listeners}
@@ -78,7 +80,7 @@ function SortableRow({
           type="button"
           onClick={() => onMove(-1)}
           disabled={isFirst || disabled}
-          aria-label={`Move ${option.text} up`}
+          aria-label={t('moveUp', { option: option.text })}
           className="rounded p-0.5 text-muted-foreground hover:text-foreground disabled:opacity-30"
         >
           <ChevronUp className="size-4" />
@@ -87,7 +89,7 @@ function SortableRow({
           type="button"
           onClick={() => onMove(1)}
           disabled={isLast || disabled}
-          aria-label={`Move ${option.text} down`}
+          aria-label={t('moveDown', { option: option.text })}
           className="rounded p-0.5 text-muted-foreground hover:text-foreground disabled:opacity-30"
         >
           <ChevronDown className="size-4" />
@@ -109,6 +111,7 @@ export function RankingAnswer({
   pending: boolean;
   onSubmit: (optionIds: string[]) => void;
 }) {
+  const t = useTranslations('ranking');
   const initial =
     myOrder.length === options.length
       ? myOrder
@@ -176,7 +179,7 @@ export function RankingAnswer({
         loading={pending}
         onClick={() => onSubmit(order.map((option) => option.id))}
       >
-        {submitted ? 'Update my ranking' : 'Submit ranking'}
+        {submitted ? t('update') : t('submit')}
       </Button>
     </div>
   );

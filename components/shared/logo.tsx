@@ -28,7 +28,9 @@ export function Logo({
   showWordmark?: boolean;
 }) {
   return (
-    <span className={cn('inline-flex items-center gap-2 text-primary', className)}>
+    // dir="ltr" so the brand lockup keeps its mark-then-wordmark order in
+    // Arabic. The name is Latin; mirroring it reads as a layout bug.
+    <span dir="ltr" className={cn('inline-flex items-center gap-2 text-primary', className)}>
       <LogoMark />
       {showWordmark && (
         <span className="text-lg font-semibold tracking-tight text-foreground">

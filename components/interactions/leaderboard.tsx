@@ -1,3 +1,4 @@
+import { useTranslations } from 'next-intl';
 import { Trophy } from 'lucide-react';
 import type { LeaderboardRow } from '@/lib/queries/quiz';
 import { cn } from '@/lib/utils/cn';
@@ -14,10 +15,14 @@ export function Leaderboard({
   highlightParticipantId?: string;
   emphasis?: boolean;
 }) {
+  // Not async, so this works in the presenter's server render and inside the
+  // participant's client-side quiz panel alike.
+  const t = useTranslations('leaderboard');
+
   if (rows.length === 0) {
     return (
       <p className={cn('text-muted-foreground', emphasis ? 'text-2xl' : 'text-sm')}>
-        No scores yet.
+        {t('noScores')}
       </p>
     );
   }
@@ -52,7 +57,7 @@ export function Leaderboard({
             </span>
 
             <span className="min-w-0 flex-1 truncate font-medium">
-              {row.displayName ?? 'Anonymous'}
+              {row.displayName ?? t('anonymous')}
               {mine && (
                 <span className="ml-2 text-xs font-normal text-muted-foreground">
                   you

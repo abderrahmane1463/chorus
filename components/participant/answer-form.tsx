@@ -2,6 +2,7 @@
 
 import { useRouter } from 'next/navigation';
 import { useState, useTransition } from 'react';
+import { useFormatter, useTranslations } from 'next-intl';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -28,6 +29,7 @@ type Props = {
 
 export function AnswerForm(props: Props) {
   const router = useRouter();
+  const t = useTranslations('answers');
   const [pending, startTransition] = useTransition();
 
   function submit(payload: Record<string, unknown>, onDone?: () => void) {
@@ -37,7 +39,7 @@ export function AnswerForm(props: Props) {
         ...payload,
       });
       if (result.ok) {
-        toast.success('Answer sent');
+        toast.success(t('sent'));
         onDone?.();
         router.refresh();
       } else {
@@ -81,6 +83,7 @@ function ChoiceAnswer({
   pending,
   onSubmit,
 }: InnerProps) {
+  const t = useTranslations('answers');
   const multiple = settings.allowMultiple ?? false;
   const [selected, setSelected] = useState<string[]>(mySelections);
   const locked = mySelections.length > 0 && !(settings.allowChangeAnswer ?? false);
@@ -107,7 +110,7 @@ function ChoiceAnswer({
     <div className="space-y-3">
       {multiple && (
         <p className="text-sm text-muted-foreground">
-          Choose up to {settings.maxSelections ?? options.length}.
+          {t('chooseUpTo', { count: settings.maxSelections ?? options.length })}
         </p>
       )}
 
@@ -122,7 +125,7 @@ function ChoiceAnswer({
               disabled={locked}
               aria-pressed={active}
               className={cn(
-                'flex w-full items-center gap-3 rounded-lg border px-4 py-3.5 text-left text-[15px] transition-colors',
+                'flex w-full items-center gap-3 rounded-lg border px-4 py-3.5 text-start text-[15px] transition-colors',
                 active
                   ? 'border-primary bg-primary-subtle font-medium text-primary'
                   : 'border-border hover:border-primary',
@@ -145,9 +148,7 @@ function ChoiceAnswer({
       </div>
 
       {locked ? (
-        <p className="text-sm text-muted-foreground">
-          Your answer is locked in for this question.
-        </p>
+        <p className="text-sm text-muted-foreground">{t('locked')}</p>
       ) : (
         <Button
           className="w-full"
@@ -156,7 +157,7 @@ function ChoiceAnswer({
           disabled={!changed}
           onClick={() => onSubmit({ optionIds: selected })}
         >
-          {mySelections.length > 0 ? 'Change answer' : 'Submit'}
+          {mySelections.length > 0 ? t('changeAnswer') : t('submit')}
         </Button>
       )}
     </div>
@@ -164,6 +165,7 @@ function ChoiceAnswer({
 }
 
 function RatingAnswer({ settings, myRating, pending, onSubmit }: InnerProps) {
+  const t = useTranslations('answers');
   const min = settings.scaleMin ?? 1;
   const max = settings.scaleMax ?? 5;
   const [value, setValue] = useState<number | undefined>(myRating);
@@ -210,7 +212,7 @@ function RatingAnswer({ settings, myRating, pending, onSubmit }: InnerProps) {
           disabled={value === undefined || value === myRating}
           onClick={() => onSubmit({ value })}
         >
-          {myRating !== undefined ? 'Change rating' : 'Submit'}
+          {myRating !== undefined ? t('changeRating') : t('submit')}
         </Button>
       )}
     </div>
@@ -218,13 +220,16 @@ function RatingAnswer({ settings, myRating, pending, onSubmit }: InnerProps) {
 }
 
 function WordAnswer({ myTexts, entriesLeft, pending, onSubmit }: InnerProps) {
+  const t = useTranslations('answers');
+  // Joins with the reader's own separator: "a, b and c", "a، b و c".
+  const format = useFormatter();
   const [word, setWord] = useState('');
 
   return (
     <div className="space-y-3">
       {myTexts.length > 0 && (
         <p className="text-sm text-muted-foreground">
-          You submitted: {myTexts.join(', ')}
+          {t('youSubmitted', { words: format.list(myTexts) })}
         </p>
       )}
 
@@ -234,7 +239,7 @@ function WordAnswer({ myTexts, entriesLeft, pending, onSubmit }: InnerProps) {
             value={word}
             onChange={(event) => setWord(event.target.value)}
             maxLength={60}
-            placeholder="One word or a short phrase"
+            placeholder={t('wordPlaceholder')}
             className="h-12 text-center text-lg"
           />
           <Button
@@ -244,29 +249,28 @@ function WordAnswer({ myTexts, entriesLeft, pending, onSubmit }: InnerProps) {
             disabled={word.trim().length === 0}
             onClick={() => onSubmit({ text: word }, () => setWord(''))}
           >
-            Send
+            {t('send')}
           </Button>
           <p className="text-center text-xs text-muted-foreground">
-            {entriesLeft} {entriesLeft === 1 ? 'entry' : 'entries'} left
+            {t('entriesLeft', { count: entriesLeft })}
           </p>
         </>
       ) : (
-        <p className="text-sm text-muted-foreground">
-          Thanks — you have used all your entries.
-        </p>
+        <p className="text-sm text-muted-foreground">{t('allUsed')}</p>
       )}
     </div>
   );
 }
 
 function TextAnswer({ settings, myTexts, entriesLeft, pending, onSubmit }: InnerProps) {
+  const t = useTranslations('answers');
   const [text, setText] = useState('');
   const maxLength = settings.maxLength ?? 280;
 
   if (entriesLeft === 0) {
     return (
       <div className="space-y-2">
-        <p className="text-sm text-muted-foreground">Your answer:</p>
+        <p className="text-sm text-muted-foreground">{t('yourAnswer')}</p>
         {myTexts.map((entry, index) => (
           <p key={index} className="rounded-lg border border-border p-3 text-sm">
             {entry}
@@ -283,7 +287,7 @@ function TextAnswer({ settings, myTexts, entriesLeft, pending, onSubmit }: Inner
         onChange={(event) => setText(event.target.value)}
         maxLength={maxLength}
         rows={4}
-        placeholder="Type your answer…"
+        placeholder={t('textPlaceholder')}
       />
       <div className="flex items-center justify-between gap-3">
         <span className="text-xs tabular-nums text-muted-foreground">
@@ -294,7 +298,7 @@ function TextAnswer({ settings, myTexts, entriesLeft, pending, onSubmit }: Inner
           disabled={text.trim().length === 0}
           onClick={() => onSubmit({ text }, () => setText(''))}
         >
-          Send
+          {t('send')}
         </Button>
       </div>
     </div>

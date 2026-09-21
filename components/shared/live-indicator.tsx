@@ -1,5 +1,6 @@
 'use client';
 
+import { useTranslations } from 'next-intl';
 import { useEventSync } from '@/hooks/use-event-sync';
 import { channels } from '@/lib/realtime/events';
 import { cn } from '@/lib/utils/cn';
@@ -7,20 +8,20 @@ import type { ConnectionStatus } from '@/lib/realtime/client';
 
 const PRESENTATION: Record<
   ConnectionStatus,
-  { label: string; dot: string; text: string }
+  { labelKey: 'connecting' | 'connected' | 'reconnecting' | 'offline'; dot: string; text: string }
 > = {
   connecting: {
-    label: 'Connecting',
+    labelKey: 'connecting',
     dot: 'bg-muted-foreground',
     text: 'text-muted-foreground',
   },
-  connected: { label: 'Live', dot: 'bg-success', text: 'text-success' },
+  connected: { labelKey: 'connected', dot: 'bg-success', text: 'text-success' },
   reconnecting: {
-    label: 'Reconnecting',
+    labelKey: 'reconnecting',
     dot: 'bg-accent animate-pulse',
     text: 'text-accent',
   },
-  offline: { label: 'Offline', dot: 'bg-destructive', text: 'text-destructive' },
+  offline: { labelKey: 'offline', dot: 'bg-destructive', text: 'text-destructive' },
 };
 
 /**
@@ -41,6 +42,7 @@ export function LiveIndicator({
     ? [channels.event(eventId), channels.qa(eventId)]
     : [channels.event(eventId)];
 
+  const t = useTranslations('live');
   const status = useEventSync(eventId, { channels: names });
   const view = PRESENTATION[status];
 
@@ -51,7 +53,7 @@ export function LiveIndicator({
       aria-live="polite"
     >
       <span className={cn('size-1.5 rounded-full', view.dot)} aria-hidden />
-      {view.label}
+      {t(view.labelKey)}
     </span>
   );
 }

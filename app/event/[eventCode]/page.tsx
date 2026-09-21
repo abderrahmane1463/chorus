@@ -1,4 +1,5 @@
 import { notFound, redirect } from 'next/navigation';
+import { getTranslations } from 'next-intl/server';
 import { and, eq } from 'drizzle-orm';
 import { MessageSquareDashed } from 'lucide-react';
 import { db } from '@/lib/db';
@@ -13,6 +14,7 @@ import {
 import { maxEntriesFor } from '@/lib/interactions/registry';
 import { EmptyState } from '@/components/shared/empty-state';
 import { Logo } from '@/components/shared/logo';
+import { LanguageSwitcher } from '@/components/shared/language-switcher';
 import { AnswerForm } from '@/components/participant/answer-form';
 import { QaPanel } from '@/components/participant/qa-panel';
 import { listQuestions } from '@/lib/queries/questions';
@@ -37,7 +39,8 @@ export async function generateMetadata({
     .where(eq(events.eventCode, normalizeEventCode(eventCode)))
     .limit(1);
 
-  return { title: event?.title ?? 'Event' };
+  const t = await getTranslations('event');
+  return { title: event?.title ?? t('fallbackTitle') };
 }
 
 export default async function ParticipantEventPage({
@@ -47,6 +50,7 @@ export default async function ParticipantEventPage({
 }) {
   const { eventCode } = await params;
   const code = normalizeEventCode(eventCode);
+  const t = await getTranslations('event');
 
   const [event] = await db
     .select({
@@ -151,13 +155,18 @@ export default async function ParticipantEventPage({
             <p className="truncate text-sm font-medium">{event.title}</p>
             <p className="font-mono text-xs text-muted-foreground">{event.eventCode}</p>
           </div>
-          <div className="flex shrink-0 flex-col items-end gap-0.5">
-            <LiveIndicator eventId={event.id} withQa />
-            {participant.displayName && (
-              <span className="text-xs text-muted-foreground">
-                {participant.displayName}
-              </span>
-            )}
+          <div className="flex shrink-0 items-center gap-1">
+            <div className="flex flex-col items-end gap-0.5">
+              <LiveIndicator eventId={event.id} withQa />
+              {participant.displayName && (
+                <span className="text-xs text-muted-foreground">
+                  {participant.displayName}
+                </span>
+              )}
+            </div>
+            {/* A participant may be handed a code in a room where the screen
+                is in another language than the one they read. */}
+            <LanguageSwitcher />
           </div>
         </div>
       </header>
@@ -166,8 +175,8 @@ export default async function ParticipantEventPage({
         {!interaction ? (
           <EmptyState
             icon={MessageSquareDashed}
-            title="No interaction is currently active"
-            description="When the host opens a poll, a question or a quiz, it will appear here."
+            title={t('noActiveTitle')}
+            description={t('noActiveBody')}
           />
         ) : (
           <div className="space-y-5">
@@ -214,7 +223,7 @@ export default async function ParticipantEventPage({
             {showResults && results && (
               <Card className="p-5">
                 <h2 className="mb-4 text-sm font-semibold text-muted-foreground">
-                  Live results
+                  {t('liveResults')}
                 </h2>
                 <ResultsView
                   results={results}

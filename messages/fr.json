@@ -1,0 +1,232 @@
+{
+  "metadata": {
+    "title": "Chorus — sondages, questions et quiz en direct",
+    "description": "Animez des sondages, des questions du public et des quiz en réunion, en cours ou en conférence. Votre public rejoint avec un code, sans compte ni application."
+  },
+  "language": {
+    "change": "Changer de langue"
+  },
+  "nav": {
+    "home": "Accueil Chorus",
+    "product": "Produit",
+    "useCases": "Cas d'usage",
+    "pricing": "Tarifs",
+    "join": "Rejoindre un événement",
+    "signIn": "Se connecter",
+    "getStarted": "Commencer gratuitement",
+    "privacy": "Confidentialité",
+    "menu": "Menu"
+  },
+  "footer": {
+    "tagline": "Sondages, questions et quiz en direct pour vos réunions, cours et conférences.",
+    "copyright": "© {year} Chorus"
+  },
+  "home": {
+    "hero": {
+      "title": "Votre public a plus à dire que la personne qui parle le plus fort.",
+      "body": "Chorus transforme une réunion, un cours ou une conférence en véritable échange : sondages en direct, questions votées par la salle et quiz. Votre public rejoint avec un code court, sans compte et sans rien installer."
+    },
+    "promises": {
+      "noAccount": {
+        "title": "Aucun compte pour le public",
+        "body": "Un lien, une réponse. C'est tout le parcours."
+      },
+      "anyPhone": {
+        "title": "Fonctionne sur tout téléphone",
+        "body": "Un navigateur suffit, sur n'importe quel réseau."
+      },
+      "liveResults": {
+        "title": "Les résultats en direct",
+        "body": "Chaque réponse met l'écran à jour dès son arrivée."
+      }
+    },
+    "product": {
+      "title": "Six façons d'écouter une salle",
+      "body": "Combinez-les dans un même événement et passez de l'une à l'autre au fil de la session."
+    },
+    "features": {
+      "polls": {
+        "title": "Sondages en direct",
+        "body": "Choix multiple, classement et texte libre. Les résultats se construisent à l'écran pendant que le public répond."
+      },
+      "qa": {
+        "title": "Questions avec votes",
+        "body": "La salle décide des questions posées. Les meilleures remontent, et vous les validez avant leur affichage."
+      },
+      "quizzes": {
+        "title": "Quiz",
+        "body": "Questions chronométrées, points de rapidité et un classement final."
+      },
+      "wordClouds": {
+        "title": "Nuages de mots",
+        "body": "Les réponses courtes forment un nuage qui grandit à chaque envoi."
+      },
+      "ratings": {
+        "title": "Notations",
+        "body": "Demandez une note de 1 à 10 et voyez la répartition, pas seulement la moyenne."
+      },
+      "analytics": {
+        "title": "Statistiques",
+        "body": "Participation, nombre de réponses et détail par question, une fois la salle vide."
+      }
+    },
+    "how": {
+      "title": "Comment ça marche"
+    },
+    "steps": {
+      "create": {
+        "title": "Créez votre événement",
+        "body": "Ajoutez des sondages, des questions ou un quiz en quelques minutes."
+      },
+      "share": {
+        "title": "Partagez le code",
+        "body": "Affichez le code court à l'écran. Chacun rejoint depuis son navigateur."
+      },
+      "open": {
+        "title": "Lancez une interaction",
+        "body": "Envoyez une question à la fois à toute la salle."
+      },
+      "watch": {
+        "title": "Regardez les réponses arriver",
+        "body": "Elles s'affichent en direct, sur votre écran et sur le projecteur."
+      }
+    },
+    "useCases": {
+      "title": "Pensé pour les salles silencieuses",
+      "allHands": {
+        "title": "Réunions d'équipe et plénières",
+        "body": "Prenez la température de la salle avant la discussion, pas après."
+      },
+      "conferences": {
+        "title": "Conférences et keynotes",
+        "body": "Laissez mille personnes poser leurs questions sans file d'attente au micro."
+      },
+      "classes": {
+        "title": "Cours et formations",
+        "body": "Vérifiez la compréhension en plein cours avec un quiz qui se corrige tout seul."
+      },
+      "workshops": {
+        "title": "Ateliers et webinaires",
+        "body": "Gardez les participants à distance actifs plutôt que silencieux."
+      }
+    },
+    "pricing": {
+      "title": "Gratuit, parce qu'il est à vous",
+      "body": "Cette instance de Chorus est hébergée par vous. Événements illimités, participants illimités, tous les types d'interaction. La seule limite est votre base de données.",
+      "cta": "Créer votre premier événement"
+    }
+  },
+  "join": {
+    "title": "Rejoindre un événement",
+    "description": "Saisissez le code de l'événement pour participer.",
+    "subtitle": "Saisissez le code affiché à l'écran. Aucun compte nécessaire.",
+    "code": "Code de l'événement",
+    "name": "Votre nom (facultatif)",
+    "namePlaceholder": "Laissez vide pour rester anonyme",
+    "submit": "Rejoindre"
+  },
+  "event": {
+    "fallbackTitle": "Événement",
+    "noActiveTitle": "Aucune interaction en cours",
+    "noActiveBody": "Dès que l'animateur lance un sondage, une question ou un quiz, il apparaîtra ici.",
+    "liveResults": "Résultats en direct"
+  },
+  "answers": {
+    "chooseUpTo": "Choisissez jusqu'à {count} réponses.",
+    "locked": "Votre réponse est définitive pour cette question.",
+    "submit": "Envoyer",
+    "changeAnswer": "Modifier ma réponse",
+    "changeRating": "Modifier ma note",
+    "send": "Envoyer",
+    "sent": "Réponse envoyée",
+    "youSubmitted": "Vous avez envoyé : {words}",
+    "wordPlaceholder": "Un mot ou une courte expression",
+    "entriesLeft": "{count, plural, one {# envoi restant} other {# envois restants}}",
+    "allUsed": "Merci, vous avez utilisé tous vos envois.",
+    "yourAnswer": "Votre réponse :",
+    "textPlaceholder": "Écrivez votre réponse…"
+  },
+  "qa": {
+    "placeholder": "Posez une question…",
+    "label": "Votre question",
+    "anonymous": "Poser anonymement",
+    "namesShown": "Les questions affichent votre nom.",
+    "send": "Envoyer",
+    "moderated": "L'animateur relit les questions avant que la salle les voie.",
+    "sent": "Question envoyée",
+    "sentForReview": "Envoyée — l'animateur va la relire",
+    "emptyTitle": "Aucune question pour l'instant",
+    "emptyBody": "Soyez le premier à en poser une."
+  },
+  "quiz": {
+    "finished": "Quiz terminé",
+    "getReady": "Préparez-vous",
+    "scored": "Vous avez marqué {score} points avec {correct, plural, one {# bonne réponse} other {# bonnes réponses}}.",
+    "nextSoon": "L'animateur va lancer la question suivante.",
+    "leaderboard": "Classement",
+    "questionOf": "Question {number} sur {total}",
+    "secondsLeft": "{count} s",
+    "lockIn": "Valider ma réponse",
+    "lockedWaiting": "Réponse validée. En attente de l'animateur…",
+    "timeUp": "Le temps est écoulé pour cette question.",
+    "correctPoints": "Correct — {points, plural, one {# point} other {# points}}",
+    "notQuite": "Pas tout à fait",
+    "correctLabel": "Bonne réponse",
+    "yourAnswerLabel": "Votre réponse"
+  },
+  "survey": {
+    "noQuestions": "Ce questionnaire n'a pas encore de questions.",
+    "answeredOf": "{answered} sur {total} répondues",
+    "allDone": "Terminé",
+    "answered": "Répondue",
+    "saveAnswer": "Enregistrer",
+    "updateAnswer": "Modifier",
+    "back": "Précédent",
+    "next": "Suivant",
+    "position": "{index} / {total}"
+  },
+  "results": {
+    "noAnswers": "Aucune réponse pour l'instant.",
+    "responses": "{count, plural, one {# réponse} other {# réponses}}",
+    "mentions": "{count, plural, one {# mention} other {# mentions}}",
+    "submissions": "{count, plural, one {# envoi} other {# envois}}",
+    "averageFrom": "moyenne sur {responses}",
+    "rankings": "{count, plural, one {# classement} other {# classements}}",
+    "rankingHint": "une moyenne plus basse place plus haut",
+    "yourAnswer": "votre réponse"
+  },
+  "questionCard": {
+    "upvote": "Voter pour cette question",
+    "removeUpvote": "Retirer mon vote",
+    "anonymous": "Anonyme",
+    "answered": "Répondue",
+    "pending": "En attente de validation",
+    "hidden": "Masquée"
+  },
+  "leaderboard": {
+    "noScores": "Aucun score pour l'instant.",
+    "anonymous": "Anonyme"
+  },
+  "ranking": {
+    "reorder": "Réorganiser {option}",
+    "moveUp": "Monter {option}",
+    "moveDown": "Descendre {option}",
+    "submit": "Valider mon classement",
+    "update": "Modifier mon classement"
+  },
+  "live": {
+    "connecting": "Connexion",
+    "connected": "En direct",
+    "reconnecting": "Reconnexion",
+    "offline": "Hors ligne"
+  },
+  "errors": {
+    "noEventWithCode": "Aucun événement ne correspond à ce code",
+    "eventArchived": "Cet événement a été archivé"
+  },
+  "validation": {
+    "codeRequired": "Saisissez le code de l'événement",
+    "codeTooLong": "Ce code est trop long",
+    "nameTooShort": "Le nom doit contenir au moins 2 caractères"
+  }
+}

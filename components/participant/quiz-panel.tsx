@@ -3,6 +3,7 @@
 import { useRouter } from 'next/navigation';
 import { useEffect, useState, useTransition } from 'react';
 import { Check, Timer, X } from 'lucide-react';
+import { useFormatter, useTranslations } from 'next-intl';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -43,6 +44,10 @@ export function QuizPanel({
   participantId: string;
 }) {
   const router = useRouter();
+  const t = useTranslations('quiz');
+  // Scores are read aloud in the room: they follow the reader's digits and
+  // grouping, so 1200 is "1,200", "1 200" or "١٬٢٠٠".
+  const format = useFormatter();
   const [selected, setSelected] = useState<string[]>([]);
   const [pending, startTransition] = useTransition();
 
@@ -57,26 +62,25 @@ export function QuizPanel({
       <div className="space-y-5">
         <Card className="p-5 text-center">
           <h2 className="text-lg font-semibold">
-            {view.status === 'closed' ? 'Quiz finished' : 'Get ready'}
+            {view.status === 'closed' ? t('finished') : t('getReady')}
           </h2>
           {view.myScore && (
             <p className="mt-2 text-muted-foreground">
-              You scored{' '}
-              <span className="font-semibold text-foreground">
-                {view.myScore.score.toLocaleString()}
-              </span>{' '}
-              with {view.myScore.correctAnswers} correct.
+              {t('scored', {
+                score: format.number(view.myScore.score),
+                correct: view.myScore.correctAnswers,
+              })}
             </p>
           )}
           {view.status !== 'closed' && !view.myScore && (
             <p className="mt-2 text-sm text-muted-foreground">
-              The host will start the next question shortly.
+              {t('nextSoon')}
             </p>
           )}
         </Card>
 
         <Card className="p-5">
-          <h3 className="mb-4 text-sm font-semibold text-muted-foreground">Leaderboard</h3>
+          <h3 className="mb-4 text-sm font-semibold text-muted-foreground">{t('leaderboard')}</h3>
           <Leaderboard rows={leaderboard} highlightParticipantId={participantId} />
         </Card>
       </div>
@@ -105,7 +109,11 @@ export function QuizPanel({
     <div className="space-y-5">
       <div className="flex items-center justify-between gap-3">
         <span className="text-sm text-muted-foreground">
-          Question {view.questionNumber} of {view.totalQuestions}
+          {/* Past the early return a question exists, so the number does too. */}
+          {t('questionOf', {
+            number: view.questionNumber ?? 1,
+            total: view.totalQuestions,
+          })}
         </span>
         {!locked && remaining !== null && (
           <span
@@ -119,7 +127,7 @@ export function QuizPanel({
             aria-live="off"
           >
             <Timer className="size-4" aria-hidden />
-            {remaining}s
+            {t('secondsLeft', { count: remaining })}
           </span>
         )}
       </div>
@@ -142,7 +150,7 @@ export function QuizPanel({
                 onClick={() => setSelected([option.id])}
                 aria-pressed={chosen || wasMine}
                 className={cn(
-                  'flex w-full items-center gap-3 rounded-lg border px-4 py-3.5 text-left text-[15px] transition-colors',
+                  'flex w-full items-center gap-3 rounded-lg border px-4 py-3.5 text-start text-[15px] transition-colors',
                   revealed && isCorrect && 'border-success bg-success-subtle',
                   revealed && !isCorrect && wasMine && 'border-destructive bg-destructive-subtle',
                   !revealed && (chosen || wasMine)
@@ -153,10 +161,10 @@ export function QuizPanel({
               >
                 <span className="min-w-0 flex-1">{option.text}</span>
                 {revealed && isCorrect && (
-                  <Check className="size-4 shrink-0 text-success" aria-label="Correct" />
+                  <Check className="size-4 shrink-0 text-success" aria-label={t('correctLabel')} />
                 )}
                 {revealed && !isCorrect && wasMine && (
-                  <X className="size-4 shrink-0 text-destructive" aria-label="Your answer" />
+                  <X className="size-4 shrink-0 text-destructive" aria-label={t('yourAnswerLabel')} />
                 )}
               </button>
             );
@@ -171,19 +179,19 @@ export function QuizPanel({
             disabled={selected.length === 0}
             onClick={submit}
           >
-            Lock in answer
+            {t('lockIn')}
           </Button>
         )}
 
         {answered && !view.answerRevealed && (
           <p className="mt-4 text-center text-sm text-muted-foreground">
-            Answer locked in. Waiting for the host…
+            {t('lockedWaiting')}
           </p>
         )}
 
         {timeUp && !answered && (
           <p className="mt-4 text-center text-sm text-muted-foreground">
-            Time is up for this question.
+            {t('timeUp')}
           </p>
         )}
 
@@ -195,8 +203,8 @@ export function QuizPanel({
             )}
           >
             {view.myAnswer.correct
-              ? `Correct — ${view.myAnswer.points.toLocaleString()} points`
-              : 'Not quite'}
+              ? t('correctPoints', { points: view.myAnswer.points })
+              : t('notQuite')}
           </p>
         )}
 
@@ -209,7 +217,7 @@ export function QuizPanel({
 
       {view.answerRevealed && (
         <Card className="p-5">
-          <h3 className="mb-4 text-sm font-semibold text-muted-foreground">Leaderboard</h3>
+          <h3 className="mb-4 text-sm font-semibold text-muted-foreground">{t('leaderboard')}</h3>
           <Leaderboard rows={leaderboard} highlightParticipantId={participantId} />
         </Card>
       )}

@@ -3,6 +3,7 @@
 import { useRouter } from 'next/navigation';
 import { useState, useTransition } from 'react';
 import { MessagesSquare } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -26,6 +27,7 @@ export function QaPanel({
   questions: QuestionItem[];
 }) {
   const router = useRouter();
+  const t = useTranslations('qa');
   const [text, setText] = useState('');
   const [anonymous, setAnonymous] = useState(false);
   const [pending, startTransition] = useTransition();
@@ -44,7 +46,7 @@ export function QaPanel({
       if (result.ok) {
         setText('');
         toast.success(
-          moderated ? 'Sent — the host will review it' : 'Question sent',
+          moderated ? t('sentForReview') : t('sent'),
         );
         router.refresh();
       } else {
@@ -69,35 +71,35 @@ export function QaPanel({
           onChange={(event) => setText(event.target.value)}
           rows={3}
           maxLength={MAX_LENGTH}
-          placeholder="Ask a question…"
-          aria-label="Your question"
+          placeholder={t('placeholder')}
+          aria-label={t('label')}
         />
 
         <div className="mt-3 flex flex-wrap items-center justify-between gap-3">
           {allowAnonymous ? (
             <label className="flex items-center gap-2 text-sm text-muted-foreground">
               <Switch checked={anonymous} onCheckedChange={setAnonymous} />
-              Ask anonymously
+              {t('anonymous')}
             </label>
           ) : (
             <span className="text-xs text-muted-foreground">
-              Questions show your name.
+              {t('namesShown')}
             </span>
           )}
 
-          <div className="ml-auto flex items-center gap-3">
+          <div className="ms-auto flex items-center gap-3">
             <span className="text-xs tabular-nums text-muted-foreground">
               {text.length}/{MAX_LENGTH}
             </span>
             <Button onClick={ask} loading={pending} disabled={text.trim().length < 3}>
-              Send
+              {t('send')}
             </Button>
           </div>
         </div>
 
         {moderated && (
           <p className="mt-2 text-xs text-muted-foreground">
-            The host reviews questions before the room sees them.
+            {t('moderated')}
           </p>
         )}
       </Card>
@@ -105,8 +107,8 @@ export function QaPanel({
       {questions.length === 0 ? (
         <EmptyState
           icon={MessagesSquare}
-          title="No questions yet"
-          description="Be the first to ask."
+          title={t('emptyTitle')}
+          description={t('emptyBody')}
         />
       ) : (
         <ul className="space-y-2">

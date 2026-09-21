@@ -8,6 +8,8 @@
  * @type {import('next').NextConfig}
  */
 
+import createNextIntlPlugin from 'next-intl/plugin';
+
 /**
  * Origins allowed to invoke Server Actions.
  *
@@ -32,4 +34,4 @@ const nextConfig = {
   },
 };
 
-export default nextConfig;
+export default createNextIntlPlugin('./i18n/request.ts')(nextConfig);

@@ -3,6 +3,7 @@
 import { useState, useTransition } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { useTranslations } from 'next-intl';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -11,6 +12,8 @@ import { joinEventAction } from '@/lib/actions/join';
 import { joinEventSchema, type JoinEventInput } from '@/lib/validations/user';
 
 export function JoinForm({ defaultCode = '' }: { defaultCode?: string }) {
+  // Unscoped: validation messages arrive as full keys from the schema.
+  const t = useTranslations();
   const [pending, startTransition] = useTransition();
   const [formError, setFormError] = useState<string | null>(null);
 
@@ -39,7 +42,7 @@ export function JoinForm({ defaultCode = '' }: { defaultCode?: string }) {
       noValidate
     >
       <div className="space-y-1.5">
-        <Label htmlFor="code">Event code</Label>
+        <Label htmlFor="code">{t('join.code')}</Label>
         <Input
           id="code"
           autoFocus
@@ -53,17 +56,17 @@ export function JoinForm({ defaultCode = '' }: { defaultCode?: string }) {
         />
         {form.formState.errors.code && (
           <p className="text-sm text-destructive">
-            {form.formState.errors.code.message}
+            {t(form.formState.errors.code.message ?? 'validation.codeRequired')}
           </p>
         )}
       </div>
 
       <div className="space-y-1.5">
-        <Label htmlFor="displayName">Your name (optional)</Label>
+        <Label htmlFor="displayName">{t('join.name')}</Label>
         <Input
           id="displayName"
           autoComplete="name"
-          placeholder="Stay anonymous by leaving this blank"
+          placeholder={t('join.namePlaceholder')}
           {...form.register('displayName')}
         />
       </div>
@@ -75,7 +78,7 @@ export function JoinForm({ defaultCode = '' }: { defaultCode?: string }) {
       )}
 
       <Button type="submit" size="lg" className="w-full" loading={pending}>
-        Join event
+        {t('join.submit')}
       </Button>
     </form>
   );

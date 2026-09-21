@@ -1,5 +1,7 @@
 'use client';
 
+import { useTranslations } from 'next-intl';
+
 import { ArrowBigUp, Star } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils/cn';
@@ -17,6 +19,7 @@ export function QuestionCard({
   /** Host moderation controls, rendered under the question text. */
   actions?: React.ReactNode;
 }) {
+  const t = useTranslations('questionCard');
   const canVote = Boolean(onUpvote) && !upvoteDisabled;
 
   return (
@@ -35,7 +38,7 @@ export function QuestionCard({
           onClick={() => onUpvote(question.id)}
           disabled={upvoteDisabled}
           aria-pressed={question.votedByMe}
-          aria-label={question.votedByMe ? 'Remove your upvote' : 'Upvote this question'}
+          aria-label={question.votedByMe ? t('removeUpvote') : t('upvote')}
           className={cn(
             'flex h-14 w-11 shrink-0 flex-col items-center justify-center rounded-md border text-sm font-semibold transition-colors',
             question.votedByMe
@@ -64,12 +67,12 @@ export function QuestionCard({
         </p>
 
         <div className="mt-2 flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
-          <span>{question.authorName ?? 'Anonymous'}</span>
+          <span>{question.authorName ?? t('anonymous')}</span>
           {question.isMine && <span>· you</span>}
 
-          {question.status === 'answered' && <Badge variant="primary">Answered</Badge>}
-          {question.status === 'pending' && <Badge>Awaiting approval</Badge>}
-          {question.status === 'hidden' && <Badge variant="destructive">Hidden</Badge>}
+          {question.status === 'answered' && <Badge variant="primary">{t('answered')}</Badge>}
+          {question.status === 'pending' && <Badge>{t('pending')}</Badge>}
+          {question.status === 'hidden' && <Badge variant="destructive">{t('hidden')}</Badge>}
           {question.isHighlighted && (
             <Badge variant="accent">
               <Star className="size-3" aria-hidden />
