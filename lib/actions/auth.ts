@@ -1,6 +1,7 @@
 'use server';
 
 import { AuthError } from 'next-auth';
+import { getTranslations } from 'next-intl/server';
 import { eq } from 'drizzle-orm';
 import { db } from '@/lib/db';
 import { users } from '@/db/schema';
@@ -17,9 +18,11 @@ export type ActionResult = { ok: true } | { ok: false; error: string };
  * catch below deliberately rethrows anything that is not an AuthError.
  */
 export async function signUpAction(input: unknown): Promise<ActionResult> {
+  const t = await getTranslations();
+
   const parsed = signUpSchema.safeParse(input);
   if (!parsed.success) {
-    return { ok: false, error: parsed.error.issues[0]?.message ?? 'Invalid details' };
+    return { ok: false, error: t(parsed.error.issues[0]?.message ?? 'validation.emailInvalid') };
   }
 
   const { name, email, password } = parsed.data;
@@ -31,7 +34,7 @@ export async function signUpAction(input: unknown): Promise<ActionResult> {
     .limit(1);
 
   if (existing) {
-    return { ok: false, error: 'An account with that email already exists' };
+    return { ok: false, error: t('auth.emailTaken') };
   }
 
   await db.insert(users).values({
@@ -44,7 +47,7 @@ export async function signUpAction(input: unknown): Promise<ActionResult> {
     await signIn('credentials', { email, password, redirectTo: '/dashboard' });
   } catch (error) {
     if (error instanceof AuthError) {
-      return { ok: false, error: 'Account created, but sign-in failed. Try signing in.' };
+      return { ok: false, error: t('auth.signUpThenSignIn') };
     }
     throw error;
   }
@@ -72,9 +75,11 @@ export async function signInAction(
   input: unknown,
   callbackUrl?: string,
 ): Promise<ActionResult> {
+  const t = await getTranslations();
+
   const parsed = signInSchema.safeParse(input);
   if (!parsed.success) {
-    return { ok: false, error: parsed.error.issues[0]?.message ?? 'Invalid details' };
+    return { ok: false, error: t(parsed.error.issues[0]?.message ?? 'validation.emailInvalid') };
   }
 
   try {
@@ -85,7 +90,7 @@ export async function signInAction(
     });
   } catch (error) {
     if (error instanceof AuthError) {
-      return { ok: false, error: 'That email and password do not match an account' };
+      return { ok: false, error: t('auth.badCredentials') };
     }
     throw error;
   }

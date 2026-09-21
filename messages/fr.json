@@ -227,6 +227,48 @@
   "validation": {
     "codeRequired": "Saisissez le code de l'événement",
     "codeTooLong": "Ce code est trop long",
-    "nameTooShort": "Le nom doit contenir au moins 2 caractères"
+    "nameTooShort": "Le nom doit contenir au moins 2 caractères",
+    "emailInvalid": "Saisissez une adresse e-mail valide",
+    "passwordTooShort": "Le mot de passe doit contenir au moins 8 caractères",
+    "passwordTooLong": "Le mot de passe est trop long",
+    "passwordRequired": "Saisissez votre mot de passe"
+  },
+  "auth": {
+    "signInTitle": "Bon retour",
+    "signInSubtitle": "Connectez-vous pour animer vos événements.",
+    "signUpTitle": "Créez votre compte",
+    "signUpSubtitle": "Gratuit, et votre public n’en a jamais besoin.",
+    "name": "Nom",
+    "namePlaceholder": "Amine Cherfaoui",
+    "email": "E-mail",
+    "emailPlaceholder": "vous@entreprise.com",
+    "password": "Mot de passe",
+    "passwordPlaceholder": "8 caractères minimum",
+    "signIn": "Se connecter",
+    "createAccount": "Créer mon compte",
+    "noAccount": "Nouveau sur Chorus ?",
+    "createOne": "Créer un compte",
+    "haveAccount": "Vous avez déjà un compte ?",
+    "google": "Continuer avec Google",
+    "googleSignUp": "S’inscrire avec Google",
+    "orEmail": "ou par e-mail",
+    "notLinked": "Cette adresse a déjà un compte Chorus avec un mot de passe. Connectez-vous avec votre mot de passe ci-dessous.",
+    "cancelled": "Connexion Google annulée.",
+    "googleFailed": "La connexion Google n’a pas fonctionné. Réessayez.",
+    "badCredentials": "Cet e-mail et ce mot de passe ne correspondent à aucun compte",
+    "emailTaken": "Un compte existe déjà avec cet e-mail",
+    "signUpThenSignIn": "Compte créé, mais la connexion a échoué. Essayez de vous connecter."
+  },
+  "preview": {
+    "live": "En direct",
+    "question": "D’où vient la majorité de vos prospects ?",
+    "emailNewsletters": "Newsletters",
+    "paidSocial": "Réseaux sociaux payants",
+    "searchAds": "Publicité sur les moteurs",
+    "events": "Événements",
+    "responses": "{count, plural, one {# réponse} other {# réponses}}",
+    "topQuestions": "Questions les plus votées",
+    "q1": "Comment mesurez-vous l’attribution entre les canaux ?",
+    "q2": "Quelle répartition de budget a le mieux marché le trimestre dernier ?"
   }
 }

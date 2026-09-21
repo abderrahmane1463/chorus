@@ -1,3 +1,4 @@
+import { useTranslations } from 'next-intl';
 import { Button } from '@/components/ui/button';
 import { signInWithGoogleAction } from '@/lib/actions/auth';
 
@@ -36,6 +37,8 @@ export function GoogleSignIn({
   label: string;
   callbackUrl?: string;
 }) {
+  const t = useTranslations('auth');
+
   return (
     <>
       <form action={signInWithGoogleAction}>
@@ -48,7 +51,7 @@ export function GoogleSignIn({
 
       <div className="my-5 flex items-center gap-3 text-xs uppercase tracking-wide text-muted-foreground">
         <span className="h-px flex-1 bg-border" />
-        or with email
+        {t('orEmail')}
         <span className="h-px flex-1 bg-border" />
       </div>
     </>

@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { useState, useTransition } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { useTranslations } from 'next-intl';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -17,15 +18,18 @@ import {
   type SignUpInput,
 } from '@/lib/validations/auth';
 
+/** Validation messages arrive as keys from the schema, so `t` is unscoped. */
 function FieldError({ message }: { message?: string }) {
+  const t = useTranslations();
   if (!message) return null;
-  return <p className="text-sm text-destructive">{message}</p>;
+  return <p className="text-sm text-destructive">{t(message)}</p>;
 }
 
 export function SignInForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const callbackUrl = searchParams.get('callbackUrl') ?? '';
+  const t = useTranslations('auth');
   const [pending, startTransition] = useTransition();
   const [formError, setFormError] = useState<string | null>(null);
 
@@ -58,12 +62,13 @@ export function SignInForm() {
       noValidate
     >
       <div className="space-y-1.5">
-        <Label htmlFor="email">Email</Label>
+        <Label htmlFor="email">{t('email')}</Label>
         <Input
           id="email"
           type="email"
           autoComplete="email"
-          placeholder="you@company.com"
+          placeholder={t('emailPlaceholder')}
+          dir="ltr"
           aria-invalid={Boolean(form.formState.errors.email)}
           {...form.register('email')}
         />
@@ -71,11 +76,12 @@ export function SignInForm() {
       </div>
 
       <div className="space-y-1.5">
-        <Label htmlFor="password">Password</Label>
+        <Label htmlFor="password">{t('password')}</Label>
         <Input
           id="password"
           type="password"
           autoComplete="current-password"
+          dir="ltr"
           aria-invalid={Boolean(form.formState.errors.password)}
           {...form.register('password')}
         />
@@ -89,13 +95,13 @@ export function SignInForm() {
       )}
 
       <Button type="submit" className="w-full" loading={pending}>
-        Sign in
+        {t('signIn')}
       </Button>
 
       <p className="text-center text-sm text-muted-foreground">
-        New to Chorus?{' '}
+        {t('noAccount')}{' '}
         <Link href="/sign-up" className="text-primary hover:underline">
-          Create an account
+          {t('createOne')}
         </Link>
       </p>
     </form>
@@ -104,6 +110,7 @@ export function SignInForm() {
 
 export function SignUpForm() {
   const router = useRouter();
+  const t = useTranslations('auth');
   const [pending, startTransition] = useTransition();
   const [formError, setFormError] = useState<string | null>(null);
 
@@ -134,11 +141,11 @@ export function SignUpForm() {
       noValidate
     >
       <div className="space-y-1.5">
-        <Label htmlFor="name">Name</Label>
+        <Label htmlFor="name">{t('name')}</Label>
         <Input
           id="name"
           autoComplete="name"
-          placeholder="Amine Cherfaoui"
+          placeholder={t('namePlaceholder')}
           aria-invalid={Boolean(form.formState.errors.name)}
           {...form.register('name')}
         />
@@ -146,12 +153,15 @@ export function SignUpForm() {
       </div>
 
       <div className="space-y-1.5">
-        <Label htmlFor="email">Email</Label>
+        <Label htmlFor="email">{t('email')}</Label>
+        {/* Addresses and passwords are always typed left to right, even on an
+            Arabic page, so the caret must not start on the right. */}
         <Input
           id="email"
           type="email"
           autoComplete="email"
-          placeholder="you@company.com"
+          placeholder={t('emailPlaceholder')}
+          dir="ltr"
           aria-invalid={Boolean(form.formState.errors.email)}
           {...form.register('email')}
         />
@@ -159,12 +169,13 @@ export function SignUpForm() {
       </div>
 
       <div className="space-y-1.5">
-        <Label htmlFor="password">Password</Label>
+        <Label htmlFor="password">{t('password')}</Label>
         <Input
           id="password"
           type="password"
           autoComplete="new-password"
-          placeholder="At least 8 characters"
+          placeholder={t('passwordPlaceholder')}
+          dir="ltr"
           aria-invalid={Boolean(form.formState.errors.password)}
           {...form.register('password')}
         />
@@ -178,13 +189,13 @@ export function SignUpForm() {
       )}
 
       <Button type="submit" className="w-full" loading={pending}>
-        Create account
+        {t('createAccount')}
       </Button>
 
       <p className="text-center text-sm text-muted-foreground">
-        Already have an account?{' '}
+        {t('haveAccount')}{' '}
         <Link href="/sign-in" className="text-primary hover:underline">
-          Sign in
+          {t('signIn')}
         </Link>
       </p>
     </form>

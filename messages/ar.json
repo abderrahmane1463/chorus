@@ -227,6 +227,48 @@
   "validation": {
     "codeRequired": "أدخل رمز الفعالية",
     "codeTooLong": "هذا الرمز طويل جدًا",
-    "nameTooShort": "يجب أن يتكون الاسم من حرفين على الأقل"
+    "nameTooShort": "يجب أن يتكون الاسم من حرفين على الأقل",
+    "emailInvalid": "أدخل بريدًا إلكترونيًا صحيحًا",
+    "passwordTooShort": "يجب أن تتكون كلمة السر من 8 أحرف على الأقل",
+    "passwordTooLong": "كلمة السر طويلة جدًا",
+    "passwordRequired": "أدخل كلمة السر"
+  },
+  "auth": {
+    "signInTitle": "أهلًا بعودتك",
+    "signInSubtitle": "سجّل الدخول لإدارة فعالياتك.",
+    "signUpTitle": "أنشئ حسابك",
+    "signUpSubtitle": "مجاني، ولا يحتاج جمهورك إلى حساب أبدًا.",
+    "name": "الاسم",
+    "namePlaceholder": "أمين شرفاوي",
+    "email": "البريد الإلكتروني",
+    "emailPlaceholder": "you@company.com",
+    "password": "كلمة السر",
+    "passwordPlaceholder": "8 أحرف على الأقل",
+    "signIn": "تسجيل الدخول",
+    "createAccount": "إنشاء الحساب",
+    "noAccount": "جديد على Chorus؟",
+    "createOne": "أنشئ حسابًا",
+    "haveAccount": "لديك حساب بالفعل؟",
+    "google": "المتابعة بحساب Google",
+    "googleSignUp": "التسجيل بحساب Google",
+    "orEmail": "أو بالبريد الإلكتروني",
+    "notLinked": "هذا البريد مرتبط بحساب Chorus بكلمة سر. سجّل الدخول بكلمة السر أدناه.",
+    "cancelled": "أُلغي تسجيل الدخول بحساب Google.",
+    "googleFailed": "لم ينجح تسجيل الدخول بحساب Google. حاول مرة أخرى.",
+    "badCredentials": "لا يوجد حساب بهذا البريد وكلمة السر",
+    "emailTaken": "يوجد حساب بهذا البريد بالفعل",
+    "signUpThenSignIn": "أُنشئ الحساب، لكن تسجيل الدخول أخفق. جرّب تسجيل الدخول."
+  },
+  "preview": {
+    "live": "مباشر",
+    "question": "من أين يأتي أغلب عملائك المحتملين؟",
+    "emailNewsletters": "النشرات البريدية",
+    "paidSocial": "إعلانات التواصل الاجتماعي",
+    "searchAds": "إعلانات البحث",
+    "events": "الفعاليات",
+    "responses": "{count, plural, zero {لا إجابات} one {إجابة واحدة} two {إجابتان} few {# إجابات} many {# إجابة} other {# إجابة}}",
+    "topQuestions": "أكثر الأسئلة تصويتًا",
+    "q1": "كيف تقيس مصدر كل عميل بين القنوات؟",
+    "q2": "أي توزيع للميزانية كان الأفضل في الربع الماضي؟"
   }
 }

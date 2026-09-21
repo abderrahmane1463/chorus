@@ -1,21 +1,21 @@
 import { Suspense } from 'react';
 import type { Metadata } from 'next';
 import { connection } from 'next/server';
+import { getTranslations } from 'next-intl/server';
 import { SignInForm } from '@/components/auth/auth-form';
 import { GoogleSignIn } from '@/components/auth/google-sign-in';
 import { Skeleton } from '@/components/ui/skeleton';
 import { isGoogleEnabled } from '@/lib/auth';
 
-export const metadata: Metadata = { title: 'Sign in' };
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getTranslations('auth');
+  return { title: t('signIn') };
+}
 
-/**
- * Auth.js sends OAuth failures here as ?error=<code>. Anything unlisted gets
- * the generic line: the codes are for logs, not for hosts.
- */
+/** Auth.js sends OAuth failures here as ?error=<code>. */
 const OAUTH_ERRORS: Record<string, string> = {
-  OAuthAccountNotLinked:
-    'That email already has a Chorus account with a password. Sign in with your password below.',
-  AccessDenied: 'Google sign-in was cancelled.',
+  OAuthAccountNotLinked: 'notLinked',
+  AccessDenied: 'cancelled',
 };
 
 export default async function SignInPage({
@@ -27,16 +27,15 @@ export default async function SignInPage({
   // environment, not the secret-less CI build.
   await connection();
   const { callbackUrl, error } = await searchParams;
-  const errorMessage = error
-    ? (OAUTH_ERRORS[error] ?? "Google sign-in didn't work. Please try again.")
-    : null;
+  const t = await getTranslations('auth');
+
+  // Anything unlisted gets the generic line: the codes are for logs, not hosts.
+  const errorMessage = error ? t(OAUTH_ERRORS[error] ?? 'googleFailed') : null;
 
   return (
     <div className="rounded-xl border border-border bg-card p-6">
-      <h1 className="text-xl font-semibold">Welcome back</h1>
-      <p className="mb-6 mt-1 text-sm text-muted-foreground">
-        Sign in to run your events.
-      </p>
+      <h1 className="text-xl font-semibold">{t('signInTitle')}</h1>
+      <p className="mb-6 mt-1 text-sm text-muted-foreground">{t('signInSubtitle')}</p>
 
       {errorMessage && (
         <p
@@ -48,7 +47,7 @@ export default async function SignInPage({
       )}
 
       {isGoogleEnabled() && (
-        <GoogleSignIn label="Continue with Google" callbackUrl={callbackUrl} />
+        <GoogleSignIn label={t('google')} callbackUrl={callbackUrl} />
       )}
 
       {/* useSearchParams needs a Suspense boundary during prerendering. */}

@@ -227,6 +227,48 @@
   "validation": {
     "codeRequired": "Enter the event code",
     "codeTooLong": "That code is too long",
-    "nameTooShort": "Name must be at least 2 characters"
+    "nameTooShort": "Name must be at least 2 characters",
+    "emailInvalid": "Enter a valid email address",
+    "passwordTooShort": "Password must be at least 8 characters",
+    "passwordTooLong": "Password is too long",
+    "passwordRequired": "Enter your password"
+  },
+  "auth": {
+    "signInTitle": "Welcome back",
+    "signInSubtitle": "Sign in to run your events.",
+    "signUpTitle": "Create your account",
+    "signUpSubtitle": "Free, and your audience never needs one.",
+    "name": "Name",
+    "namePlaceholder": "Amine Cherfaoui",
+    "email": "Email",
+    "emailPlaceholder": "you@company.com",
+    "password": "Password",
+    "passwordPlaceholder": "At least 8 characters",
+    "signIn": "Sign in",
+    "createAccount": "Create account",
+    "noAccount": "New to Chorus?",
+    "createOne": "Create an account",
+    "haveAccount": "Already have an account?",
+    "google": "Continue with Google",
+    "googleSignUp": "Sign up with Google",
+    "orEmail": "or with email",
+    "notLinked": "That email already has a Chorus account with a password. Sign in with your password below.",
+    "cancelled": "Google sign-in was cancelled.",
+    "googleFailed": "Google sign-in didn't work. Please try again.",
+    "badCredentials": "That email and password do not match an account",
+    "emailTaken": "An account with that email already exists",
+    "signUpThenSignIn": "Account created, but sign-in failed. Try signing in."
+  },
+  "preview": {
+    "live": "Live",
+    "question": "Where does most of your pipeline come from?",
+    "emailNewsletters": "Email newsletters",
+    "paidSocial": "Paid social",
+    "searchAds": "Search ads",
+    "events": "Events",
+    "responses": "{count, plural, one {# response} other {# responses}}",
+    "topQuestions": "Top questions",
+    "q1": "How do you measure attribution across channels?",
+    "q2": "Which budget split worked best for you last quarter?"
   }
 }
