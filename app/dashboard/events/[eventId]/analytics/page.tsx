@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
+import { getFormatter, getTranslations } from 'next-intl/server';
 import {
   ArrowLeft,
   Download,
@@ -24,7 +25,6 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { pluralize } from '@/lib/utils/format';
 
 export async function generateMetadata({
   params,
@@ -34,16 +34,28 @@ export async function generateMetadata({
   const user = await requireUser();
   const { eventId } = await params;
   const event = await getEventForOwner(eventId, user.id);
-  return { title: event ? `${event.title} analytics` : 'Analytics' };
+  const t = await getTranslations('eventAnalytics');
+  const tList = await getTranslations('analytics');
+  return {
+    title: event ? t('metaTitle', { title: event.title }) : tList('title'),
+  };
 }
 
-function formatRange(first: Date | null, last: Date | null): string | null {
+/** Formatted with the reader's calendar, digits and clock. */
+async function formatRange(first: Date | null, last: Date | null) {
   if (!first || !last) return null;
+  const format = await getFormatter();
   const sameDay = first.toDateString() === last.toDateString();
-  const date = first.toLocaleDateString();
-  const from = first.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-  const to = last.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-  return sameDay ? `${date}, ${from} – ${to}` : `${first.toLocaleString()} – ${last.toLocaleString()}`;
+
+  if (sameDay) {
+    const date = format.dateTime(first, { dateStyle: 'medium' });
+    const from = format.dateTime(first, { timeStyle: 'short' });
+    const to = format.dateTime(last, { timeStyle: 'short' });
+    return `${date}, ${from} – ${to}`;
+  }
+
+  const style = { dateStyle: 'medium', timeStyle: 'short' } as const;
+  return `${format.dateTime(first, style)} – ${format.dateTime(last, style)}`;
 }
 
 export default async function EventAnalyticsPage({
@@ -57,8 +69,12 @@ export default async function EventAnalyticsPage({
   const event = await getEventForOwner(eventId, user.id);
   if (!event) notFound();
 
+  const t = await getTranslations('eventAnalytics');
+  const tTypes = await getTranslations('types');
+  const tQuestionStatus = await getTranslations('questionStatus');
+
   const analytics = await getEventAnalytics(event.id);
-  const range = formatRange(analytics.firstResponseAt, analytics.lastResponseAt);
+  const range = await formatRange(analytics.firstResponseAt, analytics.lastResponseAt);
 
   return (
     <div className="mx-auto max-w-5xl px-5 py-8 lg:px-8">
@@ -66,25 +82,25 @@ export default async function EventAnalyticsPage({
         href={`/dashboard/events/${event.id}`}
         className="mb-6 inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground"
       >
-        <ArrowLeft className="size-4" />
-        Back to interactions
+        <ArrowLeft className="size-4 rtl:rotate-180" />
+        {t('back')}
       </Link>
 
       <PageHeader
-        title={`${event.title} analytics`}
-        description={range ?? 'No activity recorded yet.'}
+        title={t('metaTitle', { title: event.title })}
+        description={range ?? t('noActivity')}
         action={
           <div className="flex flex-wrap gap-2">
             <Button variant="secondary" asChild>
               <a href={`/api/events/${event.id}/export?dataset=responses`}>
                 <Download />
-                Responses CSV
+                {t('responsesCsv')}
               </a>
             </Button>
             <Button variant="secondary" asChild>
               <a href={`/api/events/${event.id}/export?dataset=questions`}>
                 <Download />
-                Questions CSV
+                {t('questionsCsv')}
               </a>
             </Button>
           </div>
@@ -92,26 +108,40 @@ export default async function EventAnalyticsPage({
       />
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <StatCard label="Participants" value={analytics.totals.participants} icon={Users} />
         <StatCard
-          label="Participation"
+          label={t('participants')}
+          value={analytics.totals.participants}
+          icon={Users}
+        />
+        <StatCard
+          label={t('participation')}
           value={`${analytics.participationRate}%`}
           icon={Percent}
         />
-        <StatCard label="Responses" value={analytics.totals.responses} icon={MessageSquare} />
-        <StatCard label="Questions" value={analytics.totals.questions} icon={MessagesSquare} />
+        <StatCard
+          label={t('responses')}
+          value={analytics.totals.responses}
+          icon={MessageSquare}
+        />
+        <StatCard
+          label={t('questions')}
+          value={analytics.totals.questions}
+          icon={MessagesSquare}
+        />
       </div>
 
       <p className="mt-3 text-sm text-muted-foreground">
-        {analytics.totals.responded} of {pluralize(analytics.totals.participants, 'participant')}{' '}
-        answered at least once · {pluralize(analytics.totals.questionVotes, 'upvote')} on
-        questions
+        {t('summary', {
+          responded: analytics.totals.responded,
+          participants: t('participantCount', { count: analytics.totals.participants }),
+          upvotes: t('upvoteCount', { count: analytics.totals.questionVotes }),
+        })}
       </p>
 
       <div className="mt-8 grid gap-6 lg:grid-cols-2">
         <Card>
           <CardHeader>
-            <CardTitle>Responses over time</CardTitle>
+            <CardTitle>{t('overTime')}</CardTitle>
           </CardHeader>
           <CardContent>
             <ResponsesOverTime data={analytics.timeline} />
@@ -120,12 +150,12 @@ export default async function EventAnalyticsPage({
 
         <Card>
           <CardHeader>
-            <CardTitle>Responses by interaction</CardTitle>
+            <CardTitle>{t('byInteraction')}</CardTitle>
           </CardHeader>
           <CardContent>
             <ResponsesByInteraction
               data={analytics.perInteraction.map((item) => ({
-                title: item.title || 'Untitled',
+                title: item.title || t('untitled'),
                 responses: item.responseCount,
               }))}
             />
@@ -134,12 +164,12 @@ export default async function EventAnalyticsPage({
       </div>
 
       <section className="mt-10">
-        <h2 className="mb-4 text-lg font-semibold">Results by interaction</h2>
+        <h2 className="mb-4 text-lg font-semibold">{t('resultsBy')}</h2>
 
         {analytics.perInteraction.length === 0 ? (
           <EmptyState
-            title="No interactions yet"
-            description="Add a poll or a word cloud and its results appear here."
+            title={t('noneTitle')}
+            description={t('noneBody')}
           />
         ) : (
           <div className="space-y-4">
@@ -149,14 +179,19 @@ export default async function EventAnalyticsPage({
                 <Card key={item.id}>
                   <CardHeader>
                     <div className="flex flex-wrap items-center gap-2">
-                      <CardTitle>{item.title || 'Untitled'}</CardTitle>
-                      <Badge>{meta?.name ?? item.type}</Badge>
+                      <CardTitle>{item.title || t('untitled')}</CardTitle>
+                      <Badge>{meta ? tTypes(`${meta.type}.name`) : item.type}</Badge>
                     </div>
                     <p className="text-sm text-muted-foreground">
-                      {item.questionCount !== undefined
-                        ? pluralize(item.questionCount, 'question')
-                        : pluralize(item.responseCount, 'response')}{' '}
-                      from {pluralize(item.participantCount, 'participant')}
+                      {t('fromParticipants', {
+                        count:
+                          item.questionCount !== undefined
+                            ? t('questionCount', { count: item.questionCount })
+                            : t('responseCount', { count: item.responseCount }),
+                        participants: t('participantCount', {
+                          count: item.participantCount,
+                        }),
+                      })}
                     </p>
                   </CardHeader>
                   <CardContent>
@@ -165,7 +200,7 @@ export default async function EventAnalyticsPage({
                         {item.children.map((child) => (
                           <div key={child.id}>
                             <h3 className="mb-3 font-medium">
-                              {child.title || 'Untitled question'}
+                              {child.title || t('untitledQuestion')}
                             </h3>
                             <ResultsView results={child.results} />
                           </div>
@@ -173,7 +208,7 @@ export default async function EventAnalyticsPage({
                       </div>
                     ) : item.questionCount !== undefined ? (
                       <p className="text-sm text-muted-foreground">
-                        Questions and upvotes are listed below.
+                        {t('questionsBelow')}
                       </p>
                     ) : (
                       <ResultsView results={item.results} />
@@ -188,14 +223,14 @@ export default async function EventAnalyticsPage({
 
       {analytics.quizzes.length > 0 && (
         <section className="mt-10">
-          <h2 className="mb-4 text-lg font-semibold">Quizzes</h2>
+          <h2 className="mb-4 text-lg font-semibold">{t('quizzes')}</h2>
           <div className="space-y-4">
             {analytics.quizzes.map((quiz) => (
               <Card key={quiz.id}>
                 <CardHeader>
-                  <CardTitle>{quiz.title || 'Untitled quiz'}</CardTitle>
+                  <CardTitle>{quiz.title || t('untitledQuiz')}</CardTitle>
                   <p className="text-sm text-muted-foreground">
-                    {pluralize(quiz.leaderboard.length, 'player')}
+                    {t('playerCount', { count: quiz.leaderboard.length })}
                   </p>
                 </CardHeader>
                 <CardContent>
@@ -209,19 +244,19 @@ export default async function EventAnalyticsPage({
 
       {analytics.topQuestions.length > 0 && (
         <section className="mt-10">
-          <h2 className="mb-4 text-lg font-semibold">Most upvoted questions</h2>
+          <h2 className="mb-4 text-lg font-semibold">{t('topQuestions')}</h2>
           <Card>
             <CardContent className="pt-5">
               <ol className="space-y-3">
                 {analytics.topQuestions.map((question) => (
                   <li key={question.id} className="flex gap-4">
-                    <span className="w-8 shrink-0 text-right font-semibold tabular-nums text-primary">
+                    <span className="w-8 shrink-0 text-end font-semibold tabular-nums text-primary">
                       {question.votes}
                     </span>
                     <span className="min-w-0 flex-1">
                       <span className="block">{question.text}</span>
                       <span className="mt-0.5 block text-xs text-muted-foreground">
-                        {question.status}
+                        {tQuestionStatus(question.status)}
                       </span>
                     </span>
                   </li>

@@ -3,6 +3,7 @@
 import { useTransition } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { useTranslations } from 'next-intl';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -20,6 +21,9 @@ export function ProfileForm({
   defaultName: string;
   email: string;
 }) {
+  const t = useTranslations('profile');
+  // Unscoped for schema keys.
+  const tRoot = useTranslations();
   const [pending, startTransition] = useTransition();
 
   const form = useForm<UpdateProfileInput>({
@@ -31,7 +35,7 @@ export function ProfileForm({
     startTransition(async () => {
       const result = await updateProfileAction(values);
       if (result.ok) {
-        toast.success('Profile updated');
+        toast.success(t('updated'));
         form.reset(values);
       } else {
         toast.error(result.error);
@@ -47,7 +51,7 @@ export function ProfileForm({
       noValidate
     >
       <div className="space-y-1.5">
-        <Label htmlFor="name">Display name</Label>
+        <Label htmlFor="name">{t('displayName')}</Label>
         <Input
           id="name"
           aria-invalid={Boolean(form.formState.errors.name)}
@@ -55,21 +59,21 @@ export function ProfileForm({
         />
         {form.formState.errors.name && (
           <p className="text-sm text-destructive">
-            {form.formState.errors.name.message}
+            {tRoot(form.formState.errors.name.message ?? 'validation.nameTooShort')}
           </p>
         )}
       </div>
 
       <div className="space-y-1.5">
-        <Label htmlFor="email">Email</Label>
-        <Input id="email" value={email} readOnly disabled />
+        <Label htmlFor="email">{t('email')}</Label>
+        <Input id="email" value={email} readOnly disabled dir="ltr" />
         <p className="text-xs text-muted-foreground">
-          Email changes are not supported yet.
+          {t('emailLocked')}
         </p>
       </div>
 
       <Button type="submit" loading={pending} disabled={!form.formState.isDirty}>
-        Save changes
+        {t('save')}
       </Button>
     </form>
   );

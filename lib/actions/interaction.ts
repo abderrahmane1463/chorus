@@ -1,5 +1,6 @@
 'use server';
 
+import { getTranslations } from 'next-intl/server';
 import { revalidatePath } from 'next/cache';
 import { and, eq, isNull, max } from 'drizzle-orm';
 import { db } from '@/lib/db';
@@ -46,16 +47,18 @@ function revalidateEvent(eventId: string) {
 export async function createInteractionAction(
   input: unknown,
 ): Promise<ActionResult & { interactionId?: string }> {
+  const t = await getTranslations();
+
   const user = await requireUser();
 
   const parsed = createInteractionSchema.safeParse(input);
-  if (!parsed.success) return { ok: false, error: 'Unsupported interaction type' };
+  if (!parsed.success) return { ok: false, error: t('errors.unsupportedType') };
 
   const owned = await assertEventOwner(parsed.data.eventId, user.id);
-  if (!owned) return { ok: false, error: 'Event not found' };
+  if (!owned) return { ok: false, error: t('errors.eventNotFound') };
 
   const meta = getInteractionMeta(parsed.data.type);
-  if (!meta) return { ok: false, error: 'Unsupported interaction type' };
+  if (!meta) return { ok: false, error: t('errors.unsupportedType') };
 
   const [{ highest }] = await db
     .select({ highest: max(interactions.position) })
@@ -88,6 +91,8 @@ export async function createInteractionAction(
 }
 
 export async function updateInteractionAction(input: unknown): Promise<ActionResult> {
+  const t = await getTranslations();
+
   const user = await requireUser();
 
   const parsed = updateInteractionSchema.safeParse(input);
@@ -96,7 +101,7 @@ export async function updateInteractionAction(input: unknown): Promise<ActionRes
   }
 
   const owned = await requireOwnedInteraction(parsed.data.interactionId, user.id);
-  if (!owned) return { ok: false, error: 'Interaction not found' };
+  if (!owned) return { ok: false, error: t('errors.interactionNotFound') };
 
   const meta = getInteractionMeta(owned.type);
   const submittedOptions = parsed.data.options ?? [];
@@ -104,7 +109,7 @@ export async function updateInteractionAction(input: unknown): Promise<ActionRes
   if (meta?.hasOptions) {
     const filled = submittedOptions.filter((option) => option.text.trim().length > 0);
     if (filled.length < 2) {
-      return { ok: false, error: 'Add at least two options' };
+      return { ok: false, error: t('errors.addTwoOptions') };
     }
   }
 
@@ -171,13 +176,15 @@ export async function updateInteractionAction(input: unknown): Promise<ActionRes
 export async function setInteractionStatusAction(
   input: unknown,
 ): Promise<ActionResult> {
+  const t = await getTranslations();
+
   const user = await requireUser();
 
   const parsed = setInteractionStatusSchema.safeParse(input);
-  if (!parsed.success) return { ok: false, error: 'Invalid status' };
+  if (!parsed.success) return { ok: false, error: t('errors.invalidStatus') };
 
   const owned = await requireOwnedInteraction(parsed.data.interactionId, user.id);
-  if (!owned) return { ok: false, error: 'Interaction not found' };
+  if (!owned) return { ok: false, error: t('errors.interactionNotFound') };
 
   if (parsed.data.status === 'active') {
     await db
@@ -227,13 +234,15 @@ export async function setInteractionStatusAction(
 
 /** Clears every response so the same question can be reused with a new room. */
 export async function resetInteractionAction(input: unknown): Promise<ActionResult> {
+  const t = await getTranslations();
+
   const user = await requireUser();
 
   const parsed = interactionIdSchema.safeParse(input);
-  if (!parsed.success) return { ok: false, error: 'Invalid interaction' };
+  if (!parsed.success) return { ok: false, error: t('errors.invalidInteraction') };
 
   const owned = await requireOwnedInteraction(parsed.data.interactionId, user.id);
-  if (!owned) return { ok: false, error: 'Interaction not found' };
+  if (!owned) return { ok: false, error: t('errors.interactionNotFound') };
 
   await db.delete(responses).where(eq(responses.interactionId, owned.id));
 
@@ -247,13 +256,15 @@ export async function resetInteractionAction(input: unknown): Promise<ActionResu
 }
 
 export async function deleteInteractionAction(input: unknown): Promise<ActionResult> {
+  const t = await getTranslations();
+
   const user = await requireUser();
 
   const parsed = interactionIdSchema.safeParse(input);
-  if (!parsed.success) return { ok: false, error: 'Invalid interaction' };
+  if (!parsed.success) return { ok: false, error: t('errors.invalidInteraction') };
 
   const owned = await requireOwnedInteraction(parsed.data.interactionId, user.id);
-  if (!owned) return { ok: false, error: 'Interaction not found' };
+  if (!owned) return { ok: false, error: t('errors.interactionNotFound') };
 
   await db.delete(interactions).where(eq(interactions.id, owned.id));
 
@@ -273,13 +284,15 @@ export async function deleteInteractionAction(input: unknown): Promise<ActionRes
 }
 
 export async function reorderInteractionsAction(input: unknown): Promise<ActionResult> {
+  const t = await getTranslations();
+
   const user = await requireUser();
 
   const parsed = reorderInteractionsSchema.safeParse(input);
-  if (!parsed.success) return { ok: false, error: 'Invalid order' };
+  if (!parsed.success) return { ok: false, error: t('errors.invalidOrder') };
 
   const owned = await assertEventOwner(parsed.data.eventId, user.id);
-  if (!owned) return { ok: false, error: 'Event not found' };
+  if (!owned) return { ok: false, error: t('errors.eventNotFound') };
 
   for (const [index, id] of parsed.data.orderedIds.entries()) {
     await db

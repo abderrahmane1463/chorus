@@ -1,5 +1,6 @@
 'use server';
 
+import { getTranslations } from 'next-intl/server';
 import { revalidatePath } from 'next/cache';
 import { and, eq, inArray } from 'drizzle-orm';
 import { db } from '@/lib/db';
@@ -28,11 +29,13 @@ import type { ActionResult } from './auth';
  * is resolved here from the database.
  */
 export async function submitResponseAction(input: unknown): Promise<ActionResult> {
+  const t = await getTranslations();
+
   const parsed = submitResponseSchema.safeParse(input);
-  if (!parsed.success) return { ok: false, error: 'Invalid answer' };
+  if (!parsed.success) return { ok: false, error: t('errors.invalidAnswer') };
 
   const sessionId = await readSessionId();
-  if (!sessionId) return { ok: false, error: 'Join the event again to answer' };
+  if (!sessionId) return { ok: false, error: t('errors.rejoinToAnswer') };
 
   const [context] = await db
     .select({
@@ -60,9 +63,9 @@ export async function submitResponseAction(input: unknown): Promise<ActionResult
 
   // No row means the interaction does not exist, or this session never joined
   // that event. Both are "you cannot answer this".
-  if (!context) return { ok: false, error: 'You are not part of this event' };
+  if (!context) return { ok: false, error: t('errors.notPartOfEvent') };
   if (context.eventStatus === 'archived') {
-    return { ok: false, error: 'This event is closed' };
+    return { ok: false, error: t('errors.eventClosed') };
   }
   // Survey questions are children and are never "active" themselves; what
   // gates them is whether their parent survey is open.
@@ -77,7 +80,7 @@ export async function submitResponseAction(input: unknown): Promise<ActionResult
     : context.status;
 
   if (gateStatus !== 'active') {
-    return { ok: false, error: 'This question is not open for answers' };
+    return { ok: false, error: t('errors.questionClosed') };
   }
 
   const built = await buildResponseData(context, parsed.data);
@@ -97,7 +100,7 @@ export async function submitResponseAction(input: unknown): Promise<ActionResult
   if (maxEntries === 1) {
     const allowChange = context.settings.allowChangeAnswer ?? false;
     if (existing.length > 0 && !allowChange) {
-      return { ok: false, error: 'You have already answered this one' };
+      return { ok: false, error: t('errors.alreadyAnsweredOne') };
     }
 
     // Slot 0 plus the unique constraint is what makes one-answer-per-person a
@@ -118,7 +121,7 @@ export async function submitResponseAction(input: unknown): Promise<ActionResult
     if (existing.length >= maxEntries) {
       return {
         ok: false,
-        error: `You can submit up to ${maxEntries} ${maxEntries === 1 ? 'answer' : 'answers'}`,
+        error: t('errors.submitUpTo', { count: maxEntries }),
       };
     }
 
@@ -161,16 +164,18 @@ async function buildResponseData(
   context: Context,
   input: { optionIds?: string[]; value?: number; text?: string },
 ): Promise<{ data: ResponseData } | { error: string }> {
+  const t = await getTranslations();
+
   switch (context.type) {
     case 'multiple_choice': {
       const ids = input.optionIds ?? [];
-      if (ids.length === 0) return { error: 'Choose an answer' };
+      if (ids.length === 0) return { error: t('errors.chooseAnswer') };
 
       const limit = context.settings.allowMultiple
         ? (context.settings.maxSelections ?? 10)
         : 1;
       if (ids.length > limit) {
-        return { error: `Choose at most ${limit}` };
+        return { error: t('errors.chooseAtMost', { limit }) };
       }
 
       // Option ids must belong to this interaction, or a crafted request could
@@ -185,7 +190,7 @@ async function buildResponseData(
           ),
         );
 
-      if (valid.length !== ids.length) return { error: 'That answer is not valid' };
+      if (valid.length !== ids.length) return { error: t('errors.answerNotValid') };
 
       return { data: { kind: 'multiple_choice', optionIds: ids } };
     }
@@ -196,26 +201,26 @@ async function buildResponseData(
       const value = input.value;
 
       if (typeof value !== 'number' || !Number.isInteger(value)) {
-        return { error: 'Choose a rating' };
+        return { error: t('errors.chooseRating') };
       }
-      if (value < min || value > max) return { error: 'That rating is out of range' };
+      if (value < min || value > max) return { error: t('errors.ratingOutOfRange') };
 
       return { data: { kind: 'rating', value } };
     }
 
     case 'word_cloud': {
       const word = (input.text ?? '').trim().slice(0, 60);
-      if (word.length === 0) return { error: 'Type a word first' };
+      if (word.length === 0) return { error: t('errors.typeWordFirst') };
 
       const normalized = normalizeWord(word);
-      if (normalized.length === 0) return { error: 'Type a word first' };
+      if (normalized.length === 0) return { error: t('errors.typeWordFirst') };
 
       return { data: { kind: 'word_cloud', word, normalized } };
     }
 
     case 'ranking': {
       const ids = input.optionIds ?? [];
-      if (ids.length === 0) return { error: 'Put the options in order first' };
+      if (ids.length === 0) return { error: t('errors.orderFirst') };
 
       const options = await db
         .select({ id: interactionOptions.id })
@@ -230,7 +235,7 @@ async function buildResponseData(
         ids.length !== valid.size ||
         !ids.every((id) => valid.has(id))
       ) {
-        return { error: 'Rank every option exactly once' };
+        return { error: t('errors.rankEveryOption') };
       }
 
       return { data: { kind: 'ranking', optionIds: ids } };
@@ -239,12 +244,12 @@ async function buildResponseData(
     case 'open_text': {
       const maxLength = context.settings.maxLength ?? 280;
       const text = (input.text ?? '').trim().slice(0, maxLength);
-      if (text.length === 0) return { error: 'Write an answer first' };
+      if (text.length === 0) return { error: t('errors.writeAnswerFirst') };
 
       return { data: { kind: 'open_text', text } };
     }
 
     default:
-      return { error: 'This interaction cannot be answered yet' };
+      return { error: t('errors.notAnswerableYet') };
   }
 }

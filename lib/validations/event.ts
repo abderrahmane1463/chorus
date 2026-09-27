@@ -1,17 +1,19 @@
 import { z } from 'zod';
 
+// Translation keys, resolved with t(message) where they are displayed.
+
 export const eventStatuses = ['draft', 'live', 'ended', 'archived'] as const;
 
 export const createEventSchema = z.object({
   title: z
     .string()
     .trim()
-    .min(2, 'Give your event a title')
-    .max(120, 'Title must be 120 characters or fewer'),
+    .min(2, 'validation.titleRequired')
+    .max(120, 'validation.titleTooLong'),
   description: z
     .string()
     .trim()
-    .max(500, 'Description must be 500 characters or fewer')
+    .max(500, 'validation.descriptionTooLong')
     .optional()
     .or(z.literal('')),
 });

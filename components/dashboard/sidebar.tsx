@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import { useState } from 'react';
 import { BarChart3, CalendarDays, LayoutDashboard, Menu, Settings, X } from 'lucide-react';
 import { Logo } from '@/components/shared/logo';
@@ -9,16 +10,17 @@ import { cn } from '@/lib/utils/cn';
 import { UserMenu } from './user-menu';
 
 const navigation = [
-  { href: '/dashboard', label: 'Overview', icon: LayoutDashboard, exact: true },
-  { href: '/dashboard/events', label: 'Events', icon: CalendarDays, exact: false },
-  { href: '/dashboard/analytics', label: 'Analytics', icon: BarChart3, exact: false },
-  { href: '/settings', label: 'Settings', icon: Settings, exact: false },
-];
+  { href: '/dashboard', key: 'overview', icon: LayoutDashboard, exact: true },
+  { href: '/dashboard/events', key: 'events', icon: CalendarDays, exact: false },
+  { href: '/dashboard/analytics', key: 'analytics', icon: BarChart3, exact: false },
+  { href: '/settings', key: 'settings', icon: Settings, exact: false },
+] as const;
 
 type User = { name?: string | null; email?: string | null; image?: string | null };
 
 function NavLinks({ onNavigate }: { onNavigate?: () => void }) {
   const pathname = usePathname();
+  const t = useTranslations('dash');
 
   return (
     <nav className="flex flex-col gap-1">
@@ -41,7 +43,7 @@ function NavLinks({ onNavigate }: { onNavigate?: () => void }) {
             )}
           >
             <item.icon className="size-4" aria-hidden />
-            {item.label}
+            {t(item.key)}
           </Link>
         );
       })}
@@ -50,6 +52,7 @@ function NavLinks({ onNavigate }: { onNavigate?: () => void }) {
 }
 
 export function DashboardSidebar({ user }: { user: User }) {
+  const t = useTranslations('dash');
   const [open, setOpen] = useState(false);
 
   return (
@@ -60,14 +63,14 @@ export function DashboardSidebar({ user }: { user: User }) {
           type="button"
           onClick={() => setOpen(true)}
           className="rounded-md p-2 hover:bg-muted"
-          aria-label="Open navigation"
+          aria-label={t('openNav')}
         >
           <Menu className="size-5" />
         </button>
-        <Link href="/dashboard" aria-label="Chorus dashboard">
+        <Link href="/dashboard" aria-label={t('dashboardHome')}>
           <Logo />
         </Link>
-        <div className="ml-auto">
+        <div className="ms-auto">
           <UserMenu user={user} />
         </div>
       </div>
@@ -79,14 +82,14 @@ export function DashboardSidebar({ user }: { user: User }) {
             onClick={() => setOpen(false)}
             aria-hidden
           />
-          <div className="absolute inset-y-0 left-0 flex w-64 flex-col border-r border-border bg-card p-4">
+          <div className="absolute inset-y-0 start-0 flex w-64 flex-col border-e border-border bg-card p-4">
             <div className="mb-6 flex items-center justify-between">
               <Logo />
               <button
                 type="button"
                 onClick={() => setOpen(false)}
                 className="rounded-md p-2 hover:bg-muted"
-                aria-label="Close navigation"
+                aria-label={t('closeNav')}
               >
                 <X className="size-5" />
               </button>
@@ -96,8 +99,8 @@ export function DashboardSidebar({ user }: { user: User }) {
         </div>
       )}
 
-      <aside className="hidden w-60 shrink-0 flex-col border-r border-border bg-card p-4 lg:flex">
-        <Link href="/dashboard" className="mb-6 px-1" aria-label="Chorus dashboard">
+      <aside className="hidden w-60 shrink-0 flex-col border-e border-border bg-card p-4 lg:flex">
+        <Link href="/dashboard" className="mb-6 px-1" aria-label={t('dashboardHome')}>
           <Logo />
         </Link>
         <NavLinks />

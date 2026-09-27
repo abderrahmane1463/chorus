@@ -3,6 +3,7 @@
 import { useRouter } from 'next/navigation';
 import { useState, useTransition } from 'react';
 import { Plus, Trash2, X } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -17,10 +18,11 @@ import {
   saveSurveyQuestionAction,
 } from '@/lib/actions/survey';
 import type { SurveyDetail, SurveyQuestion } from '@/lib/queries/survey';
-import { pluralize } from '@/lib/utils/format';
 
 export function SurveyEditor({ survey }: { survey: SurveyDetail }) {
   const router = useRouter();
+  const t = useTranslations('surveyEditor');
+  const tTypes = useTranslations('types');
   const [pending, startTransition] = useTransition();
 
   function addQuestion(type: string) {
@@ -40,28 +42,28 @@ export function SurveyEditor({ survey }: { survey: SurveyDetail }) {
     <div className="space-y-5">
       <Card>
         <CardHeader>
-          <CardTitle>Completion</CardTitle>
+          <CardTitle>{t('completion')}</CardTitle>
         </CardHeader>
         <CardContent>
           <dl className="grid grid-cols-3 gap-4">
             <div>
-              <dt className="text-sm text-muted-foreground">Questions</dt>
+              <dt className="text-sm text-muted-foreground">{t('questionsStat')}</dt>
               <dd className="mt-0.5 text-2xl font-semibold tabular-nums">
                 {survey.questions.length}
               </dd>
             </div>
             <div>
-              <dt className="text-sm text-muted-foreground">Started</dt>
+              <dt className="text-sm text-muted-foreground">{t('started')}</dt>
               <dd className="mt-0.5 text-2xl font-semibold tabular-nums">
                 {survey.startedCount}
               </dd>
             </div>
             <div>
-              <dt className="text-sm text-muted-foreground">Completed</dt>
+              <dt className="text-sm text-muted-foreground">{t('completed')}</dt>
               <dd className="mt-0.5 text-2xl font-semibold tabular-nums">
                 {survey.completedCount}
                 {survey.startedCount > 0 && (
-                  <span className="ml-2 text-sm font-normal text-muted-foreground">
+                  <span className="ms-2 text-sm font-normal text-muted-foreground">
                     {completionRate}%
                   </span>
                 )}
@@ -74,7 +76,7 @@ export function SurveyEditor({ survey }: { survey: SurveyDetail }) {
       <Card>
         <CardHeader>
           <CardTitle>
-            Questions{' '}
+            {t('questions')}{' '}
             <span className="font-normal text-muted-foreground">
               ({survey.questions.length})
             </span>
@@ -83,8 +85,8 @@ export function SurveyEditor({ survey }: { survey: SurveyDetail }) {
         <CardContent className="space-y-4">
           {survey.questions.length === 0 ? (
             <EmptyState
-              title="No questions yet"
-              description="Add multiple choice, rating or open text questions below."
+              title={t('noneTitle')}
+              description={t('noneBody2')}
             />
           ) : (
             survey.questions.map((question, index) => (
@@ -93,7 +95,7 @@ export function SurveyEditor({ survey }: { survey: SurveyDetail }) {
           )}
 
           <div className="flex flex-wrap gap-2 border-t border-border pt-4">
-            <span className="w-full text-sm text-muted-foreground">Add a question</span>
+            <span className="w-full text-sm text-muted-foreground">{t('addAQuestion')}</span>
             {SURVEY_CHILD_TYPES.map((type) => {
               const meta = getInteractionMeta(type);
               return (
@@ -105,7 +107,7 @@ export function SurveyEditor({ survey }: { survey: SurveyDetail }) {
                   onClick={() => addQuestion(type)}
                 >
                   <Plus />
-                  {meta?.name ?? type}
+                  {meta ? tTypes(`${meta.type}.name`) : type}
                 </Button>
               );
             })}
@@ -126,6 +128,8 @@ function SurveyQuestionEditor({
   index: number;
 }) {
   const router = useRouter();
+  const t = useTranslations('surveyEditor');
+  const tTypes = useTranslations('types');
   const meta = getInteractionMeta(question.type);
 
   const [open, setOpen] = useState(question.title.trim().length === 0);
@@ -144,7 +148,7 @@ function SurveyQuestionEditor({
         options: meta?.hasOptions ? options : undefined,
       });
       if (result.ok) {
-        toast.success('Question saved');
+        toast.success(t('saved'));
         setOpen(false);
         router.refresh();
       } else {
@@ -157,7 +161,7 @@ function SurveyQuestionEditor({
     startTransition(async () => {
       const result = await deleteSurveyQuestionAction({ questionId: question.id });
       if (result.ok) {
-        toast.success('Question deleted');
+        toast.success(t('deleted'));
         router.refresh();
       } else {
         toast.error(result.error);
@@ -171,20 +175,25 @@ function SurveyQuestionEditor({
         <button
           type="button"
           onClick={() => setOpen((value) => !value)}
-          className="min-w-0 flex-1 text-left"
+          className="min-w-0 flex-1 text-start"
         >
           <span className="text-xs text-muted-foreground">
-            Question {index + 1} · {meta?.name}
+            {t('questionLabel', {
+              number: index + 1,
+              type: meta ? tTypes(`${meta.type}.name`) : question.type,
+            })}
           </span>
           <span className="mt-0.5 block truncate font-medium">
-            {title || <span className="italic text-muted-foreground">Untitled</span>}
+            {title || (
+              <span className="italic text-muted-foreground">{t('untitled')}</span>
+            )}
           </span>
           <span className="mt-1 block text-xs text-muted-foreground">
-            {pluralize(question.results.total, 'response')}
+            {t('answered', { count: question.results.total })}
           </span>
         </button>
 
-        <Button variant="ghost" size="icon" onClick={remove} aria-label="Delete question">
+        <Button variant="ghost" size="icon" onClick={remove} aria-label={t('delete')}>
           <Trash2 />
         </Button>
       </div>
@@ -192,19 +201,19 @@ function SurveyQuestionEditor({
       {open && (
         <div className="mt-4 space-y-4 border-t border-border pt-4">
           <div className="space-y-1.5">
-            <Label htmlFor={`sq-${question.id}`}>Question</Label>
+            <Label htmlFor={`sq-${question.id}`}>{t('title')}</Label>
             <Input
               id={`sq-${question.id}`}
               value={title}
               onChange={(event) => setTitle(event.target.value)}
               maxLength={300}
-              placeholder="How satisfied were you with the session?"
+              placeholder={t('titlePlaceholder')}
             />
           </div>
 
           {meta?.hasOptions && (
             <div className="space-y-2">
-              <Label>Options</Label>
+              <Label>{t('options')}</Label>
               {options.map((option, optionIndex) => (
                 <div key={option.id ?? `new-${optionIndex}`} className="flex gap-2">
                   <Input
@@ -217,14 +226,14 @@ function SurveyQuestionEditor({
                       )
                     }
                     maxLength={160}
-                    placeholder={`Option ${optionIndex + 1}`}
+                    placeholder={t('optionPlaceholder', { number: optionIndex + 1 })}
                   />
                   <Button
                     variant="ghost"
                     size="icon"
                     disabled={options.length <= 2}
                     onClick={() => setOptions(options.filter((_, i) => i !== optionIndex))}
-                    aria-label={`Remove option ${optionIndex + 1}`}
+                    aria-label={t('removeOption', { number: optionIndex + 1 })}
                   >
                     <X />
                   </Button>
@@ -237,14 +246,14 @@ function SurveyQuestionEditor({
                   onClick={() => setOptions([...options, { text: '' }])}
                 >
                   <Plus />
-                  Add option
+                  {t('addOption')}
                 </Button>
               )}
             </div>
           )}
 
           <Button onClick={save} loading={pending}>
-            Save question
+            {t('save')}
           </Button>
         </div>
       )}

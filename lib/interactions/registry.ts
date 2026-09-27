@@ -23,8 +23,6 @@ export type InteractionType =
 
 export type InteractionMeta = {
   type: InteractionType;
-  name: string;
-  description: string;
   icon: LucideIcon;
   /** Whether the type needs a list of options the host writes up front. */
   hasOptions: boolean;
@@ -35,13 +33,12 @@ export type InteractionMeta = {
  * Interaction types the host can create today.
  *
  * Types are added here as their editor and participant surfaces land, so the
- * picker never offers something that cannot actually be built yet.
+ * picker never offers something that cannot actually be built yet. The name
+ * and description of each type are translated: see "types" in messages/.
  */
 export const INTERACTION_TYPES: InteractionMeta[] = [
   {
     type: 'multiple_choice',
-    name: 'Multiple choice',
-    description: 'Ask a question with a fixed set of answers and watch the bars fill.',
     icon: BarChart3,
     hasOptions: true,
     defaults: {
@@ -53,8 +50,6 @@ export const INTERACTION_TYPES: InteractionMeta[] = [
   },
   {
     type: 'word_cloud',
-    name: 'Word cloud',
-    description: 'Collect short answers and let the common ones grow larger.',
     icon: Cloud,
     hasOptions: false,
     defaults: {
@@ -64,8 +59,6 @@ export const INTERACTION_TYPES: InteractionMeta[] = [
   },
   {
     type: 'rating',
-    name: 'Rating',
-    description: 'Ask for a number on a scale and see the spread, not just the average.',
     icon: Star,
     hasOptions: false,
     defaults: {
@@ -78,8 +71,6 @@ export const INTERACTION_TYPES: InteractionMeta[] = [
   },
   {
     type: 'q_and_a',
-    name: 'Q&A',
-    description: 'Let the room ask questions and upvote the ones they want answered.',
     icon: MessageCircleQuestion,
     hasOptions: false,
     defaults: {
@@ -90,8 +81,6 @@ export const INTERACTION_TYPES: InteractionMeta[] = [
   },
   {
     type: 'ranking',
-    name: 'Ranking',
-    description: 'Ask people to put options in order and see where the room lands.',
     icon: ListOrdered,
     hasOptions: true,
     defaults: {
@@ -100,8 +89,6 @@ export const INTERACTION_TYPES: InteractionMeta[] = [
   },
   {
     type: 'quiz',
-    name: 'Quiz',
-    description: 'Timed questions with right answers, points for speed, and a leaderboard.',
     icon: Trophy,
     hasOptions: false,
     defaults: {
@@ -112,8 +99,6 @@ export const INTERACTION_TYPES: InteractionMeta[] = [
   },
   {
     type: 'survey',
-    name: 'Survey',
-    description: 'Several questions answered in one go, with completion tracking.',
     icon: ClipboardList,
     hasOptions: false,
     defaults: {
@@ -122,8 +107,6 @@ export const INTERACTION_TYPES: InteractionMeta[] = [
   },
   {
     type: 'open_text',
-    name: 'Open text',
-    description: 'Let people answer in their own words onto a live response wall.',
     icon: MessageSquareText,
     hasOptions: false,
     defaults: {

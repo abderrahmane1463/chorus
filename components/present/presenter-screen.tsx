@@ -13,6 +13,7 @@ import {
   Users,
   X,
 } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 import { toast } from 'sonner';
 import { Logo } from '@/components/shared/logo';
 import { ResultsView } from '@/components/interactions/results-view';
@@ -29,7 +30,6 @@ import type { QuestionItem } from '@/lib/queries/questions';
 import type { LeaderboardRow, QuizDetail } from '@/lib/queries/quiz';
 import type { SurveyDetail } from '@/lib/queries/survey';
 import { cn } from '@/lib/utils/cn';
-import { pluralize } from '@/lib/utils/format';
 
 /** Counts down from the server-stamped start of the current quiz question. */
 function useCountdown(startedAt: Date | null | undefined, limitSeconds: number) {
@@ -74,6 +74,7 @@ export function PresenterScreen({
   survey: SurveyDetail | null;
 }) {
   const router = useRouter();
+  const t = useTranslations('presenter');
   const [pending, startTransition] = useTransition();
   const [fullscreen, setFullscreen] = useState(false);
 
@@ -95,7 +96,7 @@ export function PresenterScreen({
         await document.documentElement.requestFullscreen();
       }
     } catch {
-      toast.error('Fullscreen was blocked by the browser.');
+      toast.error(t('fullscreenBlocked'));
     }
   }
 
@@ -144,14 +145,14 @@ export function PresenterScreen({
             type="button"
             onClick={toggleFullscreen}
             className="rounded-md p-2 text-muted-foreground hover:bg-muted hover:text-foreground"
-            aria-label={fullscreen ? 'Exit fullscreen' : 'Enter fullscreen'}
+            aria-label={fullscreen ? t('exitFullscreen') : t('enterFullscreen')}
           >
             {fullscreen ? <Minimize className="size-5" /> : <Maximize className="size-5" />}
           </button>
           <Link
             href={`/dashboard/events/${eventId}`}
             className="rounded-md p-2 text-muted-foreground hover:bg-muted hover:text-foreground"
-            aria-label="Leave presenter mode"
+            aria-label={t('leave')}
           >
             <X className="size-5" />
           </Link>
@@ -162,10 +163,13 @@ export function PresenterScreen({
         {!active ? (
           <div className="text-center">
             <p className="text-3xl text-muted-foreground">
-              Nothing is open yet.
+              {t('nothingOpen')}
             </p>
             <p className="mt-3 text-xl text-muted-foreground">
-              Join at <span className="text-foreground">{joinUrl.replace(/^https?:\/\//, '')}</span>
+              {t('joinAt')}{' '}
+              <span dir="ltr" className="text-foreground">
+                {joinUrl.replace(/^https?:\/\//, '')}
+              </span>
             </p>
           </div>
         ) : (
@@ -174,9 +178,11 @@ export function PresenterScreen({
               <>
                 <div className="mb-6 flex items-center justify-between gap-6">
                   <p className="text-2xl text-muted-foreground">
-                    Question{' '}
-                    {quiz.questions.findIndex((q) => q.id === quizQuestion.id) + 1} of{' '}
-                    {quiz.questions.length}
+                    {t('questionOf', {
+                      current:
+                        quiz.questions.findIndex((q) => q.id === quizQuestion.id) + 1,
+                      total: quiz.questions.length,
+                    })}
                   </p>
                   {remaining !== null && !quiz.answerRevealed && (
                     <span
@@ -215,7 +221,7 @@ export function PresenterScreen({
 
                 {quiz.answerRevealed && leaderboard.length > 0 && (
                   <div className="mt-10">
-                    <h3 className="mb-4 text-2xl text-muted-foreground">Leaderboard</h3>
+                    <h3 className="mb-4 text-2xl text-muted-foreground">{t('leaderboard')}</h3>
                     <Leaderboard rows={leaderboard} emphasis />
                   </div>
                 )}
@@ -224,9 +230,9 @@ export function PresenterScreen({
               <div className="text-center">
                 <h2 className="text-5xl font-semibold">{quiz.title}</h2>
                 <p className="mt-4 text-2xl text-muted-foreground">
-                  {quiz.status === 'closed' ? 'Final scores' : 'Get ready'}
+                  {quiz.status === 'closed' ? t('finalScores') : t('getReady')}
                 </p>
-                <div className="mx-auto mt-10 max-w-3xl text-left">
+                <div className="mx-auto mt-10 max-w-3xl text-start">
                   <Leaderboard rows={leaderboard} emphasis />
                 </div>
               </div>
@@ -235,19 +241,19 @@ export function PresenterScreen({
                 <h2 className="mb-8 text-4xl font-semibold">{active.title}</h2>
                 {questions.length === 0 ? (
                   <p className="text-2xl text-muted-foreground">
-                    No questions yet. Send yours from your phone.
+                    {t('noQuestions')}
                   </p>
                 ) : (
                   <ul className="space-y-5">
                     {questions.map((question) => (
                       <li key={question.id} className="flex gap-6">
-                        <span className="w-16 shrink-0 text-right text-4xl font-semibold tabular-nums text-primary">
+                        <span className="w-16 shrink-0 text-end text-4xl font-semibold tabular-nums text-primary">
                           {question.votes}
                         </span>
                         <div className="min-w-0">
                           <p className="text-3xl leading-snug">{question.text}</p>
                           <p className="mt-1 text-xl text-muted-foreground">
-                            {question.authorName ?? 'Anonymous'}
+                            {question.authorName ?? t('anonymous')}
                           </p>
                         </div>
                       </li>
@@ -259,8 +265,11 @@ export function PresenterScreen({
               <>
                 <h2 className="mb-8 text-4xl font-semibold">{survey.title}</h2>
                 <p className="text-2xl text-muted-foreground">
-                  {survey.completedCount} of {survey.startedCount} finished ·{' '}
-                  {pluralize(survey.questions.length, 'question')}
+                  {t('surveyProgress', {
+                    completed: survey.completedCount,
+                    started: survey.startedCount,
+                    questions: t('questionCount', { count: survey.questions.length }),
+                  })}
                 </p>
                 <div className="mt-10 space-y-10">
                   {survey.questions.map((question) => (
@@ -289,25 +298,25 @@ export function PresenterScreen({
             <QRCodeSVG value={joinUrl} size={84} level="M" />
           </div>
           <div>
-            <p className="text-lg text-muted-foreground">Join at</p>
-            <p className="text-xl font-medium">
+            <p className="text-lg text-muted-foreground">{t('joinAt')}</p>
+            <p dir="ltr" className="text-xl font-medium">
               {joinUrl.replace(/^https?:\/\//, '').replace(/\/event\/.*$/, '')}
             </p>
-            <p className="font-mono text-3xl font-semibold tracking-widest">
+            <p dir="ltr" className="font-mono text-3xl font-semibold tracking-widest">
               {eventCode}
             </p>
           </div>
         </div>
 
-        <div className="ml-auto flex items-center gap-2">
+        <div className="ms-auto flex items-center gap-2">
           <button
             type="button"
             onClick={() => go(-1)}
             disabled={pending || currentIndex <= 0}
             className="flex items-center gap-2 rounded-lg border border-border px-5 py-3 text-lg hover:bg-muted disabled:opacity-40"
           >
-            <ChevronLeft className="size-5" />
-            Previous
+            <ChevronLeft className="size-5 rtl:rotate-180" />
+            {t('previous')}
           </button>
           <button
             type="button"
@@ -319,8 +328,8 @@ export function PresenterScreen({
             }
             className="flex items-center gap-2 rounded-lg bg-primary px-5 py-3 text-lg text-primary-foreground hover:bg-primary-hover disabled:opacity-40"
           >
-            Next
-            <ChevronRight className="size-5" />
+            {t('next')}
+            <ChevronRight className="size-5 rtl:rotate-180" />
           </button>
         </div>
       </footer>

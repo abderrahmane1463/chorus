@@ -2,13 +2,14 @@
 
 import { useState } from 'react';
 import { Check, Copy } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 import { toast } from 'sonner';
 import { Button, type ButtonProps } from '@/components/ui/button';
 
 export function CopyButton({
   value,
-  label = 'Copy',
-  copiedLabel = 'Copied',
+  label,
+  copiedLabel,
   successMessage,
   variant = 'secondary',
   size = 'sm',
@@ -22,6 +23,7 @@ export function CopyButton({
   size?: ButtonProps['size'];
   className?: string;
 }) {
+  const t = useTranslations('common');
   const [copied, setCopied] = useState(false);
 
   async function copy() {
@@ -32,14 +34,14 @@ export function CopyButton({
       setTimeout(() => setCopied(false), 1800);
     } catch {
       // Clipboard access needs a secure context and can be denied.
-      toast.error('Could not copy. Select the text and copy manually.');
+      toast.error(t('copyFailed'));
     }
   }
 
   return (
     <Button variant={variant} size={size} onClick={copy} className={className}>
       {copied ? <Check /> : <Copy />}
-      {copied ? copiedLabel : label}
+      {copied ? (copiedLabel ?? t('copied')) : (label ?? t('copy'))}
     </Button>
   );
 }

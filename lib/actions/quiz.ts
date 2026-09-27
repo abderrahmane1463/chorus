@@ -1,5 +1,6 @@
 'use server';
 
+import { getTranslations } from 'next-intl/server';
 import { revalidatePath } from 'next/cache';
 import { and, eq, inArray, isNull, max, sql } from 'drizzle-orm';
 import { db } from '@/lib/db';
@@ -36,13 +37,15 @@ import type { ActionResult } from './auth';
 export async function addQuizQuestionAction(
   input: unknown,
 ): Promise<ActionResult & { questionId?: string }> {
+  const t = await getTranslations();
+
   const user = await requireUser();
 
   const parsed = quizIdSchema.safeParse(input);
-  if (!parsed.success) return { ok: false, error: 'Invalid quiz' };
+  if (!parsed.success) return { ok: false, error: t('errors.invalidQuiz') };
 
   const owned = await assertQuizOwner(parsed.data.quizId, user.id);
-  if (!owned) return { ok: false, error: 'Quiz not found' };
+  if (!owned) return { ok: false, error: t('errors.quizNotFound') };
 
   const [{ highest }] = await db
     .select({ highest: max(interactions.position) })
@@ -76,17 +79,19 @@ export async function addQuizQuestionAction(
 }
 
 export async function saveQuizQuestionAction(input: unknown): Promise<ActionResult> {
+  const t = await getTranslations();
+
   const user = await requireUser();
 
   const parsed = saveQuizQuestionSchema.safeParse(input);
   if (!parsed.success) {
-    return { ok: false, error: parsed.error.issues[0]?.message ?? 'Invalid question' };
+    return { ok: false, error: t(parsed.error.issues[0]?.message ?? 'errors.invalidQuestion') };
   }
 
   const filled = parsed.data.options.filter((o) => o.text.trim().length > 0);
-  if (filled.length < 2) return { ok: false, error: 'Add at least two answers' };
+  if (filled.length < 2) return { ok: false, error: t('errors.addTwoAnswers') };
   if (!filled.some((o) => o.isCorrect)) {
-    return { ok: false, error: 'Mark at least one answer as correct' };
+    return { ok: false, error: t('errors.markOneCorrect') };
   }
 
   // The question is a child interaction, so ownership runs through its parent.
@@ -103,7 +108,7 @@ export async function saveQuizQuestionAction(input: unknown): Promise<ActionResu
     )
     .limit(1);
 
-  if (!question?.parentId) return { ok: false, error: 'Question not found' };
+  if (!question?.parentId) return { ok: false, error: t('errors.questionNotFound') };
 
   await db
     .update(interactions)
@@ -152,10 +157,12 @@ export async function saveQuizQuestionAction(input: unknown): Promise<ActionResu
 }
 
 export async function deleteQuizQuestionAction(input: unknown): Promise<ActionResult> {
+  const t = await getTranslations();
+
   const user = await requireUser();
 
   const parsed = quizQuestionIdSchema.safeParse(input);
-  if (!parsed.success) return { ok: false, error: 'Invalid question' };
+  if (!parsed.success) return { ok: false, error: t('errors.invalidQuestion') };
 
   const [question] = await db
     .select({ id: interactions.id, eventId: interactions.eventId })
@@ -164,7 +171,7 @@ export async function deleteQuizQuestionAction(input: unknown): Promise<ActionRe
     .where(and(eq(interactions.id, parsed.data.questionId), eq(events.ownerId, user.id)))
     .limit(1);
 
-  if (!question) return { ok: false, error: 'Question not found' };
+  if (!question) return { ok: false, error: t('errors.questionNotFound') };
 
   await db.delete(interactions).where(eq(interactions.id, question.id));
   revalidatePath(`/dashboard/events/${question.eventId}`);
@@ -179,19 +186,21 @@ export async function deleteQuizQuestionAction(input: unknown): Promise<ActionRe
  * speed bonus by lying about when they saw the question.
  */
 export async function controlQuizAction(input: unknown): Promise<ActionResult> {
+  const t = await getTranslations();
+
   const user = await requireUser();
 
   const parsed = quizControlSchema.safeParse(input);
-  if (!parsed.success) return { ok: false, error: 'Invalid quiz action' };
+  if (!parsed.success) return { ok: false, error: t('errors.invalidQuizAction') };
 
   const owned = await assertQuizOwner(parsed.data.quizId, user.id);
-  if (!owned) return { ok: false, error: 'Quiz not found' };
+  if (!owned) return { ok: false, error: t('errors.quizNotFound') };
 
   const quiz = await getQuizDetail(owned.id);
-  if (!quiz) return { ok: false, error: 'Quiz not found' };
+  if (!quiz) return { ok: false, error: t('errors.quizNotFound') };
 
   if (quiz.questions.length === 0) {
-    return { ok: false, error: 'Add at least one question first' };
+    return { ok: false, error: t('errors.addOneQuestion') };
   }
 
   const currentIndex = quiz.questions.findIndex((q) => q.id === quiz.currentChildId);
@@ -247,7 +256,7 @@ export async function controlQuizAction(input: unknown): Promise<ActionResult> {
 
     case 'next': {
       const next = quiz.questions[currentIndex + 1];
-      if (!next) return { ok: false, error: 'That was the last question' };
+      if (!next) return { ok: false, error: t('errors.lastQuestion') };
 
       await db
         .update(interactions)
@@ -314,11 +323,13 @@ async function publishQuiz(
  * picked.
  */
 export async function submitQuizAnswerAction(input: unknown): Promise<ActionResult> {
+  const t = await getTranslations();
+
   const parsed = submitQuizAnswerSchema.safeParse(input);
-  if (!parsed.success) return { ok: false, error: 'Invalid answer' };
+  if (!parsed.success) return { ok: false, error: t('errors.invalidAnswer') };
 
   const sessionId = await readSessionId();
-  if (!sessionId) return { ok: false, error: 'Join the event again to answer' };
+  if (!sessionId) return { ok: false, error: t('errors.rejoinToAnswer') };
 
   const [context] = await db
     .select({
@@ -339,7 +350,7 @@ export async function submitQuizAnswerAction(input: unknown): Promise<ActionResu
     .where(eq(interactions.id, parsed.data.questionId))
     .limit(1);
 
-  if (!context?.parentId) return { ok: false, error: 'That question is not part of a quiz' };
+  if (!context?.parentId) return { ok: false, error: t('errors.notQuizQuestion') };
 
   // The quiz must be running and showing exactly this question.
   const [quiz] = await db
@@ -354,13 +365,13 @@ export async function submitQuizAnswerAction(input: unknown): Promise<ActionResu
     .limit(1);
 
   if (!quiz || quiz.status !== 'active') {
-    return { ok: false, error: 'This quiz is not running' };
+    return { ok: false, error: t('errors.quizNotRunning') };
   }
   if (quiz.currentChildId !== context.questionId) {
-    return { ok: false, error: 'That question has moved on' };
+    return { ok: false, error: t('errors.questionMovedOn') };
   }
   if (quiz.answerRevealed) {
-    return { ok: false, error: 'The answer has already been revealed' };
+    return { ok: false, error: t('errors.alreadyRevealed') };
   }
 
   const timeLimitSeconds = context.settings.timeLimitSeconds ?? DEFAULT_TIME_LIMIT_SECONDS;
@@ -368,7 +379,7 @@ export async function submitQuizAnswerAction(input: unknown): Promise<ActionResu
   const elapsedMs = Date.now() - startedAt;
 
   if (elapsedMs > timeLimitSeconds * 1000 + ANSWER_GRACE_MS) {
-    return { ok: false, error: 'Time is up for this question' };
+    return { ok: false, error: t('errors.timeUp') };
   }
 
   const options = await db
@@ -378,7 +389,7 @@ export async function submitQuizAnswerAction(input: unknown): Promise<ActionResu
 
   const validIds = new Set(options.map((o) => o.id));
   if (!parsed.data.optionIds.every((id) => validIds.has(id))) {
-    return { ok: false, error: 'That answer is not valid' };
+    return { ok: false, error: t('errors.answerNotValid') };
   }
 
   const correctIds = options.filter((o) => o.isCorrect).map((o) => o.id);
@@ -411,7 +422,7 @@ export async function submitQuizAnswerAction(input: unknown): Promise<ActionResu
     .returning({ id: responses.id });
 
   if (inserted.length === 0) {
-    return { ok: false, error: 'You have already answered this question' };
+    return { ok: false, error: t('errors.alreadyAnsweredQuestion') };
   }
 
   await db

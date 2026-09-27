@@ -1,5 +1,6 @@
 'use server';
 
+import { getTranslations } from 'next-intl/server';
 import { revalidatePath } from 'next/cache';
 import { and, eq, max } from 'drizzle-orm';
 import { z } from 'zod';
@@ -38,13 +39,15 @@ const surveyQuestionIdSchema = z.object({ questionId: z.string().uuid() });
 export async function addSurveyQuestionAction(
   input: unknown,
 ): Promise<ActionResult & { questionId?: string }> {
+  const t = await getTranslations();
+
   const user = await requireUser();
 
   const parsed = addSurveyQuestionSchema.safeParse(input);
-  if (!parsed.success) return { ok: false, error: 'Unsupported question type' };
+  if (!parsed.success) return { ok: false, error: t('errors.unsupportedQuestionType') };
 
   const owned = await assertSurveyOwner(parsed.data.surveyId, user.id);
-  if (!owned) return { ok: false, error: 'Survey not found' };
+  if (!owned) return { ok: false, error: t('errors.surveyNotFound') };
 
   const meta = getInteractionMeta(parsed.data.type);
 
@@ -77,11 +80,13 @@ export async function addSurveyQuestionAction(
 }
 
 export async function saveSurveyQuestionAction(input: unknown): Promise<ActionResult> {
+  const t = await getTranslations();
+
   const user = await requireUser();
 
   const parsed = saveSurveyQuestionSchema.safeParse(input);
   if (!parsed.success) {
-    return { ok: false, error: parsed.error.issues[0]?.message ?? 'Invalid question' };
+    return { ok: false, error: t(parsed.error.issues[0]?.message ?? 'errors.invalidQuestion') };
   }
 
   // Ownership runs through the child's event, same as every other interaction.
@@ -99,7 +104,7 @@ export async function saveSurveyQuestionAction(input: unknown): Promise<ActionRe
     )
     .limit(1);
 
-  if (!question?.parentId) return { ok: false, error: 'Question not found' };
+  if (!question?.parentId) return { ok: false, error: t('errors.questionNotFound') };
 
   const meta = getInteractionMeta(question.type);
   const filled = (parsed.data.options ?? []).filter(
@@ -107,7 +112,7 @@ export async function saveSurveyQuestionAction(input: unknown): Promise<ActionRe
   );
 
   if (meta?.hasOptions && filled.length < 2) {
-    return { ok: false, error: 'Add at least two options' };
+    return { ok: false, error: t('errors.addTwoOptions') };
   }
 
   await db
@@ -158,10 +163,12 @@ export async function saveSurveyQuestionAction(input: unknown): Promise<ActionRe
 }
 
 export async function deleteSurveyQuestionAction(input: unknown): Promise<ActionResult> {
+  const t = await getTranslations();
+
   const user = await requireUser();
 
   const parsed = surveyQuestionIdSchema.safeParse(input);
-  if (!parsed.success) return { ok: false, error: 'Invalid question' };
+  if (!parsed.success) return { ok: false, error: t('errors.invalidQuestion') };
 
   const [question] = await db
     .select({ id: interactions.id, eventId: interactions.eventId })
@@ -172,7 +179,7 @@ export async function deleteSurveyQuestionAction(input: unknown): Promise<Action
     )
     .limit(1);
 
-  if (!question) return { ok: false, error: 'Question not found' };
+  if (!question) return { ok: false, error: t('errors.questionNotFound') };
 
   await db.delete(interactions).where(eq(interactions.id, question.id));
   revalidatePath(`/dashboard/events/${question.eventId}`);

@@ -1,6 +1,7 @@
 'use client';
 
 import { useTransition } from 'react';
+import { useTranslations } from 'next-intl';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { updateEventStatusAction } from '@/lib/actions/event';
@@ -8,11 +9,14 @@ import type { eventStatuses } from '@/lib/validations/event';
 
 type Status = (typeof eventStatuses)[number];
 
-const nextLabel: Record<Status, { label: string; next: Status } | null> = {
-  draft: { label: 'Open event', next: 'live' },
-  live: { label: 'End event', next: 'ended' },
-  ended: { label: 'Reopen event', next: 'live' },
-  archived: { label: 'Restore event', next: 'draft' },
+const nextLabel: Record<
+  Status,
+  { key: 'open' | 'end' | 'reopen' | 'restore'; next: Status } | null
+> = {
+  draft: { key: 'open', next: 'live' },
+  live: { key: 'end', next: 'ended' },
+  ended: { key: 'reopen', next: 'live' },
+  archived: { key: 'restore', next: 'draft' },
 };
 
 /**
@@ -26,6 +30,7 @@ export function EventStatusControl({
   eventId: string;
   status: Status;
 }) {
+  const t = useTranslations('eventStatus');
   const [pending, startTransition] = useTransition();
   const action = nextLabel[status];
 
@@ -37,7 +42,11 @@ export function EventStatusControl({
       const result = await updateEventStatusAction({ eventId, status: action.next });
       if (result.ok) {
         toast.success(
-          action.next === 'live' ? 'Event is live' : `Event ${action.next}`,
+          action.next === 'live'
+            ? t('nowLive')
+            : action.next === 'ended'
+              ? t('nowEnded')
+              : t('nowDraft'),
         );
       } else {
         toast.error(result.error);
@@ -51,7 +60,7 @@ export function EventStatusControl({
       onClick={apply}
       loading={pending}
     >
-      {action.label}
+      {t(action.key)}
     </Button>
   );
 }

@@ -3,28 +3,28 @@
 import { useRouter } from 'next/navigation';
 import { useState, useTransition } from 'react';
 import { MessagesSquare } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 import { toast } from 'sonner';
 import { EmptyState } from '@/components/shared/empty-state';
 import { QuestionCard } from '@/components/interactions/question-card';
 import { moderateQuestionAction } from '@/lib/actions/question';
 import type { QuestionItem, QuestionSort } from '@/lib/queries/questions';
 import { cn } from '@/lib/utils/cn';
-import { pluralize } from '@/lib/utils/format';
 
-const SORTS: { value: QuestionSort; label: string }[] = [
-  { value: 'votes', label: 'Most votes' },
-  { value: 'newest', label: 'Newest' },
-  { value: 'oldest', label: 'Oldest' },
-];
+const SORTS = [
+  { value: 'votes', key: 'sortVotes' },
+  { value: 'newest', key: 'sortNewest' },
+  { value: 'oldest', key: 'sortOldest' },
+] as const;
 
 type Filter = 'all' | 'pending' | 'answered' | 'hidden';
 
-const FILTERS: { value: Filter; label: string }[] = [
-  { value: 'all', label: 'All' },
-  { value: 'pending', label: 'Pending' },
-  { value: 'answered', label: 'Answered' },
-  { value: 'hidden', label: 'Hidden' },
-];
+const FILTERS = [
+  { value: 'all', key: 'all' },
+  { value: 'pending', key: 'pending' },
+  { value: 'answered', key: 'answered' },
+  { value: 'hidden', key: 'hidden' },
+] as const;
 
 export function QaModeration({
   questions,
@@ -36,6 +36,7 @@ export function QaModeration({
   onSortChange: (sort: QuestionSort) => void;
 }) {
   const router = useRouter();
+  const t = useTranslations('moderation');
   const [filter, setFilter] = useState<Filter>('all');
   const [pending, startTransition] = useTransition();
 
@@ -74,16 +75,16 @@ export function QaModeration({
                   : 'text-muted-foreground hover:bg-muted',
               )}
             >
-              {option.label}
+              {t(option.key)}
               {option.value === 'pending' && pendingCount > 0 && (
-                <span className="ml-1.5 tabular-nums">{pendingCount}</span>
+                <span className="ms-1.5 tabular-nums">{pendingCount}</span>
               )}
             </button>
           ))}
         </div>
 
         <label className="flex items-center gap-2 text-sm text-muted-foreground">
-          Sort
+          {t('sort')}
           <select
             value={sort}
             onChange={(event) => onSortChange(event.target.value as QuestionSort)}
@@ -91,7 +92,7 @@ export function QaModeration({
           >
             {SORTS.map((option) => (
               <option key={option.value} value={option.value}>
-                {option.label}
+                {t(option.key)}
               </option>
             ))}
           </select>
@@ -102,18 +103,24 @@ export function QaModeration({
         <EmptyState
           icon={MessagesSquare}
           title={
-            filter === 'all' ? 'No questions yet' : `Nothing ${filter}`
+            filter === 'all'
+              ? t('noneTitle')
+              : filter === 'pending'
+                ? t('nothingPending')
+                : filter === 'answered'
+                  ? t('nothingAnswered')
+                  : t('nothingHidden')
           }
           description={
             filter === 'all'
-              ? 'Questions from the room appear here as they arrive.'
+              ? t('noneBody')
               : undefined
           }
         />
       ) : (
         <>
           <p className="text-xs text-muted-foreground">
-            {pluralize(visible.length, 'question')}
+            {t('count', { count: visible.length })}
           </p>
           <ul className="space-y-2">
             {visible.map((question) => (
@@ -126,75 +133,75 @@ export function QaModeration({
                       <button
                         type="button"
                         disabled={pending}
-                        onClick={() => moderate(question.id, 'approved', 'Question approved')}
+                        onClick={() => moderate(question.id, 'approved', t('approved'))}
                         className="font-medium text-primary hover:underline"
                       >
-                        Approve
+                        {t('approve')}
                       </button>
                     )}
                     {question.status !== 'answered' && question.status !== 'pending' && (
                       <button
                         type="button"
                         disabled={pending}
-                        onClick={() => moderate(question.id, 'answered', 'Marked answered')}
+                        onClick={() => moderate(question.id, 'answered', t('markedAnswered'))}
                         className="font-medium text-primary hover:underline"
                       >
-                        Mark answered
+                        {t('markAnswered')}
                       </button>
                     )}
                     {question.isHighlighted ? (
                       <button
                         type="button"
                         disabled={pending}
-                        onClick={() => moderate(question.id, 'unhighlight', 'Removed from screen')}
+                        onClick={() => moderate(question.id, 'unhighlight', t('removedFromScreen'))}
                         className="font-medium text-accent hover:underline"
                       >
-                        Remove from screen
+                        {t('removeFromScreen')}
                       </button>
                     ) : (
                       <button
                         type="button"
                         disabled={pending}
-                        onClick={() => moderate(question.id, 'highlight', 'Showing on screen')}
+                        onClick={() => moderate(question.id, 'highlight', t('showingOnScreen'))}
                         className="font-medium text-accent hover:underline"
                       >
-                        Show on screen
+                        {t('showOnScreen')}
                       </button>
                     )}
                     {question.status !== 'hidden' ? (
                       <button
                         type="button"
                         disabled={pending}
-                        onClick={() => moderate(question.id, 'hidden', 'Question hidden')}
+                        onClick={() => moderate(question.id, 'hidden', t('hiddenToast'))}
                         className="text-muted-foreground hover:underline"
                       >
-                        Hide
+                        {t('hide')}
                       </button>
                     ) : (
                       <button
                         type="button"
                         disabled={pending}
-                        onClick={() => moderate(question.id, 'approved', 'Question restored')}
+                        onClick={() => moderate(question.id, 'approved', t('restored'))}
                         className="text-muted-foreground hover:underline"
                       >
-                        Unhide
+                        {t('unhide')}
                       </button>
                     )}
                     <button
                       type="button"
                       disabled={pending}
-                      onClick={() => moderate(question.id, 'archived', 'Question archived')}
+                      onClick={() => moderate(question.id, 'archived', t('archived'))}
                       className="text-muted-foreground hover:underline"
                     >
-                      Archive
+                      {t('archive')}
                     </button>
                     <button
                       type="button"
                       disabled={pending}
-                      onClick={() => moderate(question.id, 'delete', 'Question deleted')}
+                      onClick={() => moderate(question.id, 'delete', t('deleted'))}
                       className="text-destructive hover:underline"
                     >
-                      Delete
+                      {t('delete')}
                     </button>
                   </>
                 }

@@ -3,6 +3,7 @@
 import { useRouter } from 'next/navigation';
 import { useState, useTransition } from 'react';
 import { Play, Plus, RotateCcw, Square, Trash2, X } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -48,6 +49,9 @@ export function InteractionEditor({
   survey?: SurveyDetail | null;
 }) {
   const router = useRouter();
+  const t = useTranslations('editor');
+  const tTypes = useTranslations('types');
+  const tStatus = useTranslations('interactionStatus');
   const meta = getInteractionMeta(interaction.type);
 
   const [title, setTitle] = useState(interaction.title);
@@ -74,7 +78,7 @@ export function InteractionEditor({
         options: meta?.hasOptions ? options : undefined,
       });
       if (result.ok) {
-        toast.success('Saved');
+        toast.success(t('saved'));
         router.refresh();
       } else {
         toast.error(result.error);
@@ -89,7 +93,7 @@ export function InteractionEditor({
         status,
       });
       if (result.ok) {
-        toast.success(status === 'active' ? 'Interaction is live' : 'Interaction closed');
+        toast.success(status === 'active' ? t('nowLive') : t('nowClosed'));
         router.refresh();
       } else {
         toast.error(result.error);
@@ -101,7 +105,7 @@ export function InteractionEditor({
     startControl(async () => {
       const result = await resetInteractionAction({ interactionId: interaction.id });
       if (result.ok) {
-        toast.success('Responses cleared');
+        toast.success(t('cleared'));
         router.refresh();
       } else {
         toast.error(result.error);
@@ -113,7 +117,7 @@ export function InteractionEditor({
     startControl(async () => {
       const result = await deleteInteractionAction({ interactionId: interaction.id });
       if (result.ok) {
-        toast.success('Interaction deleted');
+        toast.success(t('deleted'));
         router.push(`/dashboard/events/${interaction.eventId}`);
         router.refresh();
       } else {
@@ -130,9 +134,11 @@ export function InteractionEditor({
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-2">
           <Badge variant={interaction.status === 'active' ? 'success' : 'neutral'}>
-            {interaction.status === 'active' ? 'Live' : interaction.status}
+            {interaction.status === 'active' ? t('live') : tStatus(interaction.status)}
           </Badge>
-          <span className="text-sm text-muted-foreground">{meta?.name}</span>
+          <span className="text-sm text-muted-foreground">
+            {meta ? tTypes(`${meta.type}.name`) : interaction.type}
+          </span>
         </div>
 
         {/* A quiz is driven by its own run controls, so the generic
@@ -147,7 +153,7 @@ export function InteractionEditor({
                   loading={controlling}
                 >
                   <Square />
-                  Stop
+                  {t('stop')}
                 </Button>
               ) : (
                 <Button
@@ -156,7 +162,7 @@ export function InteractionEditor({
                   disabled={title.trim().length === 0}
                 >
                   <Play />
-                  Start
+                  {t('start')}
                 </Button>
               )}
               <Button
@@ -165,41 +171,41 @@ export function InteractionEditor({
                 disabled={!hasResponses || controlling}
               >
                 <RotateCcw />
-                Reset
+                {t('reset')}
               </Button>
             </>
           )}
           <Button variant="destructive" onClick={remove} disabled={controlling}>
             <Trash2 />
-            Delete
+            {t('delete')}
           </Button>
         </div>
       </div>
 
       {title.trim().length === 0 && (
         <p className="rounded-md bg-accent-subtle px-3 py-2 text-sm text-accent">
-          Add a question before starting this interaction.
+          {t('needQuestion')}
         </p>
       )}
 
       <Card>
         <CardHeader>
-          <CardTitle>Question</CardTitle>
+          <CardTitle>{t('questionCard')}</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="space-y-1.5">
-            <Label htmlFor="title">Question</Label>
+            <Label htmlFor="title">{t('question')}</Label>
             <Input
               id="title"
               value={title}
               onChange={(event) => setTitle(event.target.value)}
               maxLength={300}
-              placeholder="What is your primary advertising platform?"
+              placeholder={t('questionPlaceholder')}
             />
           </div>
 
           <div className="space-y-1.5">
-            <Label htmlFor="description">Extra context (optional)</Label>
+            <Label htmlFor="description">{t('context')}</Label>
             <Textarea
               id="description"
               value={description}
@@ -220,7 +226,7 @@ export function InteractionEditor({
           <SettingsEditor type={interaction.type} settings={settings} onPatch={patch} />
 
           <Button onClick={save} loading={saving}>
-            Save
+            {t('save')}
           </Button>
         </CardContent>
       </Card>
@@ -233,7 +239,7 @@ export function InteractionEditor({
         <Card>
           <CardHeader>
             <CardTitle>
-              {interaction.type === 'q_and_a' ? 'Questions from the room' : 'Results'}
+              {interaction.type === 'q_and_a' ? t('roomQuestions') : t('results')}
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -266,6 +272,8 @@ function OptionsEditor({
   onChange: (next: OptionDraft[]) => void;
   warnOnDelete: boolean;
 }) {
+  const t = useTranslations('editor');
+
   function update(index: number, text: string) {
     onChange(options.map((option, i) => (i === index ? { ...option, text } : option)));
   }
@@ -274,9 +282,7 @@ function OptionsEditor({
     const option = options[index];
     // Deleting a saved option deletes its votes with it, so make that explicit.
     if (warnOnDelete && option.id) {
-      const confirmed = window.confirm(
-        'This poll already has responses. Removing this option also deletes the votes cast for it. Continue?',
-      );
+      const confirmed = window.confirm(t('confirmOptionDelete'));
       if (!confirmed) return;
     }
     onChange(options.filter((_, i) => i !== index));
@@ -284,21 +290,21 @@ function OptionsEditor({
 
   return (
     <div className="space-y-2">
-      <Label>Options</Label>
+      <Label>{t('options')}</Label>
       {options.map((option, index) => (
         <div key={option.id ?? `new-${index}`} className="flex gap-2">
           <Input
             value={option.text}
             onChange={(event) => update(index, event.target.value)}
             maxLength={160}
-            placeholder={`Option ${index + 1}`}
+            placeholder={t('optionPlaceholder', { number: index + 1 })}
           />
           <Button
             variant="ghost"
             size="icon"
             onClick={() => remove(index)}
             disabled={options.length <= 2}
-            aria-label={`Remove option ${index + 1}`}
+            aria-label={t('removeOption', { number: index + 1 })}
           >
             <X />
           </Button>
@@ -311,7 +317,7 @@ function OptionsEditor({
           onClick={() => onChange([...options, { text: '' }])}
         >
           <Plus />
-          Add option
+          {t('addOption')}
         </Button>
       )}
     </div>
@@ -347,11 +353,13 @@ function SettingsEditor({
   settings: InteractionSettings;
   onPatch: (next: Partial<InteractionSettings>) => void;
 }) {
+  const t = useTranslations('settings');
+
   return (
     <div className="divide-y divide-border rounded-lg border border-border px-4">
       {type === 'multiple_choice' && (
         <>
-          <SettingRow label="Allow multiple answers">
+          <SettingRow label={t('allowMultiple')}>
             <Switch
               checked={settings.allowMultiple ?? false}
               onCheckedChange={(checked) =>
@@ -360,7 +368,7 @@ function SettingsEditor({
             />
           </SettingRow>
           {settings.allowMultiple && (
-            <SettingRow label="Maximum selections">
+            <SettingRow label={t('maxSelections')}>
               <Input
                 type="number"
                 min={2}
@@ -373,7 +381,7 @@ function SettingsEditor({
               />
             </SettingRow>
           )}
-          <SettingRow label="Allow changing answer">
+          <SettingRow label={t('allowChange')}>
             <Switch
               checked={settings.allowChangeAnswer ?? false}
               onCheckedChange={(checked) => onPatch({ allowChangeAnswer: checked })}
@@ -384,7 +392,7 @@ function SettingsEditor({
 
       {type === 'rating' && (
         <>
-          <SettingRow label="Scale starts at">
+          <SettingRow label={t('scaleMin')}>
             <Input
               type="number"
               min={0}
@@ -394,7 +402,7 @@ function SettingsEditor({
               className="w-20"
             />
           </SettingRow>
-          <SettingRow label="Scale ends at">
+          <SettingRow label={t('scaleMax')}>
             <Input
               type="number"
               min={3}
@@ -404,21 +412,21 @@ function SettingsEditor({
               className="w-20"
             />
           </SettingRow>
-          <SettingRow label="Low end label">
+          <SettingRow label={t('minLabel')}>
             <Input
               value={settings.minLabel ?? ''}
               onChange={(event) => onPatch({ minLabel: event.target.value })}
               maxLength={40}
-              placeholder="Not at all"
+              placeholder={t('minLabelPlaceholder')}
               className="w-44"
             />
           </SettingRow>
-          <SettingRow label="High end label">
+          <SettingRow label={t('maxLabel')}>
             <Input
               value={settings.maxLabel ?? ''}
               onChange={(event) => onPatch({ maxLabel: event.target.value })}
               maxLength={40}
-              placeholder="Very confident"
+              placeholder={t('maxLabelPlaceholder')}
               className="w-44"
             />
           </SettingRow>
@@ -427,8 +435,8 @@ function SettingsEditor({
 
       {type === 'word_cloud' && (
         <SettingRow
-          label="Entries per person"
-          hint="How many words each participant may submit."
+          label={t('entriesPerPerson')}
+          hint={t('entriesHint')}
         >
           <Input
             type="number"
@@ -445,7 +453,7 @@ function SettingsEditor({
 
       {type === 'open_text' && (
         <>
-          <SettingRow label="Maximum length">
+          <SettingRow label={t('maxLength')}>
             <Input
               type="number"
               min={20}
@@ -457,8 +465,8 @@ function SettingsEditor({
             />
           </SettingRow>
           <SettingRow
-            label="Allow several answers"
-            hint="Lets one person send up to five responses."
+            label={t('allowSeveral')}
+            hint={t('allowSeveralHint')}
           >
             <Switch
               checked={settings.allowMultipleSubmissions ?? false}
@@ -473,8 +481,8 @@ function SettingsEditor({
       {type === 'q_and_a' && (
         <>
           <SettingRow
-            label="Allow anonymous questions"
-            hint="Participants can hide their name on a question."
+            label={t('allowAnonymous')}
+            hint={t('allowAnonymousHint')}
           >
             <Switch
               checked={settings.allowAnonymous ?? true}
@@ -482,15 +490,15 @@ function SettingsEditor({
             />
           </SettingRow>
           <SettingRow
-            label="Review before showing"
-            hint="New questions wait for your approval before the room sees them."
+            label={t('moderate')}
+            hint={t('moderateHint')}
           >
             <Switch
               checked={settings.moderationEnabled ?? false}
               onCheckedChange={(checked) => onPatch({ moderationEnabled: checked })}
             />
           </SettingRow>
-          <SettingRow label="Allow upvotes">
+          <SettingRow label={t('allowUpvotes')}>
             <Switch
               checked={settings.allowUpvotes ?? true}
               onCheckedChange={(checked) => onPatch({ allowUpvotes: checked })}
@@ -503,8 +511,8 @@ function SettingsEditor({
           would control nothing. */}
       {type === 'survey' && (
         <SettingRow
-          label="Show one question at a time"
-          hint="Off shows the whole survey on a single screen."
+          label={t('oneByOne')}
+          hint={t('oneByOneHint')}
         >
           <Switch
             checked={(settings.navigationMode ?? 'all_at_once') === 'one_by_one'}
@@ -517,8 +525,8 @@ function SettingsEditor({
 
       {type !== 'q_and_a' && type !== 'quiz' && type !== 'survey' && (
         <SettingRow
-          label="Show results to participants"
-          hint="Results appear on their phone once they have answered."
+          label={t('showResults')}
+          hint={t('showResultsHint')}
         >
           <Switch
             checked={settings.showResultsToParticipants ?? false}

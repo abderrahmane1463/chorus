@@ -1,11 +1,11 @@
 'use client';
 
 import Link from 'next/link';
+import { useTranslations } from 'next-intl';
 import { Radio } from 'lucide-react';
 import { getInteractionMeta } from '@/lib/interactions/registry';
 import type { InteractionListItem } from '@/lib/queries/interactions';
 import { cn } from '@/lib/utils/cn';
-import { pluralize } from '@/lib/utils/format';
 
 export function InteractionList({
   eventId,
@@ -16,12 +16,19 @@ export function InteractionList({
   interactions: InteractionListItem[];
   selectedId?: string;
 }) {
+  const t = useTranslations('interactionList');
+  const tTypes = useTranslations('types');
+  const tDash = useTranslations('dash');
+
   return (
     <ul className="space-y-1">
       {interactions.map((interaction, index) => {
         const meta = getInteractionMeta(interaction.type);
         const Icon = meta?.icon;
         const active = interaction.id === selectedId;
+        const typeName = meta
+          ? tTypes(`${meta.type}.name`)
+          : (interaction.type as string);
 
         return (
           <li key={interaction.id}>
@@ -52,17 +59,20 @@ export function InteractionList({
                     !interaction.title && 'italic text-muted-foreground',
                   )}
                 >
-                  {interaction.title || `Untitled ${meta?.name.toLowerCase() ?? 'interaction'}`}
+                  {interaction.title ||
+                    t('untitled', {
+                      type: meta ? typeName : t('untitledFallback'),
+                    })}
                 </span>
                 <span className="mt-0.5 flex items-center gap-1.5 text-xs text-muted-foreground">
                   {interaction.status === 'active' && (
                     <Radio className="size-3 text-success" aria-hidden />
                   )}
                   {interaction.status === 'active'
-                    ? 'Live'
-                    : `${index + 1}. ${meta?.name ?? interaction.type}`}
+                    ? t('live')
+                    : t('numbered', { index: index + 1, type: typeName })}
                   {interaction.responseCount > 0 &&
-                    ` · ${pluralize(interaction.responseCount, 'response')}`}
+                    ` · ${tDash('responseCount', { count: interaction.responseCount })}`}
                 </span>
               </span>
             </Link>

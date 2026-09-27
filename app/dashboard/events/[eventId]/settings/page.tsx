@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
+import { getTranslations } from 'next-intl/server';
 import { ArrowLeft, ExternalLink } from 'lucide-react';
 import { requireUser } from '@/lib/auth';
 import { getEventForOwner } from '@/lib/queries/events';
@@ -25,7 +26,10 @@ export async function generateMetadata({
   const user = await requireUser();
   const { eventId } = await params;
   const event = await getEventForOwner(eventId, user.id);
-  return { title: event ? `${event.title} settings` : 'Event settings' };
+  const t = await getTranslations('eventSettings');
+  return {
+    title: event ? t('metaTitle', { title: event.title }) : t('metaFallback'),
+  };
 }
 
 const statusVariant = {
@@ -46,6 +50,9 @@ export default async function EventSettingsPage({
   const event = await getEventForOwner(eventId, user.id);
   if (!event) notFound();
 
+  const t = await getTranslations('eventSettings');
+  const tStatus = await getTranslations('status');
+
   const origin = process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000';
   const joinUrl = `${origin}/event/${event.eventCode}`;
 
@@ -55,15 +62,15 @@ export default async function EventSettingsPage({
         href={`/dashboard/events/${event.id}`}
         className="mb-6 inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground"
       >
-        <ArrowLeft className="size-4" />
-        Back to interactions
+        <ArrowLeft className="size-4 rtl:rotate-180" />
+        {t('back')}
       </Link>
 
       <div className="mb-8 flex flex-wrap items-start justify-between gap-4">
         <div className="min-w-0">
           <div className="flex flex-wrap items-center gap-2">
             <h1 className="text-2xl font-semibold">{event.title}</h1>
-            <Badge variant={statusVariant[event.status]}>{event.status}</Badge>
+            <Badge variant={statusVariant[event.status]}>{tStatus(event.status)}</Badge>
           </div>
           {event.description && (
             <p className="mt-1 text-sm text-muted-foreground">{event.description}</p>
@@ -74,43 +81,49 @@ export default async function EventSettingsPage({
 
       <Card className="mb-6">
         <CardHeader>
-          <CardTitle>Join details</CardTitle>
+          <CardTitle>{t('joinTitle')}</CardTitle>
           <CardDescription>
-            Put the code on screen. Anyone with it can join without an account.
+            {t('joinBody')}
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="flex flex-wrap items-center gap-3">
-            <span className="rounded-lg bg-muted px-4 py-2 font-mono text-2xl font-semibold tracking-widest">
+            {/* Join codes are Latin and never translated. */}
+            <span
+              dir="ltr"
+              className="rounded-lg bg-muted px-4 py-2 font-mono text-2xl font-semibold tracking-widest"
+            >
               {event.eventCode}
             </span>
             <CopyButton
               value={event.eventCode}
-              label="Copy code"
-              successMessage="Event code copied"
+              label={t('copyCode')}
+              successMessage={t('codeCopied')}
             />
             <CopyButton
               value={joinUrl}
-              label="Copy join link"
-              successMessage="Join link copied"
+              label={t('copyLink')}
+              successMessage={t('linkCopied')}
             />
             <Button variant="ghost" size="sm" asChild>
               <a href={joinUrl} target="_blank" rel="noreferrer">
                 <ExternalLink />
-                Open participant view
+                {t('openParticipant')}
               </a>
             </Button>
           </div>
 
           <dl className="grid grid-cols-2 gap-4 border-t border-border pt-4 sm:grid-cols-4">
             {[
-              ['Interactions', event.interactionCount],
-              ['Participants', event.participantCount],
-              ['Responses', event.responseCount],
-              ['Questions', event.questionCount],
-            ].map(([label, value]) => (
-              <div key={String(label)}>
-                <dt className="text-sm text-muted-foreground">{label}</dt>
+              ['interactions', event.interactionCount],
+              ['participants', event.participantCount],
+              ['responses', event.responseCount],
+              ['questions', event.questionCount],
+            ].map(([key, value]) => (
+              <div key={String(key)}>
+                <dt className="text-sm text-muted-foreground">
+                  {t(key as 'interactions' | 'participants' | 'responses' | 'questions')}
+                </dt>
                 <dd className="mt-0.5 text-xl font-semibold tabular-nums">{value}</dd>
               </div>
             ))}
@@ -120,7 +133,7 @@ export default async function EventSettingsPage({
 
       <Card className="mb-6">
         <CardHeader>
-          <CardTitle>Details</CardTitle>
+          <CardTitle>{t('details')}</CardTitle>
         </CardHeader>
         <CardContent>
           <EventForm
@@ -136,7 +149,7 @@ export default async function EventSettingsPage({
 
       <Card>
         <CardHeader>
-          <CardTitle>Danger zone</CardTitle>
+          <CardTitle>{t('dangerZone')}</CardTitle>
         </CardHeader>
         <CardContent>
           <DangerZone eventId={event.id} title={event.title} />

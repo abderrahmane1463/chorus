@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
+import { getTranslations } from 'next-intl/server';
 import { ArrowLeft, BarChart3, Layers, Presentation, Settings } from 'lucide-react';
 import { requireUser } from '@/lib/auth';
 import { getEventForOwner } from '@/lib/queries/events';
@@ -32,7 +33,8 @@ export async function generateMetadata({
   const user = await requireUser();
   const { eventId } = await params;
   const event = await getEventForOwner(eventId, user.id);
-  return { title: event?.title ?? 'Event' };
+  const t = await getTranslations('event');
+  return { title: event?.title ?? t('fallbackTitle') };
 }
 
 const statusVariant = {
@@ -55,6 +57,9 @@ export default async function EventWorkspacePage({
 
   const event = await getEventForOwner(eventId, user.id);
   if (!event) notFound();
+
+  const t = await getTranslations('workspace');
+  const tStatus = await getTranslations('status');
 
   const interactions = await listInteractions(event.id);
 
@@ -101,44 +106,48 @@ export default async function EventWorkspacePage({
             href="/dashboard/events"
             className="mb-3 inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground"
           >
-            <ArrowLeft className="size-4" />
-            All events
+            <ArrowLeft className="size-4 rtl:rotate-180" />
+            {t('allEvents')}
           </Link>
 
           <div className="flex flex-wrap items-center gap-x-4 gap-y-3">
             <div className="min-w-0 flex-1">
               <div className="flex flex-wrap items-center gap-2">
                 <h1 className="truncate text-xl font-semibold">{event.title}</h1>
-                <Badge variant={statusVariant[event.status]}>{event.status}</Badge>
+                <Badge variant={statusVariant[event.status]}>{tStatus(event.status)}</Badge>
                 <LiveIndicator eventId={event.id} withQa />
               </div>
             </div>
 
             <div className="flex flex-wrap items-center gap-2">
-              <span className="rounded-md bg-muted px-3 py-1.5 font-mono text-sm font-medium tracking-wider">
+              {/* Join codes are Latin and never translated. */}
+              <span
+                dir="ltr"
+                className="rounded-md bg-muted px-3 py-1.5 font-mono text-sm font-medium tracking-wider"
+              >
                 {event.eventCode}
               </span>
               <CopyButton
                 value={`${process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000'}/event/${event.eventCode}`}
-                label="Copy join link"
-                successMessage="Join link copied"
+                label={t('copyLink')}
+                successMessage={t('linkCopied')}
               />
               <Button variant="ghost" size="sm" asChild>
                 <Link href={`/dashboard/events/${event.id}/analytics`}>
                   <BarChart3 />
-                  Analytics
+                  {t('analytics')}
                 </Link>
               </Button>
               <Button variant="ghost" size="sm" asChild>
                 <Link href={`/dashboard/events/${event.id}/settings`}>
                   <Settings />
-                  Settings
+                  {t('settings')}
                 </Link>
               </Button>
               <Button size="sm" asChild>
                 <Link href={`/present/${event.id}`} target="_blank">
                   <Presentation />
-                  Present
+                  {t('present')}
                 </Link>
               </Button>
             </div>
@@ -150,8 +159,8 @@ export default async function EventWorkspacePage({
         {interactions.length === 0 ? (
           <EmptyState
             icon={Layers}
-            title="No interactions yet"
-            description="Add a poll, a word cloud or a rating and it will appear here."
+            title={t('noneTitle')}
+            description={t('noneBody')}
             action={<InteractionTypePicker eventId={event.id} />}
           />
         ) : (
@@ -184,8 +193,8 @@ export default async function EventWorkspacePage({
               ) : (
                 <EmptyState
                   icon={Layers}
-                  title="Pick an interaction"
-                  description="Choose one from the list to edit it."
+                  title={t('pickTitle')}
+                  description={t('pickBody')}
                 />
               )}
             </div>

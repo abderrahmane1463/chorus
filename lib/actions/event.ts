@@ -1,5 +1,6 @@
 'use server';
 
+import { getTranslations } from 'next-intl/server';
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 import { and, eq } from 'drizzle-orm';
@@ -27,6 +28,8 @@ const MAX_CODE_ATTEMPTS = 10;
  * racing another request, this relies on the unique constraint and retries.
  */
 export async function createEventAction(input: unknown): Promise<ActionResult> {
+  const t = await getTranslations();
+
   const user = await requireUser();
 
   const parsed = createEventSchema.safeParse(input);
@@ -58,7 +61,7 @@ export async function createEventAction(input: unknown): Promise<ActionResult> {
   }
 
   if (!eventId) {
-    return { ok: false, error: 'Could not allocate a free event code. Try again.' };
+    return { ok: false, error: t('errors.codeAllocationFailed') };
   }
 
   revalidatePath('/dashboard');
@@ -67,6 +70,8 @@ export async function createEventAction(input: unknown): Promise<ActionResult> {
 }
 
 export async function updateEventAction(input: unknown): Promise<ActionResult> {
+  const t = await getTranslations();
+
   const user = await requireUser();
 
   const parsed = updateEventSchema.safeParse(input);
@@ -75,7 +80,7 @@ export async function updateEventAction(input: unknown): Promise<ActionResult> {
   }
 
   const owned = await assertEventOwner(parsed.data.eventId, user.id);
-  if (!owned) return { ok: false, error: 'Event not found' };
+  if (!owned) return { ok: false, error: t('errors.eventNotFound') };
 
   await db
     .update(events)
@@ -92,15 +97,17 @@ export async function updateEventAction(input: unknown): Promise<ActionResult> {
 }
 
 export async function updateEventStatusAction(input: unknown): Promise<ActionResult> {
+  const t = await getTranslations();
+
   const user = await requireUser();
 
   const parsed = updateEventStatusSchema.safeParse(input);
   if (!parsed.success) {
-    return { ok: false, error: 'Invalid status' };
+    return { ok: false, error: t('errors.invalidStatus') };
   }
 
   const owned = await assertEventOwner(parsed.data.eventId, user.id);
-  if (!owned) return { ok: false, error: 'Event not found' };
+  if (!owned) return { ok: false, error: t('errors.eventNotFound') };
 
   await db
     .update(events)
@@ -122,13 +129,15 @@ export async function updateEventStatusAction(input: unknown): Promise<ActionRes
 
 /** Regenerates the join code, which invalidates any code already on a screen. */
 export async function regenerateEventCodeAction(input: unknown): Promise<ActionResult> {
+  const t = await getTranslations();
+
   const user = await requireUser();
 
   const parsed = eventIdSchema.safeParse(input);
-  if (!parsed.success) return { ok: false, error: 'Invalid event' };
+  if (!parsed.success) return { ok: false, error: t('errors.invalidEvent') };
 
   const owned = await assertEventOwner(parsed.data.eventId, user.id);
-  if (!owned) return { ok: false, error: 'Event not found' };
+  if (!owned) return { ok: false, error: t('errors.eventNotFound') };
 
   for (let attempt = 0; attempt < MAX_CODE_ATTEMPTS; attempt++) {
     try {
@@ -145,14 +154,16 @@ export async function regenerateEventCodeAction(input: unknown): Promise<ActionR
     }
   }
 
-  return { ok: false, error: 'Could not allocate a free event code. Try again.' };
+  return { ok: false, error: t('errors.codeAllocationFailed') };
 }
 
 export async function deleteEventAction(input: unknown): Promise<ActionResult> {
+  const t = await getTranslations();
+
   const user = await requireUser();
 
   const parsed = eventIdSchema.safeParse(input);
-  if (!parsed.success) return { ok: false, error: 'Invalid event' };
+  if (!parsed.success) return { ok: false, error: t('errors.invalidEvent') };
 
   // Ownership is enforced in the delete itself, not just checked beforehand.
   const deleted = await db
@@ -160,7 +171,7 @@ export async function deleteEventAction(input: unknown): Promise<ActionResult> {
     .where(and(eq(events.id, parsed.data.eventId), eq(events.ownerId, user.id)))
     .returning({ id: events.id });
 
-  if (deleted.length === 0) return { ok: false, error: 'Event not found' };
+  if (deleted.length === 0) return { ok: false, error: t('errors.eventNotFound') };
 
   revalidatePath('/dashboard');
   revalidatePath('/dashboard/events');

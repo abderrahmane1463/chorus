@@ -4,6 +4,7 @@ import { useRouter } from 'next/navigation';
 import { useTransition } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { useTranslations } from 'next-intl';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -18,6 +19,10 @@ type Props =
 
 export function EventForm(props: Props) {
   const router = useRouter();
+  const t = useTranslations('eventForm');
+  const tCommon = useTranslations('common');
+  // Unscoped for validation keys coming from the schema.
+  const tRoot = useTranslations();
   const [pending, startTransition] = useTransition();
 
   const form = useForm<CreateEventInput>({
@@ -36,7 +41,7 @@ export function EventForm(props: Props) {
 
       const result = await updateEventAction({ ...values, eventId: props.eventId });
       if (result.ok) {
-        toast.success('Event updated');
+        toast.success(t('updated'));
         form.reset(values);
         router.refresh();
       } else {
@@ -53,32 +58,32 @@ export function EventForm(props: Props) {
       noValidate
     >
       <div className="space-y-1.5">
-        <Label htmlFor="title">Event name</Label>
+        <Label htmlFor="title">{t('name')}</Label>
         <Input
           id="title"
-          placeholder="Digital Marketing Workshop"
+          placeholder={t('namePlaceholder')}
           aria-invalid={Boolean(form.formState.errors.title)}
           {...form.register('title')}
         />
         {form.formState.errors.title && (
           <p className="text-sm text-destructive">
-            {form.formState.errors.title.message}
+            {tRoot(form.formState.errors.title.message ?? 'validation.titleRequired')}
           </p>
         )}
       </div>
 
       <div className="space-y-1.5">
-        <Label htmlFor="description">Description (optional)</Label>
+        <Label htmlFor="description">{t('description')}</Label>
         <Textarea
           id="description"
           rows={3}
-          placeholder="What is this session about?"
+          placeholder={t('descriptionPlaceholder')}
           aria-invalid={Boolean(form.formState.errors.description)}
           {...form.register('description')}
         />
         {form.formState.errors.description && (
           <p className="text-sm text-destructive">
-            {form.formState.errors.description.message}
+            {tRoot(form.formState.errors.description.message ?? 'validation.descriptionTooLong')}
           </p>
         )}
       </div>
@@ -89,11 +94,11 @@ export function EventForm(props: Props) {
           loading={pending}
           disabled={props.mode === 'edit' && !form.formState.isDirty}
         >
-          {props.mode === 'create' ? 'Create event' : 'Save changes'}
+          {props.mode === 'create' ? t('create') : t('save')}
         </Button>
         {props.mode === 'create' && (
           <Button type="button" variant="ghost" onClick={() => router.back()}>
-            Cancel
+            {tCommon('cancel')}
           </Button>
         )}
       </div>

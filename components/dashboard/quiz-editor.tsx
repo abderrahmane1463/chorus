@@ -3,6 +3,7 @@
 import { useRouter } from 'next/navigation';
 import { useState, useTransition } from 'react';
 import { Check, Eye, Play, Plus, RotateCcw, SkipForward, Square, Trash2, X } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -20,7 +21,6 @@ import {
 } from '@/lib/actions/quiz';
 import type { LeaderboardRow, QuizDetail, QuizQuestion } from '@/lib/queries/quiz';
 import { cn } from '@/lib/utils/cn';
-import { pluralize } from '@/lib/utils/format';
 
 export function QuizEditor({
   quiz,
@@ -30,6 +30,7 @@ export function QuizEditor({
   leaderboard: LeaderboardRow[];
 }) {
   const router = useRouter();
+  const t = useTranslations('quizEditor');
   const [pending, startTransition] = useTransition();
 
   const currentIndex = quiz.questions.findIndex((q) => q.id === quiz.currentChildId);
@@ -60,68 +61,68 @@ export function QuizEditor({
     <div className="space-y-5">
       <Card>
         <CardHeader>
-          <CardTitle>Run the quiz</CardTitle>
+          <CardTitle>{t('run')}</CardTitle>
         </CardHeader>
         <CardContent className="space-y-3">
           <div className="flex flex-wrap items-center gap-2">
             {!running ? (
               <Button
-                onClick={() => control('start', 'Quiz started')}
+                onClick={() => control('start', t('started'))}
                 loading={pending}
                 disabled={quiz.questions.length === 0}
               >
                 <Play />
-                Start quiz
+                {t('start')}
               </Button>
             ) : (
               <>
                 {!quiz.answerRevealed && (
-                  <Button onClick={() => control('reveal', 'Answer revealed')} loading={pending}>
+                  <Button onClick={() => control('reveal', t('revealed'))} loading={pending}>
                     <Eye />
-                    Reveal answer
+                    {t('reveal')}
                   </Button>
                 )}
                 {!isLast && (
                   <Button
                     variant="secondary"
-                    onClick={() => control('next', 'Next question')}
+                    onClick={() => control('next', t('nextDone'))}
                     loading={pending}
                   >
                     <SkipForward />
-                    Next question
+                    {t('next')}
                   </Button>
                 )}
                 <Button
                   variant="secondary"
-                  onClick={() => control('finish', 'Quiz finished')}
+                  onClick={() => control('finish', t('finished'))}
                   loading={pending}
                 >
                   <Square />
-                  Finish quiz
+                  {t('finish')}
                 </Button>
               </>
             )}
 
             <Button
               variant="destructive"
-              onClick={() => control('restart', 'Quiz reset')}
+              onClick={() => control('restart', t('restarted'))}
               disabled={pending}
-              className="ml-auto"
+              className="ms-auto"
             >
               <RotateCcw />
-              Restart and clear scores
+              {t('restart')}
             </Button>
           </div>
 
           {running && currentIndex >= 0 && (
             <p className="text-sm text-muted-foreground">
-              Showing question {currentIndex + 1} of {quiz.questions.length}
-              {quiz.answerRevealed ? ' · answer revealed' : ''}
+              {t('showing', { current: currentIndex + 1, total: quiz.questions.length })}
+              {quiz.answerRevealed ? t('answerRevealed') : ''}
             </p>
           )}
           {quiz.questions.length === 0 && (
             <p className="text-sm text-muted-foreground">
-              Add at least one question before starting.
+              {t('needQuestion')}
             </p>
           )}
         </CardContent>
@@ -130,7 +131,7 @@ export function QuizEditor({
       <Card>
         <CardHeader>
           <CardTitle>
-            Questions{' '}
+            {t('questions')}{' '}
             <span className="font-normal text-muted-foreground">
               ({quiz.questions.length})
             </span>
@@ -139,8 +140,8 @@ export function QuizEditor({
         <CardContent className="space-y-4">
           {quiz.questions.length === 0 ? (
             <EmptyState
-              title="No questions yet"
-              description="Each question has a timer, points and one or more correct answers."
+              title={t('noneTitle')}
+              description={t('noneBody')}
             />
           ) : (
             quiz.questions.map((question, index) => (
@@ -155,14 +156,14 @@ export function QuizEditor({
 
           <Button variant="secondary" onClick={addQuestion} loading={pending}>
             <Plus />
-            Add question
+            {t('addQuestion')}
           </Button>
         </CardContent>
       </Card>
 
       <Card>
         <CardHeader>
-          <CardTitle>Leaderboard</CardTitle>
+          <CardTitle>{t('leaderboard')}</CardTitle>
         </CardHeader>
         <CardContent>
           <Leaderboard rows={leaderboard} />
@@ -184,6 +185,7 @@ function QuizQuestionEditor({
   isCurrent: boolean;
 }) {
   const router = useRouter();
+  const t = useTranslations('quizEditor');
   const [open, setOpen] = useState(question.title.trim().length === 0);
   const [title, setTitle] = useState(question.title);
   const [timeLimit, setTimeLimit] = useState(question.settings.timeLimitSeconds ?? 20);
@@ -211,7 +213,7 @@ function QuizQuestionEditor({
         options,
       });
       if (result.ok) {
-        toast.success('Question saved');
+        toast.success(t('saved'));
         setOpen(false);
         router.refresh();
       } else {
@@ -224,7 +226,7 @@ function QuizQuestionEditor({
     startTransition(async () => {
       const result = await deleteQuizQuestionAction({ questionId: question.id });
       if (result.ok) {
-        toast.success('Question deleted');
+        toast.success(t('deleted'));
         router.refresh();
       } else {
         toast.error(result.error);
@@ -243,26 +245,31 @@ function QuizQuestionEditor({
         <button
           type="button"
           onClick={() => setOpen((value) => !value)}
-          className="min-w-0 flex-1 text-left"
+          className="min-w-0 flex-1 text-start"
         >
-          <span className="text-xs text-muted-foreground">Question {index + 1}</span>
+          <span className="text-xs text-muted-foreground">
+            {t('questionNumber', { number: index + 1 })}
+          </span>
           <span
             className={cn(
               'mt-0.5 block truncate font-medium',
               !title && 'italic text-muted-foreground',
             )}
           >
-            {title || 'Untitled question'}
+            {title || t('untitled')}
           </span>
           <span className="mt-1 block text-xs text-muted-foreground">
-            {timeLimit}s · {points} pts ·{' '}
-            {pluralize(question.answerCount, 'answer')}
+            {t('summary', {
+              seconds: timeLimit,
+              points,
+              answers: t('answerCount', { count: question.answerCount }),
+            })}
           </span>
         </button>
 
         <div className="flex shrink-0 items-center gap-2">
-          {isCurrent && <Badge variant="success">On screen</Badge>}
-          <Button variant="ghost" size="icon" onClick={remove} aria-label="Delete question">
+          {isCurrent && <Badge variant="success">{t('onScreen')}</Badge>}
+          <Button variant="ghost" size="icon" onClick={remove} aria-label={t('deleteQuestion')}>
             <Trash2 />
           </Button>
         </div>
@@ -271,23 +278,23 @@ function QuizQuestionEditor({
       {open && (
         <div className="mt-4 space-y-4 border-t border-border pt-4">
           <div className="space-y-1.5">
-            <Label htmlFor={`q-${question.id}`}>Question</Label>
+            <Label htmlFor={`q-${question.id}`}>{t('question')}</Label>
             <Input
               id={`q-${question.id}`}
               value={title}
               onChange={(event) => setTitle(event.target.value)}
               maxLength={300}
-              placeholder="Which objective optimises for purchases?"
+              placeholder={t('questionPlaceholder')}
             />
           </div>
 
           <div className="space-y-2">
-            <Label>Answers — tick the correct one(s)</Label>
+            <Label>{t('answersLabel')}</Label>
             {options.map((option, optionIndex) => (
               <div key={option.id ?? `new-${optionIndex}`} className="flex items-center gap-2">
                 <button
                   type="button"
-                  aria-label={option.isCorrect ? 'Marked correct' : 'Mark as correct'}
+                  aria-label={option.isCorrect ? t('markedCorrect') : t('markCorrect')}
                   aria-pressed={option.isCorrect}
                   onClick={() =>
                     setOptions(
@@ -315,14 +322,14 @@ function QuizQuestionEditor({
                     )
                   }
                   maxLength={160}
-                  placeholder={`Answer ${optionIndex + 1}`}
+                  placeholder={t('answerPlaceholder', { number: optionIndex + 1 })}
                 />
                 <Button
                   variant="ghost"
                   size="icon"
                   disabled={options.length <= 2}
                   onClick={() => setOptions(options.filter((_, i) => i !== optionIndex))}
-                  aria-label={`Remove answer ${optionIndex + 1}`}
+                  aria-label={t('removeAnswer', { number: optionIndex + 1 })}
                 >
                   <X />
                 </Button>
@@ -335,14 +342,14 @@ function QuizQuestionEditor({
                 onClick={() => setOptions([...options, { text: '', isCorrect: false }])}
               >
                 <Plus />
-                Add answer
+                {t('addAnswer')}
               </Button>
             )}
           </div>
 
           <div className="grid gap-3 sm:grid-cols-2">
             <div className="space-y-1.5">
-              <Label htmlFor={`t-${question.id}`}>Time limit (seconds)</Label>
+              <Label htmlFor={`t-${question.id}`}>{t('timeLimit')}</Label>
               <Input
                 id={`t-${question.id}`}
                 type="number"
@@ -353,7 +360,7 @@ function QuizQuestionEditor({
               />
             </div>
             <div className="space-y-1.5">
-              <Label htmlFor={`p-${question.id}`}>Points</Label>
+              <Label htmlFor={`p-${question.id}`}>{t('points')}</Label>
               <Input
                 id={`p-${question.id}`}
                 type="number"
@@ -368,27 +375,27 @@ function QuizQuestionEditor({
 
           <label className="flex items-center justify-between gap-4 text-sm">
             <span>
-              <span className="font-medium">Speed bonus</span>
+              <span className="font-medium">{t('speedBonus')}</span>
               <span className="block text-xs text-muted-foreground">
-                Faster correct answers score more.
+                {t('speedBonusHint')}
               </span>
             </span>
             <Switch checked={speedBonus} onCheckedChange={setSpeedBonus} />
           </label>
 
           <div className="space-y-1.5">
-            <Label htmlFor={`e-${question.id}`}>Explanation (optional)</Label>
+            <Label htmlFor={`e-${question.id}`}>{t('explanation')}</Label>
             <Input
               id={`e-${question.id}`}
               value={explanation}
               onChange={(event) => setExplanation(event.target.value)}
               maxLength={300}
-              placeholder="Shown after you reveal the answer"
+              placeholder={t('explanationPlaceholder')}
             />
           </div>
 
           <Button onClick={save} loading={pending}>
-            Save question
+            {t('save')}
           </Button>
         </div>
       )}

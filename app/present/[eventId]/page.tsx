@@ -1,5 +1,6 @@
 import { notFound } from 'next/navigation';
 import type { Metadata } from 'next';
+import { getTranslations } from 'next-intl/server';
 import { requireUser } from '@/lib/auth';
 import { getEventForOwner } from '@/lib/queries/events';
 import {
@@ -12,7 +13,10 @@ import { getLeaderboard, getQuizDetail } from '@/lib/queries/quiz';
 import { getSurveyDetail } from '@/lib/queries/survey';
 import { PresenterScreen } from '@/components/present/presenter-screen';
 
-export const metadata: Metadata = { title: 'Presenter' };
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getTranslations('presenter');
+  return { title: t('metaTitle') };
+}
 
 export default async function PresentPage({
   params,

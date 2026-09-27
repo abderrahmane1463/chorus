@@ -1,5 +1,6 @@
 'use server';
 
+import { getTranslations } from 'next-intl/server';
 import { revalidatePath } from 'next/cache';
 import { and, eq } from 'drizzle-orm';
 import { db } from '@/lib/db';
@@ -48,19 +49,21 @@ async function participantContext(interactionId: string) {
 }
 
 export async function askQuestionAction(input: unknown): Promise<ActionResult> {
+  const t = await getTranslations();
+
   const parsed = askQuestionSchema.safeParse(input);
   if (!parsed.success) {
-    return { ok: false, error: parsed.error.issues[0]?.message ?? 'Invalid question' };
+    return { ok: false, error: t(parsed.error.issues[0]?.message ?? 'errors.invalidQuestion') };
   }
 
   const context = await participantContext(parsed.data.interactionId);
-  if (!context) return { ok: false, error: 'You are not part of this event' };
-  if (context.type !== 'q_and_a') return { ok: false, error: 'That is not a Q&A' };
+  if (!context) return { ok: false, error: t('errors.notPartOfEvent') };
+  if (context.type !== 'q_and_a') return { ok: false, error: t('errors.notQa') };
   if (context.eventStatus === 'archived') {
-    return { ok: false, error: 'This event is closed' };
+    return { ok: false, error: t('errors.eventClosed') };
   }
   if (context.status !== 'active') {
-    return { ok: false, error: 'Q&A is not open right now' };
+    return { ok: false, error: t('errors.qaClosed') };
   }
 
   // Anonymity is only honoured if the host allows it.
@@ -95,11 +98,13 @@ export async function askQuestionAction(input: unknown): Promise<ActionResult> {
 
 /** Upvotes are a toggle; the unique constraint makes double-voting impossible. */
 export async function toggleQuestionVoteAction(input: unknown): Promise<ActionResult> {
+  const t = await getTranslations();
+
   const parsed = questionIdSchema.safeParse(input);
-  if (!parsed.success) return { ok: false, error: 'Invalid question' };
+  if (!parsed.success) return { ok: false, error: t('errors.invalidQuestion') };
 
   const sessionId = await readSessionId();
-  if (!sessionId) return { ok: false, error: 'Join the event again to vote' };
+  if (!sessionId) return { ok: false, error: t('errors.rejoinToVote') };
 
   const [target] = await db
     .select({
@@ -121,12 +126,12 @@ export async function toggleQuestionVoteAction(input: unknown): Promise<ActionRe
     .where(eq(questions.id, parsed.data.questionId))
     .limit(1);
 
-  if (!target) return { ok: false, error: 'You are not part of this event' };
+  if (!target) return { ok: false, error: t('errors.notPartOfEvent') };
   if ((target.settings.allowUpvotes ?? true) === false) {
-    return { ok: false, error: 'Upvotes are turned off for this Q&A' };
+    return { ok: false, error: t('errors.upvotesOff') };
   }
   if (target.status !== 'approved' && target.status !== 'answered') {
-    return { ok: false, error: 'That question is not open for votes' };
+    return { ok: false, error: t('errors.votesClosed') };
   }
 
   const removed = await db
@@ -158,10 +163,12 @@ export async function toggleQuestionVoteAction(input: unknown): Promise<ActionRe
 
 /** Host-only moderation. Ownership is enforced inside the query, not after it. */
 export async function moderateQuestionAction(input: unknown): Promise<ActionResult> {
+  const t = await getTranslations();
+
   const user = await requireUser();
 
   const parsed = moderateQuestionSchema.safeParse(input);
-  if (!parsed.success) return { ok: false, error: 'Invalid moderation action' };
+  if (!parsed.success) return { ok: false, error: t('errors.invalidModeration') };
 
   const [target] = await db
     .select({ id: questions.id, eventId: questions.eventId })
@@ -170,7 +177,7 @@ export async function moderateQuestionAction(input: unknown): Promise<ActionResu
     .where(and(eq(questions.id, parsed.data.questionId), eq(events.ownerId, user.id)))
     .limit(1);
 
-  if (!target) return { ok: false, error: 'Question not found' };
+  if (!target) return { ok: false, error: t('errors.questionNotFound') };
 
   if (parsed.data.action === 'delete') {
     await db.delete(questions).where(eq(questions.id, target.id));

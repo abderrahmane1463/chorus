@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useTransition } from 'react';
+import { useTranslations } from 'next-intl';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import {
@@ -27,6 +28,8 @@ export function DangerZone({
   eventId: string;
   title: string;
 }) {
+  const t = useTranslations('danger');
+  const tCommon = useTranslations('common');
   const [open, setOpen] = useState(false);
   const [confirmation, setConfirmation] = useState('');
   const [deleting, startDelete] = useTransition();
@@ -46,7 +49,7 @@ export function DangerZone({
   function regenerate() {
     startRegenerate(async () => {
       const result = await regenerateEventCodeAction({ eventId });
-      if (result.ok) toast.success('New event code generated');
+      if (result.ok) toast.success(t('regenerated'));
       else toast.error(result.error);
     });
   }
@@ -55,39 +58,32 @@ export function DangerZone({
     <div className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <p className="text-sm font-medium">Regenerate join code</p>
-          <p className="text-sm text-muted-foreground">
-            The old code stops working immediately.
-          </p>
+          <p className="text-sm font-medium">{t('regenTitle')}</p>
+          <p className="text-sm text-muted-foreground">{t('regenBody')}</p>
         </div>
         <Button variant="secondary" onClick={regenerate} loading={regenerating}>
-          Regenerate
+          {t('regen')}
         </Button>
       </div>
 
       <div className="flex flex-wrap items-center justify-between gap-3 border-t border-border pt-4">
         <div>
-          <p className="text-sm font-medium">Delete this event</p>
-          <p className="text-sm text-muted-foreground">
-            Removes every interaction, response and question. Cannot be undone.
-          </p>
+          <p className="text-sm font-medium">{t('deleteTitle')}</p>
+          <p className="text-sm text-muted-foreground">{t('deleteBody')}</p>
         </div>
 
         <Dialog open={open} onOpenChange={setOpen}>
           <DialogTrigger asChild>
-            <Button variant="destructive">Delete event</Button>
+            <Button variant="destructive">{t('deleteEvent')}</Button>
           </DialogTrigger>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>Delete “{title}”?</DialogTitle>
-              <DialogDescription>
-                This permanently removes the event and everything in it. To
-                confirm, type the event name below.
-              </DialogDescription>
+              <DialogTitle>{t('confirmTitle', { title })}</DialogTitle>
+              <DialogDescription>{t('confirmBody')}</DialogDescription>
             </DialogHeader>
 
             <div className="space-y-1.5">
-              <Label htmlFor="confirm">Event name</Label>
+              <Label htmlFor="confirm">{t('eventName')}</Label>
               <Input
                 id="confirm"
                 value={confirmation}
@@ -99,7 +95,7 @@ export function DangerZone({
 
             <DialogFooter>
               <Button variant="ghost" onClick={() => setOpen(false)}>
-                Cancel
+                {tCommon('cancel')}
               </Button>
               <Button
                 variant="destructive"
@@ -107,7 +103,7 @@ export function DangerZone({
                 loading={deleting}
                 onClick={remove}
               >
-                Delete permanently
+                {t('deletePermanently')}
               </Button>
             </DialogFooter>
           </DialogContent>
