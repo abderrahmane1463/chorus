@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { getTranslations } from 'next-intl/server';
-import { ArrowLeft, BarChart3, Layers, Presentation, Settings } from 'lucide-react';
+import { ArrowLeft, BarChart3, Layers, Palette, Presentation, Settings } from 'lucide-react';
 import { requireUser } from '@/lib/auth';
 import { getEventForOwner } from '@/lib/queries/events';
 import {
@@ -160,6 +160,12 @@ export default async function EventWorkspacePage({
                 <Link href={`/dashboard/events/${event.id}/analytics`}>
                   <BarChart3 />
                   {t('analytics')}
+                </Link>
+              </Button>
+              <Button variant="ghost" size="sm" asChild>
+                <Link href={`/dashboard/events/${event.id}/design`}>
+                  <Palette />
+                  {t('design')}
                 </Link>
               </Button>
               <Button variant="ghost" size="sm" asChild>

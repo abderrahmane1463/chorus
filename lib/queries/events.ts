@@ -2,6 +2,8 @@ import 'server-only';
 import { and, count, eq, isNull } from 'drizzle-orm';
 import { db } from '@/lib/db';
 import { events, interactions, participants, questions, responses } from '@/db/schema';
+import { readBranding } from '@/lib/branding/templates';
+import type { EventBranding } from '@/types/branding';
 
 export type EventDetail = {
   id: string;
@@ -11,6 +13,8 @@ export type EventDetail = {
   status: (typeof events.status.enumValues)[number];
   activeInteractionId: string | null;
   createdAt: Date;
+  /** The event's own design, or null for the Chorus look. */
+  branding: EventBranding | null;
   participantCount: number;
   interactionCount: number;
   responseCount: number;
@@ -36,6 +40,7 @@ export async function getEventForOwner(
       status: events.status,
       activeInteractionId: events.activeInteractionId,
       createdAt: events.createdAt,
+      branding: events.branding,
     })
     .from(events)
     .where(and(eq(events.id, eventId), eq(events.ownerId, userId)))
@@ -67,6 +72,7 @@ export async function getEventForOwner(
 
   return {
     ...event,
+    branding: readBranding(event.branding),
     participantCount: participantRows[0]?.total ?? 0,
     interactionCount: interactionRows[0]?.total ?? 0,
     responseCount: responseRows[0]?.total ?? 0,

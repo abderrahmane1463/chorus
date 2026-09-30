@@ -66,7 +66,8 @@ export async function createEventAction(input: unknown): Promise<ActionResult> {
 
   revalidatePath('/dashboard');
   revalidatePath('/dashboard/events');
-  redirect(`/dashboard/events/${eventId}`);
+  // On to the second step: choosing how the event looks.
+  redirect(`/dashboard/events/${eventId}/design?new=1`);
 }
 
 export async function updateEventAction(input: unknown): Promise<ActionResult> {

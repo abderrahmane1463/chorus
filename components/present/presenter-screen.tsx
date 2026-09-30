@@ -29,6 +29,10 @@ import type { QuestionItem } from '@/lib/queries/questions';
 import type { LeaderboardRow, LobbyPlayer, QuizDetail } from '@/lib/queries/quiz';
 import type { QuizPhase } from '@/lib/quiz/pacing';
 import type { SurveyDetail } from '@/lib/queries/survey';
+import { BrandLogo, BrandStyle, PartnerLogos } from '@/components/branding/brand';
+import { assetUrl } from '@/lib/branding/templates';
+import { cn } from '@/lib/utils/cn';
+import type { EventBranding } from '@/types/branding';
 
 export function PresenterScreen({
   eventId,
@@ -47,7 +51,10 @@ export function PresenterScreen({
   players,
   quizPhase,
   quizDueAt,
+  branding,
 }: {
+  /** The event's own design, or null for the Chorus look. */
+  branding: EventBranding | null;
   /** Who has joined, for the quiz lobby. */
   players: LobbyPlayer[];
   quizPhase: QuizPhase;
@@ -116,14 +123,43 @@ export function PresenterScreen({
     });
   }
 
+  const backdrop = branding?.backgroundId ? assetUrl(branding.backgroundId) : null;
+
   // The lobby shows its own large code, so the footer's copy would only
   // repeat it a few centimetres lower.
   const inLobby = Boolean(quiz) && quizPhase === 'lobby';
 
   return (
-    <div className="flex min-h-dvh flex-col bg-background">
+    <div
+      className={cn(
+        // `isolate` keeps the backdrop's veil behind the content and nothing else.
+        'relative isolate flex min-h-dvh flex-col bg-background',
+        branding && !backdrop && 'brand-backdrop',
+      )}
+      style={
+        backdrop
+          ? {
+              backgroundImage: `url(${backdrop})`,
+              backgroundSize: 'cover',
+              backgroundPosition: 'center',
+            }
+          : undefined
+      }
+    >
+      <BrandStyle branding={branding} />
+      {backdrop && (
+        // A veil in the page colour: the picture sets the mood, and the
+        // question still has to be read from the back of the room.
+        <div aria-hidden className="pointer-events-none absolute inset-0 -z-10 bg-background/80" />
+      )}
+
       <header className="flex flex-wrap items-center gap-x-6 gap-y-3 border-b border-border px-8 py-5">
-        <Logo showWordmark={false} className="shrink-0" />
+        <BrandLogo
+          branding={branding}
+          title={eventTitle}
+          className="h-11 max-w-44 shrink-0"
+          fallback={<Logo showWordmark={false} className="shrink-0" />}
+        />
         <h1 className="min-w-0 flex-1 truncate text-xl font-medium text-muted-foreground">
           {eventTitle}
         </h1>
@@ -250,6 +286,8 @@ export function PresenterScreen({
             </p>
           </div>
         </div>
+
+        <PartnerLogos branding={branding} className="mx-auto justify-center" logoClassName="h-12" />
 
         <div className="ms-auto flex items-center gap-2">
           <button

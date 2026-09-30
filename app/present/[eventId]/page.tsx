@@ -74,6 +74,7 @@ export default async function PresentPage({
 
   return (
     <PresenterScreen
+      branding={event.branding}
       eventId={event.id}
       eventTitle={event.title}
       eventCode={event.eventCode}

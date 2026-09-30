@@ -26,6 +26,9 @@ import { getSurveyAnswers, getSurveyDetail } from '@/lib/queries/survey';
 import { ResultsView } from '@/components/interactions/results-view';
 import { LiveIndicator } from '@/components/shared/live-indicator';
 import { Card } from '@/components/ui/card';
+import { BrandLogo, BrandStyle, PartnerLogos } from '@/components/branding/brand';
+import { readBranding } from '@/lib/branding/templates';
+import { cn } from '@/lib/utils/cn';
 import type { ResponseData } from '@/types/interactions';
 
 export async function generateMetadata({
@@ -59,12 +62,15 @@ export default async function ParticipantEventPage({
       title: events.title,
       eventCode: events.eventCode,
       status: events.status,
+      branding: events.branding,
     })
     .from(events)
     .where(eq(events.eventCode, code))
     .limit(1);
 
   if (!event) notFound();
+
+  const branding = readBranding(event.branding);
 
   // Without a joined session there is nobody to attribute answers to.
   const sessionId = await readSessionId();
@@ -160,10 +166,16 @@ export default async function ParticipantEventPage({
   });
 
   return (
-    <div className="flex min-h-dvh flex-col">
+    <div className={cn('flex min-h-dvh flex-col', branding && 'brand-backdrop')}>
+      <BrandStyle branding={branding} />
       <header className="sticky top-0 z-30 border-b border-border bg-background/90 px-4 py-3 backdrop-blur">
         <div className="mx-auto flex max-w-2xl items-center gap-3">
-          <Logo showWordmark={false} />
+          <BrandLogo
+            branding={branding}
+            title={event.title}
+            className="h-9 max-w-28 shrink-0"
+            fallback={<Logo showWordmark={false} />}
+          />
           <div className="min-w-0 flex-1">
             <p className="truncate text-sm font-medium">{event.title}</p>
             <p className="font-mono text-xs text-muted-foreground">{event.eventCode}</p>
@@ -251,6 +263,12 @@ export default async function ParticipantEventPage({
           </div>
         )}
       </main>
+
+      <PartnerLogos
+        branding={branding}
+        className="justify-center px-4 pb-6"
+        logoClassName="h-7"
+      />
     </div>
   );
 }
