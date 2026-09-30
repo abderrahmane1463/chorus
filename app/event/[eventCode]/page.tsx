@@ -173,12 +173,15 @@ export default async function ParticipantEventPage({
           <BrandLogo
             branding={branding}
             title={event.title}
-            className="h-9 max-w-28 shrink-0"
+            className="h-9 max-w-24 shrink-0"
             fallback={<Logo showWordmark={false} />}
           />
           <div className="min-w-0 flex-1">
             <p className="truncate text-sm font-medium">{event.title}</p>
-            <p className="font-mono text-xs text-muted-foreground">{event.eventCode}</p>
+            {/* One line: beside a wide logo the code would otherwise break in two. */}
+            <p className="truncate whitespace-nowrap font-mono text-xs text-muted-foreground">
+              {event.eventCode}
+            </p>
           </div>
           <div className="flex shrink-0 items-center gap-1">
             <div className="flex flex-col items-end gap-0.5">
