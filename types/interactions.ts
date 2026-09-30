@@ -28,6 +28,12 @@ export type InteractionSettings = {
   moderationEnabled?: boolean;
   allowUpvotes?: boolean;
 
+  // Quiz
+  /** Reveal at the buzzer and move to the next question without the host. */
+  autoAdvance?: boolean;
+  /** Seconds the answer and standings stay up before the next question. */
+  revealSeconds?: number;
+
   // Quiz question
   timeLimitSeconds?: number;
   points?: number;

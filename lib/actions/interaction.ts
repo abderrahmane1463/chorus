@@ -196,7 +196,16 @@ export async function setInteractionStatusAction(
 
     await db
       .update(interactions)
-      .set({ status: 'active', startedAt: new Date(), endedAt: null })
+      // Clearing the quiz pointer is what makes a quiz opened this way land
+      // in its lobby. Left in place, it would resume mid-question with a
+      // timer that expired during its last run. Other types ignore both.
+      .set({
+        status: 'active',
+        startedAt: new Date(),
+        endedAt: null,
+        currentChildId: null,
+        answerRevealed: false,
+      })
       .where(eq(interactions.id, owned.id));
 
     await db

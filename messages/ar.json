@@ -173,7 +173,14 @@
     "notQuite": "ليست صحيحة",
     "correctLabel": "الإجابة الصحيحة",
     "yourAnswerLabel": "إجابتك",
-    "pointsCaption": "{points, plural, one {نقطة} two {نقطتان} few {نقاط} many {نقطة} other {نقطة}}"
+    "pointsCaption": "{points, plural, one {نقطة} two {نقطتان} few {نقاط} many {نقطة} other {نقطة}}",
+    "lobbyTitle": "لقد انضممت",
+    "lobbyBody": "تابع الشاشة الكبيرة. تبدأ المسابقة عندما يكون المنظّم جاهزًا.",
+    "playersIn": "{count, plural, one {لاعب واحد في القاعة} two {لاعبان في القاعة} few {# لاعبين في القاعة} many {# لاعبًا في القاعة} other {# لاعب في القاعة}}",
+    "notStarted": "لم تبدأ المسابقة بعد",
+    "noAnswer": "لم تجب عن هذا السؤال.",
+    "nextIn": "السؤال التالي بعد {seconds}",
+    "resultsIn": "النتائج النهائية بعد {seconds}"
   },
   "survey": {
     "noQuestions": "لا يحتوي هذا الاستبيان على أسئلة بعد.",
@@ -276,7 +283,9 @@
     "questionMovedOn": "انتقلت المسابقة إلى سؤال آخر",
     "quizNotRunning": "هذه المسابقة ليست قيد التشغيل",
     "chooseAtMost": "اختر {limit} على الأكثر",
-    "submitUpTo": "يمكنك إرسال {count, plural, zero {لا إجابات} one {إجابة واحدة} two {إجابتين} few {# إجابات} many {# إجابة} other {# إجابة}} على الأكثر"
+    "submitUpTo": "يمكنك إرسال {count, plural, zero {لا إجابات} one {إجابة واحدة} two {إجابتين} few {# إجابات} many {# إجابة} other {# إجابة}} على الأكثر",
+    "quizAlreadyStarted": "بدأت المسابقة بالفعل",
+    "questionNotOpen": "هذا السؤال لم يُفتح بعد"
   },
   "validation": {
     "codeRequired": "أدخل رمز الفعالية",
@@ -527,7 +536,11 @@
     "oneByOne": "عرض سؤال واحد في كل مرة",
     "oneByOneHint": "عند الإيقاف يظهر الاستبيان كاملًا في شاشة واحدة.",
     "showResults": "إظهار النتائج للمشاركين",
-    "showResultsHint": "تظهر النتائج على هواتفهم بعد أن يجيبوا."
+    "showResultsHint": "تظهر النتائج على هواتفهم بعد أن يجيبوا.",
+    "autoAdvance": "الانتقال تلقائيًا",
+    "autoAdvanceHint": "تظهر الإجابة عند انتهاء الوقت، ثم يأتي السؤال التالي. أوقفه لتضغط بنفسك على إظهار والتالي.",
+    "revealSeconds": "ثواني عرض كل إجابة",
+    "revealSecondsHint": "مدة بقاء الإجابة ولوحة الترتيب قبل السؤال التالي."
   },
   "moderation": {
     "sortVotes": "الأكثر تصويتًا",
@@ -604,7 +617,16 @@
     "save": "احفظ السؤال",
     "saved": "حُفظ السؤال",
     "deleted": "حُذف السؤال",
-    "addFirst": "أضف سؤالك الأول"
+    "addFirst": "أضف سؤالك الأول",
+    "openLobby": "افتح قاعة الانتظار",
+    "lobbyOpened": "قاعة الانتظار مفتوحة",
+    "closeLobby": "أغلق قاعة الانتظار",
+    "lobbyHint": "فتح قاعة الانتظار يعرض رمز QR واللاعبين المنضمين. لا يبدأ أي توقيت حتى تضغط على ابدأ.",
+    "inLobby": "{count, plural, =0 {لم ينضم أحد بعد.} one {لاعب واحد في قاعة الانتظار.} two {لاعبان في قاعة الانتظار.} few {# لاعبين في قاعة الانتظار.} many {# لاعبًا في قاعة الانتظار.} other {# لاعب في قاعة الانتظار.}}",
+    "startHint": "اضغط على ابدأ عندما تكون القاعة جاهزة.",
+    "revealNow": "أظهر الإجابة الآن",
+    "nextNow": "انتقل إلى السؤال التالي",
+    "automatic": "الانتقال تلقائي"
   },
   "surveyEditor": {
     "questions": "أسئلة الاستبيان",
@@ -734,6 +756,14 @@
     "next": "التالي",
     "metaTitle": "العرض",
     "answered": "أجاب {count} من {total}",
-    "everyoneAnswered": "أجاب الجميع"
+    "everyoneAnswered": "أجاب الجميع",
+    "playersJoined": "{count, plural, =0 {في انتظار اللاعبين…} one {انضم لاعب واحد} two {انضم لاعبان} few {انضم # لاعبين} many {انضم # لاعبًا} other {انضم # لاعب}}",
+    "morePlayers": "+{count} آخرون",
+    "startQuiz": "ابدأ المسابقة",
+    "startHint": "تبدأ الأسئلة عندما تضغط على ابدأ.",
+    "noQuestionsYet": "أضف أسئلة إلى هذه المسابقة قبل البدء.",
+    "nextIn": "السؤال التالي بعد {seconds}",
+    "resultsIn": "النتائج النهائية بعد {seconds}",
+    "picked": "{count, plural, zero {لم يختره أحد} one {اختاره لاعب واحد} two {اختاره لاعبان} few {اختاره # لاعبين} many {اختاره # لاعبًا} other {اختاره # لاعب}}"
   }
 }

@@ -1,5 +1,5 @@
 import 'server-only';
-import { and, asc, desc, eq } from 'drizzle-orm';
+import { and, asc, count, desc, eq } from 'drizzle-orm';
 import { db } from '@/lib/db';
 import {
   events,
@@ -10,14 +10,25 @@ import {
   responses,
 } from '@/db/schema';
 import type { InteractionSettings } from '@/types/interactions';
+import { nextDueAt, quizPacing, quizPhase, type QuizPhase } from '@/lib/quiz/pacing';
 
 export type QuizQuestion = {
   id: string;
   title: string;
   position: number;
   settings: InteractionSettings;
+  /** When the question opens for answers. In the future during "get ready". */
   startedAt: Date | null;
-  options: { id: string; text: string; isCorrect: boolean; position: number }[];
+  /** When its answer was revealed; null until then. */
+  revealedAt: Date | null;
+  options: {
+    id: string;
+    text: string;
+    isCorrect: boolean;
+    position: number;
+    /** How many players chose it. Host screens show this once revealed. */
+    picks: number;
+  }[];
   answerCount: number;
 };
 
@@ -58,6 +69,8 @@ export async function getQuizDetail(quizId: string): Promise<QuizDetail | null> 
       position: interactions.position,
       settings: interactions.settings,
       startedAt: interactions.startedAt,
+      // A question's `endedAt` is stamped when its answer is revealed.
+      revealedAt: interactions.endedAt,
     })
     .from(interactions)
     .where(eq(interactions.parentId, quizId))
@@ -79,16 +92,25 @@ export async function getQuizDetail(quizId: string): Promise<QuizDetail | null> 
         .orderBy(asc(interactionOptions.position)),
 
       db
-        .select({ id: responses.id })
+        .select({ data: responses.responseData })
         .from(responses)
         .where(eq(responses.interactionId, child.id)),
     ]);
+
+    const picks = new Map<string, number>();
+    for (const answer of answers) {
+      if (answer.data.kind !== 'quiz') continue;
+      for (const optionId of answer.data.optionIds) {
+        picks.set(optionId, (picks.get(optionId) ?? 0) + 1);
+      }
+    }
 
     questions.push({
       ...child,
       options: options.map((option) => ({
         ...option,
         isCorrect: option.isCorrect ?? false,
+        picks: picks.get(option.id) ?? 0,
       })),
       answerCount: answers.length,
     });
@@ -104,6 +126,59 @@ export async function getQuizDetail(quizId: string): Promise<QuizDetail | null> 
     answerRevealed: quiz.answerRevealed,
     questions,
   };
+}
+
+/**
+ * Where a quiz is in its run and when it next moves on by itself.
+ *
+ * One place derives this for the projector, the dashboard and the phones, so
+ * they cannot disagree about what phase the room is in.
+ */
+export function quizTiming(
+  quiz: QuizDetail,
+  hasScores: boolean,
+): { phase: QuizPhase; dueAt: number | null } {
+  const current = quiz.questions.find((q) => q.id === quiz.currentChildId) ?? null;
+
+  const phase = quizPhase({
+    status: quiz.status,
+    hasCurrentQuestion: Boolean(current),
+    answerRevealed: quiz.answerRevealed,
+    hasScores,
+  });
+
+  const dueAt = nextDueAt({
+    pacing: quizPacing(quiz.settings),
+    phase,
+    startedAt: current?.startedAt ?? null,
+    revealedAt: current?.revealedAt ?? null,
+    timeLimitSeconds: current?.settings.timeLimitSeconds,
+  });
+
+  return { phase, dueAt };
+}
+
+export type LobbyPlayer = { id: string; displayName: string | null };
+
+/**
+ * The players to show joining, oldest first so names hold their place on
+ * screen as new ones arrive, plus the true total when the list is capped.
+ */
+export async function getLobbyPlayers(
+  eventId: string,
+  limit = 60,
+): Promise<{ players: LobbyPlayer[]; total: number }> {
+  const [players, [{ total }]] = await Promise.all([
+    db
+      .select({ id: participants.id, displayName: participants.displayName })
+      .from(participants)
+      .where(eq(participants.eventId, eventId))
+      .orderBy(asc(participants.joinedAt))
+      .limit(limit),
+    db.select({ total: count() }).from(participants).where(eq(participants.eventId, eventId)),
+  ]);
+
+  return { players, total };
 }
 
 export type LeaderboardRow = {
@@ -198,6 +273,13 @@ export type ParticipantQuizView = {
   answerRevealed: boolean;
   totalQuestions: number;
   questionNumber: number | null;
+  phase: QuizPhase;
+  /** When the quiz next moves on by itself (epoch ms), or null if it waits for the host. */
+  dueAt: number | null;
+  /** Whether another question follows the one on screen. */
+  hasNext: boolean;
+  /** Everyone who has joined the event, for the lobby. */
+  playerCount: number;
   question: {
     id: string;
     title: string;
@@ -260,6 +342,13 @@ export async function getParticipantQuizView(
     )
     .limit(1);
 
+  const [{ playerCount }] = await db
+    .select({ playerCount: count() })
+    .from(participants)
+    .where(eq(participants.eventId, quiz.eventId));
+
+  const timing = quizTiming(quiz, Boolean(score));
+
   return {
     quizId: quiz.id,
     quizTitle: quiz.title,
@@ -267,6 +356,10 @@ export async function getParticipantQuizView(
     answerRevealed: quiz.answerRevealed,
     totalQuestions: quiz.questions.length,
     questionNumber,
+    phase: timing.phase,
+    dueAt: timing.dueAt,
+    hasNext: questionNumber !== null && questionNumber < quiz.questions.length,
+    playerCount,
     question: current
       ? {
           id: current.id,

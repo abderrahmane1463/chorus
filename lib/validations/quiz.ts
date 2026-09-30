@@ -20,7 +20,8 @@ export const saveQuizQuestionSchema = z.object({
 
 export const quizControlSchema = z.object({
   quizId: z.string().uuid(),
-  action: z.enum(['start', 'next', 'reveal', 'finish', 'restart']),
+  // `open` shows the lobby; `start` leaves it for the first question.
+  action: z.enum(['open', 'start', 'next', 'reveal', 'finish', 'restart']),
 });
 
 export const submitQuizAnswerSchema = z.object({

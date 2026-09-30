@@ -6,34 +6,34 @@ import { cn } from '@/lib/utils/cn';
 const URGENT_SECONDS = 5;
 
 export type Countdown = {
+  /** Whole seconds until the question opens for answers; 0 once it has. */
+  startsIn: number;
   /** Whole seconds left on the question. */
   remaining: number;
   /** Add to `Date.now()` to get the server's time. */
   offsetMs: number;
 };
 
+type ServerClock = { now: number; offsetMs: number };
+
 /**
- * Seconds left on a question, measured on the server's clock.
+ * The server's time, ticking on this device.
  *
- * The question's start is stamped by the server and answers are timed there,
- * so the countdown has to agree with that clock, not the device's. A phone
- * whose clock is a minute out would otherwise show a minute too much or too
- * little. `serverNow` is the server's time when it rendered this page; the
- * difference from the device's clock is the correction.
+ * Quiz deadlines are stamped and enforced on the server, so anything counting
+ * down to one has to use that clock, not the device's. A phone whose clock is
+ * a minute out would otherwise show a minute too much or too little.
+ * `serverNow` is the server's time when it rendered this page; the difference
+ * from the device's clock is the correction.
  *
- * Nothing is returned until the first tick, so the server render and the
- * first client paint match.
+ * Null until the first tick, so the server render and the first client paint
+ * match, and whenever `active` is false.
  */
-export function useCountdown(
-  startedAt: Date | string | null | undefined,
-  limitSeconds: number,
-  serverNow: number,
-): Countdown | null {
-  const [tick, setTick] = useState<{ now: number; offsetMs: number } | null>(null);
+function useServerClock(serverNow: number, active: boolean): ServerClock | null {
+  const [tick, setTick] = useState<ServerClock | null>(null);
   const bestOffset = useRef<number | null>(null);
 
   useEffect(() => {
-    if (!startedAt) return;
+    if (!active) return;
 
     // The page took time to arrive, so every sample reads slightly too low.
     // The highest one seen is therefore the closest to the truth, and keeping
@@ -46,13 +46,37 @@ export function useCountdown(
     const update = () => setTick({ now: Date.now() + offsetMs, offsetMs });
     const id = setInterval(update, 250);
     return () => clearInterval(id);
-  }, [startedAt, serverNow]);
+  }, [active, serverNow]);
+
+  return active ? tick : null;
+}
+
+/**
+ * Whole seconds until a moment on the server's clock, never below zero.
+ * Null when there is nothing to wait for or the clock has not ticked yet.
+ */
+export function useSecondsUntil(target: number | null, serverNow: number): number | null {
+  const clock = useServerClock(serverNow, target !== null);
+  if (target === null || clock === null) return null;
+  return Math.max(0, Math.ceil((target - clock.now) / 1000));
+}
+
+/** Seconds left on a question, and until it opens, on the server's clock. */
+export function useCountdown(
+  startedAt: Date | string | null | undefined,
+  limitSeconds: number,
+  serverNow: number,
+): Countdown | null {
+  const tick = useServerClock(serverNow, Boolean(startedAt));
 
   if (!startedAt || tick === null) return null;
 
-  const deadline = new Date(startedAt).getTime() + limitSeconds * 1000;
+  const opensAt = new Date(startedAt).getTime();
+  const deadline = opensAt + limitSeconds * 1000;
   return {
-    remaining: Math.max(0, Math.ceil((deadline - tick.now) / 1000)),
+    startsIn: Math.max(0, Math.ceil((opensAt - tick.now) / 1000)),
+    // Capped at the limit so "get ready" does not show as extra answer time.
+    remaining: Math.min(limitSeconds, Math.max(0, Math.ceil((deadline - tick.now) / 1000))),
     offsetMs: tick.offsetMs,
   };
 }

@@ -173,7 +173,14 @@
     "notQuite": "Not quite",
     "correctLabel": "Correct",
     "yourAnswerLabel": "Your answer",
-    "pointsCaption": "{points, plural, one {point} other {points}}"
+    "pointsCaption": "{points, plural, one {point} other {points}}",
+    "lobbyTitle": "You are in",
+    "lobbyBody": "Watch the big screen. The quiz starts when the host is ready.",
+    "playersIn": "{count, plural, one {# player in the room} other {# players in the room}}",
+    "notStarted": "The quiz has not started yet",
+    "noAnswer": "You did not answer this one.",
+    "nextIn": "Next question in {seconds}",
+    "resultsIn": "Final results in {seconds}"
   },
   "survey": {
     "noQuestions": "This survey has no questions yet.",
@@ -276,7 +283,9 @@
     "questionMovedOn": "That question has moved on",
     "quizNotRunning": "This quiz is not running",
     "chooseAtMost": "Choose at most {limit}",
-    "submitUpTo": "You can submit up to {count, plural, one {# answer} other {# answers}}"
+    "submitUpTo": "You can submit up to {count, plural, one {# answer} other {# answers}}",
+    "quizAlreadyStarted": "The quiz has already started",
+    "questionNotOpen": "This question is not open yet"
   },
   "validation": {
     "codeRequired": "Enter the event code",
@@ -527,7 +536,11 @@
     "oneByOne": "Show one question at a time",
     "oneByOneHint": "Off shows the whole survey on a single screen.",
     "showResults": "Show results to participants",
-    "showResultsHint": "Results appear on their phone once they have answered."
+    "showResultsHint": "Results appear on their phone once they have answered.",
+    "autoAdvance": "Move on automatically",
+    "autoAdvanceHint": "The answer shows when time runs out, then the next question follows. Turn off to press Reveal and Next yourself.",
+    "revealSeconds": "Seconds to show each answer",
+    "revealSecondsHint": "How long the answer and leaderboard stay up before the next question."
   },
   "moderation": {
     "sortVotes": "Most votes",
@@ -604,7 +617,16 @@
     "save": "Save question",
     "saved": "Question saved",
     "deleted": "Question deleted",
-    "addFirst": "Add your first question"
+    "addFirst": "Add your first question",
+    "openLobby": "Open the lobby",
+    "lobbyOpened": "Lobby open",
+    "closeLobby": "Close the lobby",
+    "lobbyHint": "Opening the lobby shows the QR code and the players joining. Nothing is timed until you press Start.",
+    "inLobby": "{count, plural, =0 {Nobody has joined yet.} one {# player in the lobby.} other {# players in the lobby.}}",
+    "startHint": "Press Start when the room is ready.",
+    "revealNow": "Reveal now",
+    "nextNow": "Skip to next question",
+    "automatic": "moving on automatically"
   },
   "surveyEditor": {
     "questions": "Survey questions",
@@ -734,6 +756,14 @@
     "next": "Next",
     "metaTitle": "Presenter",
     "answered": "{count} of {total} answered",
-    "everyoneAnswered": "Everyone has answered"
+    "everyoneAnswered": "Everyone has answered",
+    "playersJoined": "{count, plural, =0 {Waiting for players…} one {# player joined} other {# players joined}}",
+    "morePlayers": "+{count} more",
+    "startQuiz": "Start quiz",
+    "startHint": "Questions begin when you press Start.",
+    "noQuestionsYet": "Add questions to this quiz before starting.",
+    "nextIn": "Next question in {seconds}",
+    "resultsIn": "Final results in {seconds}",
+    "picked": "{count, plural, one {# player chose this} other {# players chose this}}"
   }
 }

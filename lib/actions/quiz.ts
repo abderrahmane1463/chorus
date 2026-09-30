@@ -2,7 +2,7 @@
 
 import { getTranslations } from 'next-intl/server';
 import { revalidatePath } from 'next/cache';
-import { and, eq, inArray, isNull, max, sql } from 'drizzle-orm';
+import { and, count, eq, inArray, max, sql } from 'drizzle-orm';
 import { db } from '@/lib/db';
 import {
   events,
@@ -29,9 +29,20 @@ import {
   submitQuizAnswerSchema,
   quizQuestionIdSchema,
 } from '@/lib/validations/quiz';
-import { publish } from '@/lib/realtime/server';
-import { channels, RealtimeEvent } from '@/lib/realtime/events';
+import {
+  advanceIfDue,
+  finishQuiz,
+  openLobby,
+  publishQuiz,
+  revealAnswer,
+  showQuestion,
+} from '@/lib/quiz/flow';
+import { quizPacing } from '@/lib/quiz/pacing';
+import { RealtimeEvent } from '@/lib/realtime/events';
 import type { ActionResult } from './auth';
+
+/** A phone's clock-corrected tap can land a moment before the server's start. */
+const EARLY_TOLERANCE_MS = 300;
 
 /** Adds an empty question to a quiz, ready to be filled in. */
 export async function addQuizQuestionAction(
@@ -179,11 +190,12 @@ export async function deleteQuizQuestionAction(input: unknown): Promise<ActionRe
 }
 
 /**
- * Drives the quiz: start, advance, reveal, finish, restart.
+ * The host's controls: open the lobby, start, and the manual overrides.
  *
- * Advancing stamps the new question's `startedAt` on the server. That
- * timestamp is what scoring measures against, so a participant cannot earn a
- * speed bonus by lying about when they saw the question.
+ * With automatic pacing the host only opens the lobby and presses Start; the
+ * quiz reveals and moves on by its own clock (see `advanceIfDue`). Reveal,
+ * next and finish remain for skipping ahead, and are the only way forward
+ * when automatic pacing is switched off.
  */
 export async function controlQuizAction(input: unknown): Promise<ActionResult> {
   const t = await getTranslations();
@@ -204,100 +216,49 @@ export async function controlQuizAction(input: unknown): Promise<ActionResult> {
   }
 
   const currentIndex = quiz.questions.findIndex((q) => q.id === quiz.currentChildId);
+  const current = quiz.questions[currentIndex] ?? null;
 
   switch (parsed.data.action) {
-    case 'start':
     case 'restart': {
-      if (parsed.data.action === 'restart') {
-        const childIds = quiz.questions.map((q) => q.id);
-        await db
-          .delete(responses)
-          .where(inArray(responses.interactionId, childIds));
-        await db.delete(quizScores).where(eq(quizScores.quizId, quiz.id));
+      const childIds = quiz.questions.map((q) => q.id);
+      await db.delete(responses).where(inArray(responses.interactionId, childIds));
+      await db.delete(quizScores).where(eq(quizScores.quizId, quiz.id));
+      // Back to the lobby rather than straight into question one, so a
+      // rehearsal can be cleared without springing a timer on the room.
+      await openLobby(quiz.id, owned.eventId);
+      break;
+    }
+
+    case 'open': {
+      await openLobby(quiz.id, owned.eventId);
+      break;
+    }
+
+    case 'start': {
+      if (quiz.status !== 'active') await openLobby(quiz.id, owned.eventId);
+      // From the lobby only: pressing Start twice must not restart question one.
+      const started = await showQuestion(quiz.id, owned.eventId, null, quiz.questions[0].id);
+      if (!started && quiz.status === 'active' && current) {
+        return { ok: false, error: t('errors.quizAlreadyStarted') };
       }
-
-      // A quiz is the one live interaction while it runs.
-      await db
-        .update(interactions)
-        .set({ status: 'closed', endedAt: new Date() })
-        .where(
-          and(
-            eq(interactions.eventId, owned.eventId),
-            eq(interactions.status, 'active'),
-            isNull(interactions.parentId),
-          ),
-        );
-
-      const first = quiz.questions[0];
-      await db
-        .update(interactions)
-        .set({ startedAt: new Date() })
-        .where(eq(interactions.id, first.id));
-
-      await db
-        .update(interactions)
-        .set({
-          status: 'active',
-          startedAt: new Date(),
-          endedAt: null,
-          currentChildId: first.id,
-          answerRevealed: false,
-        })
-        .where(eq(interactions.id, quiz.id));
-
-      await db
-        .update(events)
-        .set({ activeInteractionId: quiz.id })
-        .where(eq(events.id, owned.eventId));
-
-      await publishQuiz(owned.eventId, quiz.id, RealtimeEvent.QuizStarted);
       break;
     }
 
     case 'next': {
       const next = quiz.questions[currentIndex + 1];
-      if (!next) return { ok: false, error: t('errors.lastQuestion') };
-
-      await db
-        .update(interactions)
-        .set({ startedAt: new Date() })
-        .where(eq(interactions.id, next.id));
-
-      await db
-        .update(interactions)
-        .set({ currentChildId: next.id, answerRevealed: false })
-        .where(eq(interactions.id, quiz.id));
-
-      await publishQuiz(owned.eventId, quiz.id, RealtimeEvent.QuizQuestionChanged);
+      if (!current || !next) return { ok: false, error: t('errors.lastQuestion') };
+      await showQuestion(quiz.id, owned.eventId, current.id, next.id);
       break;
     }
 
     case 'reveal': {
-      await db
-        .update(interactions)
-        .set({ answerRevealed: true })
-        .where(eq(interactions.id, quiz.id));
-
-      await publishQuiz(owned.eventId, quiz.id, RealtimeEvent.QuizAnswerRevealed);
+      if (!current) return { ok: false, error: t('errors.quizNotRunning') };
+      await revealAnswer(quiz.id, owned.eventId, current.id);
       break;
     }
 
     case 'finish': {
-      await db
-        .update(interactions)
-        .set({
-          status: 'closed',
-          endedAt: new Date(),
-          currentChildId: null,
-          answerRevealed: true,
-        })
-        .where(eq(interactions.id, quiz.id));
-
-      // `activeInteractionId` deliberately still points at the quiz: the room
-      // needs to keep seeing the final leaderboard until the host moves on to
-      // something else, rather than dropping to an empty screen.
-
-      await publishQuiz(owned.eventId, quiz.id, RealtimeEvent.QuizFinished);
+      await finishQuiz(quiz.id, owned.eventId, quiz.currentChildId);
       break;
     }
   }
@@ -306,13 +267,22 @@ export async function controlQuizAction(input: unknown): Promise<ActionResult> {
   return { ok: true };
 }
 
-async function publishQuiz(
-  eventId: string,
-  quizId: string,
-  event: (typeof RealtimeEvent)[keyof typeof RealtimeEvent],
-) {
-  await publish(channels.quiz(eventId), event, { eventId, interactionId: quizId });
-  await publish(channels.event(eventId), event, { eventId, interactionId: quizId });
+/**
+ * Asks the quiz to take a step that its own clock says is due.
+ *
+ * Open to every screen in the room, participants included, because the quiz
+ * must keep moving even if the host's tab is closed. It is safe to expose: a
+ * caller cannot choose the step or its timing, only prompt the server to
+ * check. See `advanceIfDue`.
+ */
+export async function syncQuizAction(
+  input: unknown,
+): Promise<{ ok: true; advanced: boolean } | { ok: false }> {
+  const parsed = quizIdSchema.safeParse(input);
+  if (!parsed.success) return { ok: false };
+
+  const advanced = await advanceIfDue(parsed.data.quizId);
+  return { ok: true, advanced };
 }
 
 /**
@@ -357,6 +327,7 @@ export async function submitQuizAnswerAction(input: unknown): Promise<ActionResu
     .select({
       id: interactions.id,
       status: interactions.status,
+      settings: interactions.settings,
       currentChildId: interactions.currentChildId,
       answerRevealed: interactions.answerRevealed,
     })
@@ -376,7 +347,16 @@ export async function submitQuizAnswerAction(input: unknown): Promise<ActionResu
 
   const timeLimitSeconds = context.settings.timeLimitSeconds ?? DEFAULT_TIME_LIMIT_SECONDS;
   const startedAt = context.startedAt?.getTime() ?? Date.now();
-  const elapsedMs = Date.now() - startedAt;
+  const sinceOpen = Date.now() - startedAt;
+
+  // The question is on screen for a few seconds before it opens. The options
+  // are already in the page by then, so the phone hiding them is not enough:
+  // an answer sent during "get ready" has to be refused here.
+  if (sinceOpen < -EARLY_TOLERANCE_MS) {
+    return { ok: false, error: t('errors.questionNotOpen') };
+  }
+
+  const elapsedMs = Math.max(sinceOpen, 0);
 
   if (elapsedMs > timeLimitSeconds * 1000 + ANSWER_GRACE_MS) {
     return { ok: false, error: t('errors.timeUp') };
@@ -445,6 +425,26 @@ export async function submitQuizAnswerAction(input: unknown): Promise<ActionResu
     });
 
   await publishQuiz(context.eventId, quiz.id, RealtimeEvent.ResponseCreated);
+
+  // Nobody left to wait for: show the answer now instead of running the clock
+  // down on a room that has finished. Counted against everyone who joined, so
+  // a player who walked away simply leaves it to the timer.
+  if (quizPacing(quiz.settings).autoAdvance) {
+    const [[{ answered }], [{ joined }]] = await Promise.all([
+      db
+        .select({ answered: count() })
+        .from(responses)
+        .where(eq(responses.interactionId, context.questionId)),
+      db
+        .select({ joined: count() })
+        .from(participants)
+        .where(eq(participants.eventId, context.eventId)),
+    ]);
+
+    if (joined > 0 && answered >= joined) {
+      await revealAnswer(quiz.id, context.eventId, context.questionId);
+    }
+  }
 
   revalidatePath(`/event/${context.eventCode}`);
   revalidatePath(`/dashboard/events/${context.eventId}`);

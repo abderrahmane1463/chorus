@@ -14,7 +14,8 @@ import {
   QUESTION_SORTS,
   type QuestionSort,
 } from '@/lib/queries/questions';
-import { getLeaderboard, getQuizDetail } from '@/lib/queries/quiz';
+import { getLeaderboard, getQuizDetail, quizTiming } from '@/lib/queries/quiz';
+import { serverNow } from '@/lib/utils/server-time';
 import { getSurveyDetail } from '@/lib/queries/survey';
 import { InteractionList } from '@/components/dashboard/interaction-list';
 import { InteractionTypePicker } from '@/components/dashboard/interaction-type-picker';
@@ -94,6 +95,14 @@ export default async function EventWorkspacePage({
   // Quizzes carry child questions and standings of their own.
   const quiz = selected?.type === 'quiz' ? await getQuizDetail(selected.id) : null;
   const leaderboard = quiz ? await getLeaderboard(quiz.id) : [];
+
+  const quizRun = quiz
+    ? {
+        ...quizTiming(quiz, leaderboard.length > 0),
+        playerCount: event.participantCount,
+        serverNow: serverNow(),
+      }
+    : undefined;
 
   const survey =
     selected?.type === 'survey' ? await getSurveyDetail(selected.id) : null;
@@ -188,6 +197,7 @@ export default async function EventWorkspacePage({
                   questionSort={questionSort}
                   quiz={quiz}
                   leaderboard={leaderboard}
+                  quizRun={quizRun}
                   survey={survey}
                 />
               ) : (

@@ -1,4 +1,6 @@
 import { z } from 'zod';
+import { MAX_REVEAL_SECONDS, MIN_REVEAL_SECONDS } from '@/lib/quiz/pacing';
+import type { InteractionSettings } from '@/types/interactions';
 
 export const creatableTypes = [
   'multiple_choice',
@@ -36,7 +38,23 @@ export const interactionSettingsSchema = z.object({
   speedBonus: z.boolean().optional(),
   explanation: z.string().trim().max(300).optional(),
   navigationMode: z.enum(['one_by_one', 'all_at_once']).optional(),
+  autoAdvance: z.boolean().optional(),
+  revealSeconds: z.number().int().min(MIN_REVEAL_SECONDS).max(MAX_REVEAL_SECONDS).optional(),
 });
+
+/**
+ * Fails the build if a setting exists in the type but not in the schema above.
+ *
+ * The schema drops keys it does not list, so a setting added to the type and
+ * the editor but forgotten here saves as nothing: the form reports success and
+ * the value is gone. That happened to the quiz pacing settings.
+ */
+type UnvalidatedSetting = Exclude<
+  keyof InteractionSettings,
+  keyof z.infer<typeof interactionSettingsSchema>
+>;
+const everySettingIsValidated: UnvalidatedSetting extends never ? true : never = true;
+void everySettingIsValidated;
 
 export const createInteractionSchema = z.object({
   eventId: z.string().uuid(),

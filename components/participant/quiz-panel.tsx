@@ -2,14 +2,15 @@
 
 import { useRouter } from 'next/navigation';
 import { useState, useTransition } from 'react';
-import { Check, Timer, X } from 'lucide-react';
+import { Check, Timer, Users, X } from 'lucide-react';
 import { useFormatter, useTranslations } from 'next-intl';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Leaderboard } from '@/components/interactions/leaderboard';
-import { CountdownBar, useCountdown } from '@/components/quiz/countdown';
+import { CountdownBar, useCountdown, useSecondsUntil } from '@/components/quiz/countdown';
 import { PointsBurst } from '@/components/quiz/points-burst';
+import { useQuizPacer } from '@/hooks/use-quiz-pacer';
 import { submitQuizAnswerAction } from '@/lib/actions/quiz';
 import type { LeaderboardRow, ParticipantQuizView } from '@/lib/queries/quiz';
 import { cn } from '@/lib/utils/cn';
@@ -38,15 +39,36 @@ export function QuizPanel({
   const startedAt = question?.startedAt ? new Date(question.startedAt).toISOString() : null;
   const countdown = useCountdown(startedAt, question?.timeLimitSeconds ?? 20, serverNow);
   const remaining = countdown?.remaining ?? null;
+  const nextIn = useSecondsUntil(view.phase === 'revealed' ? view.dueAt : null, serverNow);
+
+  // Every phone is a fallback for keeping the quiz moving, in case the host's
+  // screens are closed when a step comes due.
+  useQuizPacer({ quizId: view.quizId, dueAt: view.dueAt, serverNow, role: 'participant' });
+
+  if (view.phase === 'lobby') {
+    return (
+      <Card className="p-6 text-center">
+        <span className="mx-auto flex size-12 items-center justify-center rounded-full bg-success-subtle text-success">
+          <Check className="size-6" aria-hidden />
+        </span>
+        <h2 className="mt-4 text-xl font-semibold">{t('lobbyTitle')}</h2>
+        <p className="mt-2 text-muted-foreground">{t('lobbyBody')}</p>
+        <p className="mt-5 inline-flex items-center gap-2 text-sm text-muted-foreground">
+          <Users className="size-4" aria-hidden />
+          <span aria-live="polite">{t('playersIn', { count: view.playerCount })}</span>
+        </p>
+      </Card>
+    );
+  }
 
   // Selection is cleared between questions by remounting: the page keys this
   // component on the current question id.
-  if (view.status === 'closed' || !question) {
+  if (!question) {
     return (
       <div className="space-y-5">
         <Card className="p-5 text-center">
           <h2 className="text-lg font-semibold">
-            {view.status === 'closed' ? t('finished') : t('getReady')}
+            {view.phase === 'finished' ? t('finished') : t('notStarted')}
           </h2>
           {view.myScore && (
             <p className="mt-2 text-muted-foreground">
@@ -56,22 +78,47 @@ export function QuizPanel({
               })}
             </p>
           )}
-          {view.status !== 'closed' && !view.myScore && (
-            <p className="mt-2 text-sm text-muted-foreground">
-              {t('nextSoon')}
-            </p>
-          )}
         </Card>
 
-        <Card className="p-5">
-          <h3 className="mb-4 text-sm font-semibold text-muted-foreground">{t('leaderboard')}</h3>
-          <Leaderboard rows={leaderboard} highlightParticipantId={participantId} />
-        </Card>
+        {leaderboard.length > 0 && (
+          <Card className="p-5">
+            <h3 className="mb-4 text-sm font-semibold text-muted-foreground">
+              {t('leaderboard')}
+            </h3>
+            <Leaderboard rows={leaderboard} highlightParticipantId={participantId} />
+          </Card>
+        )}
       </div>
     );
   }
 
   const answered = view.myAnswer !== null;
+  const position = t('questionOf', {
+    number: view.questionNumber ?? 1,
+    total: view.totalQuestions,
+  });
+
+  // Until the clock has ticked once it is not known whether the question has
+  // opened, so the answers stay hidden rather than flash up early.
+  const gettingReady =
+    !view.answerRevealed && !answered && (countdown === null || countdown.startsIn > 0);
+
+  if (gettingReady) {
+    return (
+      <div className="space-y-5 text-center">
+        <p className="text-sm text-muted-foreground">{position}</p>
+        <h1 className="text-xl font-semibold leading-snug">{question.title}</h1>
+        <Card className="p-6">
+          <p className="text-muted-foreground">{t('getReady')}</p>
+          <p className="mt-1 text-6xl font-semibold tabular-nums text-primary" role="timer">
+            {/* A dash for the instant before the first tick. */}
+            {countdown ? format.number(countdown.startsIn) : '–'}
+          </p>
+        </Card>
+      </div>
+    );
+  }
+
   const timeUp = remaining === 0;
   const locked = answered || timeUp || view.answerRevealed;
 
@@ -92,13 +139,7 @@ export function QuizPanel({
   return (
     <div className="space-y-5">
       <div className="flex items-center justify-between gap-3">
-        <span className="text-sm text-muted-foreground">
-          {/* Past the early return a question exists, so the number does too. */}
-          {t('questionOf', {
-            number: view.questionNumber ?? 1,
-            total: view.totalQuestions,
-          })}
-        </span>
+        <span className="text-sm text-muted-foreground">{position}</span>
         {!locked && remaining !== null && (
           <span
             className={cn(
@@ -194,12 +235,24 @@ export function QuizPanel({
           />
         )}
 
+        {view.answerRevealed && !view.myAnswer && (
+          <p className="mt-4 text-center text-sm text-muted-foreground">{t('noAnswer')}</p>
+        )}
+
         {view.answerRevealed && question.explanation && (
           <p className="mt-3 rounded-md bg-muted px-3 py-2 text-sm text-muted-foreground">
             {question.explanation}
           </p>
         )}
       </Card>
+
+      {view.answerRevealed && nextIn !== null && (
+        <p className="text-center text-sm text-muted-foreground" role="timer" aria-live="off">
+          {view.hasNext
+            ? t('nextIn', { seconds: format.number(nextIn) })
+            : t('resultsIn', { seconds: format.number(nextIn) })}
+        </p>
+      )}
 
       {view.answerRevealed && (
         <Card className="p-5">

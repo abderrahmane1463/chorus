@@ -9,7 +9,12 @@ import {
   listInteractions,
 } from '@/lib/queries/interactions';
 import { getTopQuestions } from '@/lib/queries/questions';
-import { getLeaderboard, getQuizDetail } from '@/lib/queries/quiz';
+import {
+  getLeaderboard,
+  getLobbyPlayers,
+  getQuizDetail,
+  quizTiming,
+} from '@/lib/queries/quiz';
 import { getSurveyDetail } from '@/lib/queries/survey';
 import { PresenterScreen } from '@/components/present/presenter-screen';
 import { serverNow } from '@/lib/utils/server-time';
@@ -53,6 +58,16 @@ export default async function PresentPage({
 
   const survey = active?.type === 'survey' ? await getSurveyDetail(active.id) : null;
 
+  const timing = quiz
+    ? quizTiming(quiz, leaderboard.length > 0)
+    : { phase: 'idle' as const, dueAt: null };
+
+  // Names are only shown while the room is filling, so only fetched then.
+  const lobby =
+    quiz && timing.phase === 'lobby'
+      ? await getLobbyPlayers(event.id)
+      : { players: [], total: event.participantCount };
+
   const origin = process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000';
 
   return (
@@ -61,7 +76,10 @@ export default async function PresentPage({
       eventTitle={event.title}
       eventCode={event.eventCode}
       joinUrl={`${origin}/event/${event.eventCode}`}
-      participantCount={event.participantCount}
+      participantCount={lobby.total}
+      players={lobby.players}
+      quizPhase={timing.phase}
+      quizDueAt={timing.dueAt}
       interactions={interactions}
       active={active}
       results={results}

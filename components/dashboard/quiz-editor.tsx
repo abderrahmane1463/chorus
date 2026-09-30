@@ -2,7 +2,18 @@
 
 import { useRouter } from 'next/navigation';
 import { useRef, useState, useTransition } from 'react';
-import { Check, Eye, Play, Plus, RotateCcw, SkipForward, Square, Trash2, X } from 'lucide-react';
+import {
+  Check,
+  DoorOpen,
+  Eye,
+  Play,
+  Plus,
+  RotateCcw,
+  SkipForward,
+  Square,
+  Trash2,
+  X,
+} from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
@@ -20,14 +31,26 @@ import {
   saveQuizQuestionAction,
 } from '@/lib/actions/quiz';
 import type { LeaderboardRow, QuizDetail, QuizQuestion } from '@/lib/queries/quiz';
+import { quizPacing, type QuizPhase } from '@/lib/quiz/pacing';
+import { useQuizPacer } from '@/hooks/use-quiz-pacer';
 import { cn } from '@/lib/utils/cn';
 
 export function QuizEditor({
   quiz,
   leaderboard,
+  phase,
+  dueAt,
+  playerCount,
+  serverNow,
 }: {
   quiz: QuizDetail;
   leaderboard: LeaderboardRow[];
+  phase: QuizPhase;
+  /** When the quiz next moves on by itself (epoch ms), or null if it waits for the host. */
+  dueAt: number | null;
+  /** Everyone who has joined the event. */
+  playerCount: number;
+  serverNow: number;
 }) {
   const router = useRouter();
   const t = useTranslations('quizEditor');
@@ -35,7 +58,12 @@ export function QuizEditor({
 
   const currentIndex = quiz.questions.findIndex((q) => q.id === quiz.currentChildId);
   const isLast = currentIndex === quiz.questions.length - 1;
-  const running = quiz.status === 'active';
+  const automatic = quizPacing(quiz.settings).autoAdvance;
+  const inQuestion = phase === 'question' || phase === 'revealed';
+
+  // The host's dashboard keeps the quiz moving too, so a run does not depend
+  // on the projector tab staying open. It asks after the projector would.
+  useQuizPacer({ quizId: quiz.id, dueAt, serverNow, role: 'backup' });
 
   function control(action: string, message: string) {
     startTransition(async () => {
@@ -81,48 +109,57 @@ export function QuizEditor({
         </CardHeader>
         <CardContent className="space-y-3">
           <div className="flex flex-wrap items-center gap-2">
-            {!running ? (
-              <Button
-                onClick={() => control('start', t('started'))}
-                loading={pending}
-                disabled={quiz.questions.length === 0}
-              >
+            {(phase === 'idle' || phase === 'finished') && (
+              <Button onClick={() => control('open', t('lobbyOpened'))} loading={pending} disabled={empty}>
+                <DoorOpen />
+                {t('openLobby')}
+              </Button>
+            )}
+
+            {phase === 'lobby' && (
+              <Button onClick={() => control('start', t('started'))} loading={pending} disabled={empty}>
                 <Play />
                 {t('start')}
               </Button>
-            ) : (
-              <>
-                {!quiz.answerRevealed && (
-                  <Button onClick={() => control('reveal', t('revealed'))} loading={pending}>
-                    <Eye />
-                    {t('reveal')}
-                  </Button>
-                )}
-                {!isLast && (
-                  <Button
-                    variant="secondary"
-                    onClick={() => control('next', t('nextDone'))}
-                    loading={pending}
-                  >
-                    <SkipForward />
-                    {t('next')}
-                  </Button>
-                )}
-                <Button
-                  variant="secondary"
-                  onClick={() => control('finish', t('finished'))}
-                  loading={pending}
-                >
-                  <Square />
-                  {t('finish')}
-                </Button>
-              </>
+            )}
+
+            {/* Overrides. With automatic pacing these only skip ahead; without
+                it they are how the quiz moves at all. */}
+            {phase === 'question' && (
+              <Button
+                variant={automatic ? 'secondary' : 'primary'}
+                onClick={() => control('reveal', t('revealed'))}
+                loading={pending}
+              >
+                <Eye />
+                {automatic ? t('revealNow') : t('reveal')}
+              </Button>
+            )}
+            {phase === 'revealed' && !isLast && (
+              <Button
+                variant={automatic ? 'secondary' : 'primary'}
+                onClick={() => control('next', t('nextDone'))}
+                loading={pending}
+              >
+                <SkipForward />
+                {automatic ? t('nextNow') : t('next')}
+              </Button>
+            )}
+            {(inQuestion || phase === 'lobby') && (
+              <Button
+                variant="secondary"
+                onClick={() => control('finish', t('finished'))}
+                loading={pending}
+              >
+                <Square />
+                {phase === 'lobby' ? t('closeLobby') : t('finish')}
+              </Button>
             )}
 
             <Button
               variant="destructive"
               onClick={() => control('restart', t('restarted'))}
-              disabled={pending}
+              disabled={pending || empty}
               className="ms-auto"
             >
               <RotateCcw />
@@ -130,10 +167,19 @@ export function QuizEditor({
             </Button>
           </div>
 
-          {running && currentIndex >= 0 && (
+          {!empty && (phase === 'idle' || phase === 'finished') && (
+            <p className="text-sm text-muted-foreground">{t('lobbyHint')}</p>
+          )}
+          {phase === 'lobby' && (
+            <p className="text-sm text-muted-foreground">
+              {t('inLobby', { count: playerCount })} {t('startHint')}
+            </p>
+          )}
+          {inQuestion && (
             <p className="text-sm text-muted-foreground">
               {t('showing', { current: currentIndex + 1, total: quiz.questions.length })}
               {quiz.answerRevealed ? t('answerRevealed') : ''}
+              {automatic ? ' · ' + t('automatic') : ''}
             </p>
           )}
           {empty && (

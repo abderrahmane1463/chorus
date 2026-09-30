@@ -173,7 +173,14 @@
     "notQuite": "Pas tout à fait",
     "correctLabel": "Bonne réponse",
     "yourAnswerLabel": "Votre réponse",
-    "pointsCaption": "{points, plural, one {point} other {points}}"
+    "pointsCaption": "{points, plural, one {point} other {points}}",
+    "lobbyTitle": "Vous êtes inscrit",
+    "lobbyBody": "Regardez le grand écran. Le quiz démarre quand l’animateur est prêt.",
+    "playersIn": "{count, plural, one {# joueur dans la salle} other {# joueurs dans la salle}}",
+    "notStarted": "Le quiz n’a pas encore commencé",
+    "noAnswer": "Vous n’avez pas répondu à celle-ci.",
+    "nextIn": "Question suivante dans {seconds}",
+    "resultsIn": "Résultats finaux dans {seconds}"
   },
   "survey": {
     "noQuestions": "Ce questionnaire n'a pas encore de questions.",
@@ -276,7 +283,9 @@
     "questionMovedOn": "Cette question est déjà passée",
     "quizNotRunning": "Ce quiz n’est pas en cours",
     "chooseAtMost": "Choisissez au maximum {limit}",
-    "submitUpTo": "Vous pouvez envoyer au maximum {count, plural, one {# réponse} other {# réponses}}"
+    "submitUpTo": "Vous pouvez envoyer au maximum {count, plural, one {# réponse} other {# réponses}}",
+    "quizAlreadyStarted": "Le quiz a déjà commencé",
+    "questionNotOpen": "Cette question n’est pas encore ouverte"
   },
   "validation": {
     "codeRequired": "Saisissez le code de l'événement",
@@ -527,7 +536,11 @@
     "oneByOne": "Afficher une question à la fois",
     "oneByOneHint": "Désactivé, tout le questionnaire tient sur un écran.",
     "showResults": "Montrer les résultats aux participants",
-    "showResultsHint": "Les résultats apparaissent sur leur téléphone une fois qu’ils ont répondu."
+    "showResultsHint": "Les résultats apparaissent sur leur téléphone une fois qu’ils ont répondu.",
+    "autoAdvance": "Enchaîner automatiquement",
+    "autoAdvanceHint": "La réponse s’affiche à la fin du temps, puis la question suivante arrive. Désactivez pour appuyer vous-même sur Révéler et Suivant.",
+    "revealSeconds": "Secondes d’affichage de chaque réponse",
+    "revealSecondsHint": "Durée d’affichage de la réponse et du classement avant la question suivante."
   },
   "moderation": {
     "sortVotes": "Plus de votes",
@@ -604,7 +617,16 @@
     "save": "Enregistrer la question",
     "saved": "Question enregistrée",
     "deleted": "Question supprimée",
-    "addFirst": "Ajouter votre première question"
+    "addFirst": "Ajouter votre première question",
+    "openLobby": "Ouvrir la salle d’attente",
+    "lobbyOpened": "Salle d’attente ouverte",
+    "closeLobby": "Fermer la salle d’attente",
+    "lobbyHint": "La salle d’attente affiche le QR code et les joueurs qui arrivent. Rien n’est chronométré avant que vous appuyiez sur Démarrer.",
+    "inLobby": "{count, plural, =0 {Personne n’a encore rejoint.} one {# joueur dans la salle d’attente.} other {# joueurs dans la salle d’attente.}}",
+    "startHint": "Appuyez sur Démarrer quand la salle est prête.",
+    "revealNow": "Révéler maintenant",
+    "nextNow": "Passer à la question suivante",
+    "automatic": "enchaînement automatique"
   },
   "surveyEditor": {
     "questions": "Questions du questionnaire",
@@ -734,6 +756,14 @@
     "next": "Suivant",
     "metaTitle": "Présentation",
     "answered": "{count} sur {total} ont répondu",
-    "everyoneAnswered": "Tout le monde a répondu"
+    "everyoneAnswered": "Tout le monde a répondu",
+    "playersJoined": "{count, plural, =0 {En attente des joueurs…} one {# joueur a rejoint} other {# joueurs ont rejoint}}",
+    "morePlayers": "+{count} autres",
+    "startQuiz": "Démarrer le quiz",
+    "startHint": "Les questions commencent quand vous appuyez sur Démarrer.",
+    "noQuestionsYet": "Ajoutez des questions à ce quiz avant de démarrer.",
+    "nextIn": "Question suivante dans {seconds}",
+    "resultsIn": "Résultats finaux dans {seconds}",
+    "picked": "{count, plural, one {# joueur a choisi cette réponse} other {# joueurs ont choisi cette réponse}}"
   }
 }

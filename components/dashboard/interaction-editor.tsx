@@ -28,8 +28,24 @@ import {
   updateInteractionAction,
 } from '@/lib/actions/interaction';
 import type { InteractionSettings } from '@/types/interactions';
+import {
+  DEFAULT_REVEAL_SECONDS,
+  MAX_REVEAL_SECONDS,
+  MIN_REVEAL_SECONDS,
+  type QuizPhase,
+} from '@/lib/quiz/pacing';
 
 type OptionDraft = { id?: string; text: string };
+
+export type QuizRun = {
+  phase: QuizPhase;
+  /** When the quiz next moves on by itself (epoch ms), or null if it waits for the host. */
+  dueAt: number | null;
+  playerCount: number;
+  serverNow: number;
+};
+
+const IDLE_RUN: QuizRun = { phase: 'idle', dueAt: null, playerCount: 0, serverNow: 0 };
 
 export function InteractionEditor({
   interaction,
@@ -39,7 +55,10 @@ export function InteractionEditor({
   quiz,
   leaderboard = [],
   survey,
+  quizRun = IDLE_RUN,
 }: {
+  /** Where a quiz is in its run. Only meaningful when `quiz` is set. */
+  quizRun?: QuizRun;
   interaction: InteractionDetail;
   results: InteractionResults;
   questions?: QuestionItem[];
@@ -238,11 +257,7 @@ export function InteractionEditor({
             />
           )}
 
-          {/* A quiz has no settings of its own; they sit on each question.
-              Rendering the empty box drew a stray line above Save. */}
-          {!isQuiz && (
-            <SettingsEditor type={interaction.type} settings={settings} onPatch={patch} />
-          )}
+          <SettingsEditor type={interaction.type} settings={settings} onPatch={patch} />
 
           <Button onClick={save} loading={saving}>
             {t('save')}
@@ -251,7 +266,14 @@ export function InteractionEditor({
       </Card>
 
       {isQuiz && quiz ? (
-        <QuizEditor quiz={quiz} leaderboard={leaderboard} />
+        <QuizEditor
+          quiz={quiz}
+          leaderboard={leaderboard}
+          phase={quizRun.phase}
+          dueAt={quizRun.dueAt}
+          playerCount={quizRun.playerCount}
+          serverNow={quizRun.serverNow}
+        />
       ) : interaction.type === 'survey' && survey ? (
         <SurveyEditor survey={survey} />
       ) : (
@@ -523,6 +545,31 @@ function SettingsEditor({
               onCheckedChange={(checked) => onPatch({ allowUpvotes: checked })}
             />
           </SettingRow>
+        </>
+      )}
+
+      {/* How the run is paced. Time limits and points are per question and
+          sit on each one; these two belong to the quiz as a whole. */}
+      {type === 'quiz' && (
+        <>
+          <SettingRow label={t('autoAdvance')} hint={t('autoAdvanceHint')}>
+            <Switch
+              checked={settings.autoAdvance ?? true}
+              onCheckedChange={(checked) => onPatch({ autoAdvance: checked })}
+            />
+          </SettingRow>
+          {(settings.autoAdvance ?? true) && (
+            <SettingRow label={t('revealSeconds')} hint={t('revealSecondsHint')}>
+              <Input
+                type="number"
+                min={MIN_REVEAL_SECONDS}
+                max={MAX_REVEAL_SECONDS}
+                value={settings.revealSeconds ?? DEFAULT_REVEAL_SECONDS}
+                onChange={(event) => onPatch({ revealSeconds: Number(event.target.value) })}
+                className="w-20"
+              />
+            </SettingRow>
+          )}
         </>
       )}
 
