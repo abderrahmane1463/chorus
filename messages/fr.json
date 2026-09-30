@@ -298,7 +298,8 @@
     "chooseAtMost": "Choisissez au maximum {limit}",
     "submitUpTo": "Vous pouvez envoyer au maximum {count, plural, one {# réponse} other {# réponses}}",
     "quizAlreadyStarted": "Le quiz a déjà commencé",
-    "questionNotOpen": "Cette question n’est pas encore ouverte"
+    "questionNotOpen": "Cette question n’est pas encore ouverte",
+    "noPlayersYet": "Attendez qu’au moins un joueur rejoigne avant de démarrer."
   },
   "validation": {
     "codeRequired": "Saisissez le code de l'événement",
@@ -641,7 +642,15 @@
     "startHint": "Appuyez sur Démarrer quand la salle est prête.",
     "revealNow": "Révéler maintenant",
     "nextNow": "Passer à la question suivante",
-    "automatic": "enchaînement automatique"
+    "automatic": "enchaînement automatique",
+    "lobbyTitle": "Le salon est ouvert",
+    "lobbyWaiting": "En attente des joueurs. Ils scannent le QR code sur le grand écran ou saisissent le code {code}.",
+    "lobbyJoined": "{count, plural, one {# joueur a rejoint} other {# joueurs ont rejoint}}",
+    "startNeedsPlayer": "Le démarrage se débloque quand le premier joueur rejoint.",
+    "openScreen": "Ouvrir le grand écran",
+    "playAgain": "Rejouer",
+    "playAgainHint": "Le quiz est terminé. Rejouer efface les scores et rouvre le salon ; les joueurs restent dans la salle.",
+    "anonymous": "Anonyme"
   },
   "surveyEditor": {
     "questions": "Questions du questionnaire",
@@ -784,6 +793,9 @@
     "soundOff": "Couper le son",
     "scoreboard": "Classement",
     "correct": "Bonne réponse",
-    "correctAnswer": "{count, plural, one {Bonne réponse :} other {Bonnes réponses :}}"
+    "correctAnswer": "{count, plural, one {Bonne réponse :} other {Bonnes réponses :}}",
+    "playAgain": "Rejouer",
+    "exit": "Quitter",
+    "startNeedsPlayer": "Le démarrage se débloque quand le premier joueur rejoint."
   }
 }

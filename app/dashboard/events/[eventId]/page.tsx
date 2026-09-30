@@ -14,7 +14,12 @@ import {
   QUESTION_SORTS,
   type QuestionSort,
 } from '@/lib/queries/questions';
-import { getLeaderboard, getQuizDetail, quizTiming } from '@/lib/queries/quiz';
+import {
+  getLeaderboard,
+  getLobbyPlayers,
+  getQuizDetail,
+  quizTiming,
+} from '@/lib/queries/quiz';
 import { serverNow } from '@/lib/utils/server-time';
 import { getSurveyDetail } from '@/lib/queries/survey';
 import { InteractionList } from '@/components/dashboard/interaction-list';
@@ -96,10 +101,20 @@ export default async function EventWorkspacePage({
   const quiz = selected?.type === 'quiz' ? await getQuizDetail(selected.id) : null;
   const leaderboard = quiz ? await getLeaderboard(quiz.id) : [];
 
-  const quizRun = quiz
+  const timing = quiz ? quizTiming(quiz, leaderboard.length > 0) : null;
+
+  // Names are only shown while the room is filling, so only fetched then.
+  const lobby =
+    timing?.phase === 'lobby'
+      ? await getLobbyPlayers(event.id)
+      : { players: [], total: event.participantCount };
+
+  const quizRun = timing
     ? {
-        ...quizTiming(quiz, leaderboard.length > 0),
-        playerCount: event.participantCount,
+        ...timing,
+        playerCount: lobby.total,
+        players: lobby.players,
+        eventCode: event.eventCode,
         serverNow: serverNow(),
       }
     : undefined;

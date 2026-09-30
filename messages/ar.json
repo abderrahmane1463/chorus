@@ -298,7 +298,8 @@
     "chooseAtMost": "اختر {limit} على الأكثر",
     "submitUpTo": "يمكنك إرسال {count, plural, zero {لا إجابات} one {إجابة واحدة} two {إجابتين} few {# إجابات} many {# إجابة} other {# إجابة}} على الأكثر",
     "quizAlreadyStarted": "بدأت المسابقة بالفعل",
-    "questionNotOpen": "هذا السؤال لم يُفتح بعد"
+    "questionNotOpen": "هذا السؤال لم يُفتح بعد",
+    "noPlayersYet": "انتظر انضمام لاعب واحد على الأقل قبل البدء."
   },
   "validation": {
     "codeRequired": "أدخل رمز الفعالية",
@@ -641,7 +642,15 @@
     "startHint": "اضغط على ابدأ عندما تكون القاعة جاهزة.",
     "revealNow": "أظهر الإجابة الآن",
     "nextNow": "انتقل إلى السؤال التالي",
-    "automatic": "الانتقال تلقائي"
+    "automatic": "الانتقال تلقائي",
+    "lobbyTitle": "غرفة الانتظار مفتوحة",
+    "lobbyWaiting": "في انتظار اللاعبين. يمسحون رمز QR على الشاشة الكبيرة أو يدخلون الرمز {code}.",
+    "lobbyJoined": "{count, plural, zero {لم ينضم أي لاعب} one {انضم لاعب واحد} two {انضم لاعبان} few {انضم # لاعبين} many {انضم # لاعبًا} other {انضم # لاعب}}",
+    "startNeedsPlayer": "يُفتح زر البدء عند انضمام أول لاعب.",
+    "openScreen": "افتح الشاشة الكبيرة",
+    "playAgain": "العب مجددًا",
+    "playAgainHint": "انتهت المسابقة. اللعب مجددًا يمسح النتائج ويعيد فتح غرفة الانتظار، ويبقى اللاعبون في القاعة.",
+    "anonymous": "مجهول"
   },
   "surveyEditor": {
     "questions": "أسئلة الاستبيان",
@@ -784,6 +793,9 @@
     "soundOff": "إيقاف الصوت",
     "scoreboard": "لوحة الترتيب",
     "correct": "الإجابة الصحيحة",
-    "correctAnswer": "{count, plural, one {الإجابة الصحيحة:} other {الإجابات الصحيحة:}}"
+    "correctAnswer": "{count, plural, one {الإجابة الصحيحة:} other {الإجابات الصحيحة:}}",
+    "playAgain": "العب مجددًا",
+    "exit": "خروج",
+    "startNeedsPlayer": "يُفتح زر البدء عند انضمام أول لاعب."
   }
 }

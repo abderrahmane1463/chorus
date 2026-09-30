@@ -3,7 +3,8 @@
 import { useState, useSyncExternalStore, useTransition } from 'react';
 import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
 import { useFormatter, useTranslations } from 'next-intl';
-import { Check, Play, Users, Volume2, VolumeX } from 'lucide-react';
+import Link from 'next/link';
+import { Check, LogOut, Play, RotateCcw, Users, Volume2, VolumeX } from 'lucide-react';
 import { QRCodeSVG } from 'qrcode.react';
 import { toast } from 'sonner';
 import { Leaderboard } from '@/components/interactions/leaderboard';
@@ -141,6 +142,7 @@ export function QuizStage({
             <Leaderboard rows={leaderboard} emphasis />
           </div>
         )}
+        {quiz.status === 'closed' && <AfterPodium quiz={quiz} />}
       </div>
     );
   }
@@ -494,17 +496,62 @@ function Lobby({
           <button
             type="button"
             onClick={start}
-            disabled={starting || empty}
+            // Locked until someone is in the room: the host watches the names
+            // arrive, then starts.
+            disabled={starting || empty || playerTotal === 0}
             className="inline-flex items-center gap-3 rounded-xl bg-primary px-8 py-4 text-2xl font-semibold text-primary-foreground transition-colors hover:bg-primary-hover disabled:opacity-50"
           >
             <Play className="size-6" aria-hidden />
             {t('startQuiz')}
           </button>
           <p className="text-lg text-muted-foreground">
-            {empty ? t('noQuestionsYet') : t('startHint')}
+            {empty
+              ? t('noQuestionsYet')
+              : playerTotal === 0
+                ? t('startNeedsPlayer')
+                : t('startHint')}
           </p>
         </div>
       </div>
+    </div>
+  );
+}
+
+/**
+ * The host's two ways on from the podium: run the quiz again, or leave.
+ *
+ * Nothing here is timed. The final standings stay up until the host decides.
+ */
+function AfterPodium({ quiz }: { quiz: QuizDetail }) {
+  const t = useTranslations('presenter');
+  const [restarting, startTransition] = useTransition();
+
+  function playAgain() {
+    startTransition(async () => {
+      // Clears the scores and reopens the lobby; the players stay joined.
+      const result = await controlQuizAction({ quizId: quiz.id, action: 'restart' });
+      if (!result.ok) toast.error(result.error);
+    });
+  }
+
+  return (
+    <div className="mt-12 flex flex-wrap items-center justify-center gap-4">
+      <button
+        type="button"
+        onClick={playAgain}
+        disabled={restarting}
+        className="inline-flex items-center gap-3 rounded-xl bg-primary px-8 py-4 text-2xl font-semibold text-primary-foreground transition-colors hover:bg-primary-hover disabled:opacity-50"
+      >
+        <RotateCcw className="size-6" aria-hidden />
+        {t('playAgain')}
+      </button>
+      <Link
+        href={`/dashboard/events/${quiz.eventId}`}
+        className="inline-flex items-center gap-3 rounded-xl border border-border px-8 py-4 text-2xl font-semibold transition-colors hover:bg-muted"
+      >
+        <LogOut className="size-6 rtl:rotate-180" aria-hidden />
+        {t('exit')}
+      </Link>
     </div>
   );
 }

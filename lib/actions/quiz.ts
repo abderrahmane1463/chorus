@@ -239,6 +239,14 @@ export async function controlQuizAction(input: unknown): Promise<ActionResult> {
     }
 
     case 'start': {
+      // A quiz with nobody in the room has no one to play it. The screens
+      // keep Start locked until someone joins; this holds for any other caller.
+      const [{ joined }] = await db
+        .select({ joined: count() })
+        .from(participants)
+        .where(eq(participants.eventId, owned.eventId));
+      if (joined === 0) return { ok: false, error: t('errors.noPlayersYet') };
+
       if (quiz.status !== 'active') await openLobby(quiz.id, owned.eventId);
       // From the lobby only: pressing Start twice must not restart question one.
       const started = await showQuestion(quiz.id, owned.eventId, null, quiz.questions[0].id);

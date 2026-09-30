@@ -298,7 +298,8 @@
     "chooseAtMost": "Choose at most {limit}",
     "submitUpTo": "You can submit up to {count, plural, one {# answer} other {# answers}}",
     "quizAlreadyStarted": "The quiz has already started",
-    "questionNotOpen": "This question is not open yet"
+    "questionNotOpen": "This question is not open yet",
+    "noPlayersYet": "Wait for at least one player to join before starting."
   },
   "validation": {
     "codeRequired": "Enter the event code",
@@ -641,7 +642,15 @@
     "startHint": "Press Start when the room is ready.",
     "revealNow": "Reveal now",
     "nextNow": "Skip to next question",
-    "automatic": "moving on automatically"
+    "automatic": "moving on automatically",
+    "lobbyTitle": "The lobby is open",
+    "lobbyWaiting": "Waiting for players. They scan the QR code on the big screen or enter the code {code}.",
+    "lobbyJoined": "{count, plural, one {# player has joined} other {# players have joined}}",
+    "startNeedsPlayer": "Start unlocks when the first player joins.",
+    "openScreen": "Open the big screen",
+    "playAgain": "Play again",
+    "playAgainHint": "The quiz is over. Play again clears the scores and reopens the lobby; players stay in the room.",
+    "anonymous": "Anonymous"
   },
   "surveyEditor": {
     "questions": "Survey questions",
@@ -784,6 +793,9 @@
     "soundOff": "Turn sound off",
     "scoreboard": "Scoreboard",
     "correct": "Correct answer",
-    "correctAnswer": "{count, plural, one {Correct answer:} other {Correct answers:}}"
+    "correctAnswer": "{count, plural, one {Correct answer:} other {Correct answers:}}",
+    "playAgain": "Play again",
+    "exit": "Exit",
+    "startNeedsPlayer": "Start unlocks when the first player joins."
   }
 }

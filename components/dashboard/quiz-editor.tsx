@@ -1,13 +1,15 @@
 'use client';
 
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useRef, useState, useTransition } from 'react';
+import { useEffect, useRef, useState, useTransition } from 'react';
 import {
   Check,
   DoorOpen,
   Eye,
   Play,
   Plus,
+  Presentation,
   RotateCcw,
   SkipForward,
   Square,
@@ -30,10 +32,17 @@ import {
   deleteQuizQuestionAction,
   saveQuizQuestionAction,
 } from '@/lib/actions/quiz';
-import type { LeaderboardRow, QuizDetail, QuizQuestion } from '@/lib/queries/quiz';
+import type {
+  LeaderboardRow,
+  LobbyPlayer,
+  QuizDetail,
+  QuizQuestion,
+} from '@/lib/queries/quiz';
 import { quizPacing, type QuizPhase } from '@/lib/quiz/pacing';
 import { useQuizPacer } from '@/hooks/use-quiz-pacer';
 import { cn } from '@/lib/utils/cn';
+
+const START_LOCK_MS = 1500;
 
 export function QuizEditor({
   quiz,
@@ -41,6 +50,8 @@ export function QuizEditor({
   phase,
   dueAt,
   playerCount,
+  players,
+  eventCode,
   serverNow,
 }: {
   quiz: QuizDetail;
@@ -50,6 +61,9 @@ export function QuizEditor({
   dueAt: number | null;
   /** Everyone who has joined the event. */
   playerCount: number;
+  /** Their names, while the lobby is open. */
+  players: LobbyPlayer[];
+  eventCode: string;
   serverNow: number;
 }) {
   const router = useRouter();
@@ -76,6 +90,18 @@ export function QuizEditor({
       }
     });
   }
+
+  // Start stays locked for a moment after the lobby opens, so the click that
+  // opened it, repeated, cannot also be the click that starts the quiz.
+  const [startArmed, setStartArmed] = useState(false);
+  useEffect(() => {
+    if (phase !== 'lobby') return;
+    const id = setTimeout(() => setStartArmed(true), START_LOCK_MS);
+    return () => {
+      clearTimeout(id);
+      setStartArmed(false);
+    };
+  }, [phase]);
 
   const questionsCardRef = useRef<HTMLDivElement>(null);
 
@@ -108,79 +134,143 @@ export function QuizEditor({
           <CardTitle>{t('run')}</CardTitle>
         </CardHeader>
         <CardContent className="space-y-3">
-          <div className="flex flex-wrap items-center gap-2">
-            {(phase === 'idle' || phase === 'finished') && (
+          {/* One step at a time, each with its own controls in its own place.
+              Open and Start used to swap in the same spot, so a second click
+              meant for nothing in particular started the quiz. */}
+          {phase === 'idle' && (
+            <>
               <Button onClick={() => control('open', t('lobbyOpened'))} loading={pending} disabled={empty}>
                 <DoorOpen />
                 {t('openLobby')}
               </Button>
-            )}
-
-            {phase === 'lobby' && (
-              <Button onClick={() => control('start', t('started'))} loading={pending} disabled={empty}>
-                <Play />
-                {t('start')}
-              </Button>
-            )}
-
-            {/* Overrides. With automatic pacing these only skip ahead; without
-                it they are how the quiz moves at all. */}
-            {phase === 'question' && (
-              <Button
-                variant={automatic ? 'secondary' : 'primary'}
-                onClick={() => control('reveal', t('revealed'))}
-                loading={pending}
-              >
-                <Eye />
-                {automatic ? t('revealNow') : t('reveal')}
-              </Button>
-            )}
-            {phase === 'revealed' && !isLast && (
-              <Button
-                variant={automatic ? 'secondary' : 'primary'}
-                onClick={() => control('next', t('nextDone'))}
-                loading={pending}
-              >
-                <SkipForward />
-                {automatic ? t('nextNow') : t('next')}
-              </Button>
-            )}
-            {(inQuestion || phase === 'lobby') && (
-              <Button
-                variant="secondary"
-                onClick={() => control('finish', t('finished'))}
-                loading={pending}
-              >
-                <Square />
-                {phase === 'lobby' ? t('closeLobby') : t('finish')}
-              </Button>
-            )}
-
-            <Button
-              variant="destructive"
-              onClick={() => control('restart', t('restarted'))}
-              disabled={pending || empty}
-              className="ms-auto"
-            >
-              <RotateCcw />
-              {t('restart')}
-            </Button>
-          </div>
-
-          {!empty && (phase === 'idle' || phase === 'finished') && (
-            <p className="text-sm text-muted-foreground">{t('lobbyHint')}</p>
+              {!empty && <p className="text-sm text-muted-foreground">{t('lobbyHint')}</p>}
+            </>
           )}
+
           {phase === 'lobby' && (
-            <p className="text-sm text-muted-foreground">
-              {t('inLobby', { count: playerCount })} {t('startHint')}
-            </p>
+            <div className="rounded-lg border border-primary bg-primary-subtle p-4">
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <p className="font-semibold">{t('lobbyTitle')}</p>
+                <Button variant="secondary" size="sm" asChild>
+                  <Link href={`/present/${quiz.eventId}`} target="_blank">
+                    <Presentation />
+                    {t('openScreen')}
+                  </Link>
+                </Button>
+              </div>
+
+              {/* aria-live so a screen reader hears the room filling. */}
+              <p className="mt-3 text-sm text-muted-foreground" aria-live="polite">
+                {playerCount === 0
+                  ? t('lobbyWaiting', { code: eventCode })
+                  : t('lobbyJoined', { count: playerCount })}
+              </p>
+
+              {players.length > 0 && (
+                <ul className="mt-3 flex flex-wrap gap-2">
+                  {players.map((player) => (
+                    <li
+                      key={player.id}
+                      className="rounded-full border border-border bg-card px-3 py-1 text-sm font-medium"
+                    >
+                      <bdi>{player.displayName ?? t('anonymous')}</bdi>
+                    </li>
+                  ))}
+                  {playerCount > players.length && (
+                    <li className="px-2 py-1 text-sm text-muted-foreground">
+                      +{playerCount - players.length}
+                    </li>
+                  )}
+                </ul>
+              )}
+
+              <div className="mt-5 flex flex-wrap items-center gap-3 border-t border-border pt-4">
+                <Button
+                  size="lg"
+                  onClick={() => control('start', t('started'))}
+                  loading={pending}
+                  disabled={!startArmed || playerCount === 0 || empty}
+                >
+                  <Play />
+                  {t('start')}
+                </Button>
+                <Button
+                  variant="ghost"
+                  onClick={() => control('finish', t('finished'))}
+                  disabled={pending}
+                >
+                  <Square />
+                  {t('closeLobby')}
+                </Button>
+                <p className="w-full text-sm text-muted-foreground">
+                  {playerCount === 0 ? t('startNeedsPlayer') : t('startHint')}
+                </p>
+              </div>
+            </div>
           )}
+
           {inQuestion && (
-            <p className="text-sm text-muted-foreground">
-              {t('showing', { current: currentIndex + 1, total: quiz.questions.length })}
-              {quiz.answerRevealed ? t('answerRevealed') : ''}
-              {automatic ? ' · ' + t('automatic') : ''}
-            </p>
+            <>
+              <div className="flex flex-wrap items-center gap-2">
+                {/* Overrides. With automatic pacing these only skip ahead;
+                    without it they are how the quiz moves at all. */}
+                {phase === 'question' && (
+                  <Button
+                    variant={automatic ? 'secondary' : 'primary'}
+                    onClick={() => control('reveal', t('revealed'))}
+                    loading={pending}
+                  >
+                    <Eye />
+                    {automatic ? t('revealNow') : t('reveal')}
+                  </Button>
+                )}
+                {phase === 'revealed' && !isLast && (
+                  <Button
+                    variant={automatic ? 'secondary' : 'primary'}
+                    onClick={() => control('next', t('nextDone'))}
+                    loading={pending}
+                  >
+                    <SkipForward />
+                    {automatic ? t('nextNow') : t('next')}
+                  </Button>
+                )}
+                <Button
+                  variant="secondary"
+                  onClick={() => control('finish', t('finished'))}
+                  loading={pending}
+                >
+                  <Square />
+                  {t('finish')}
+                </Button>
+
+                <Button
+                  variant="destructive"
+                  onClick={() => control('restart', t('restarted'))}
+                  disabled={pending}
+                  className="ms-auto"
+                >
+                  <RotateCcw />
+                  {t('restart')}
+                </Button>
+              </div>
+              <p className="text-sm text-muted-foreground">
+                {t('showing', { current: currentIndex + 1, total: quiz.questions.length })}
+                {quiz.answerRevealed ? t('answerRevealed') : ''}
+                {automatic ? ' · ' + t('automatic') : ''}
+              </p>
+            </>
+          )}
+
+          {phase === 'finished' && (
+            <>
+              {/* Replaying always starts clean: a lobby reopened over the old
+                  answers would refuse everyone who had already played. */}
+              <Button onClick={() => control('restart', t('lobbyOpened'))} loading={pending} disabled={empty}>
+                <RotateCcw />
+                {t('playAgain')}
+              </Button>
+              <p className="text-sm text-muted-foreground">{t('playAgainHint')}</p>
+            </>
           )}
           {empty && (
             // The first thing a new quiz needs, offered where the host is

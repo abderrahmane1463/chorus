@@ -17,7 +17,7 @@ import { QaModeration } from './qa-moderation';
 import { QuizEditor } from './quiz-editor';
 import { SurveyEditor } from './survey-editor';
 import type { SurveyDetail } from '@/lib/queries/survey';
-import type { LeaderboardRow, QuizDetail } from '@/lib/queries/quiz';
+import type { LeaderboardRow, LobbyPlayer, QuizDetail } from '@/lib/queries/quiz';
 import type { QuestionItem, QuestionSort } from '@/lib/queries/questions';
 import { getInteractionMeta } from '@/lib/interactions/registry';
 import type { InteractionDetail, InteractionResults } from '@/lib/queries/interactions';
@@ -42,10 +42,20 @@ export type QuizRun = {
   /** When the quiz next moves on by itself (epoch ms), or null if it waits for the host. */
   dueAt: number | null;
   playerCount: number;
+  /** Who has joined, for the lobby. Empty outside it. */
+  players: LobbyPlayer[];
+  eventCode: string;
   serverNow: number;
 };
 
-const IDLE_RUN: QuizRun = { phase: 'idle', dueAt: null, playerCount: 0, serverNow: 0 };
+const IDLE_RUN: QuizRun = {
+  phase: 'idle',
+  dueAt: null,
+  playerCount: 0,
+  players: [],
+  eventCode: '',
+  serverNow: 0,
+};
 
 export function InteractionEditor({
   interaction,
@@ -272,6 +282,8 @@ export function InteractionEditor({
           phase={quizRun.phase}
           dueAt={quizRun.dueAt}
           playerCount={quizRun.playerCount}
+          players={quizRun.players}
+          eventCode={quizRun.eventCode}
           serverNow={quizRun.serverNow}
         />
       ) : interaction.type === 'survey' && survey ? (
