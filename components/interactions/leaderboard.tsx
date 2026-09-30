@@ -108,10 +108,12 @@ export function Leaderboard({
               )}
             </span>
 
-            <span className="min-w-0 flex-1 truncate font-medium">
-              {row.displayName ?? t('anonymous')}
+            {/* Only the name gives way on a narrow phone: the "you" marker is
+                how a player finds their row, so it is never the part cut off. */}
+            <span className="flex min-w-0 flex-1 items-baseline gap-2 font-medium">
+              <bdi className="truncate">{row.displayName ?? t('anonymous')}</bdi>
               {mine && (
-                <span className="ms-2 text-xs font-normal text-muted-foreground">
+                <span className="shrink-0 text-xs font-normal text-muted-foreground">
                   {t('you')}
                 </span>
               )}
@@ -133,13 +135,18 @@ export function Leaderboard({
               </motion.span>
             )}
 
-            <span className="shrink-0 text-muted-foreground">
+            {/* On a phone there is room for the name or for this, not both. */}
+            <span
+              className={cn('shrink-0 text-muted-foreground', !emphasis && 'hidden sm:inline')}
+            >
               {t('correct', { count: row.correctAnswers })}
             </span>
             <span
               className={cn(
                 'shrink-0 text-end font-semibold tabular-nums',
-                emphasis ? 'w-28' : 'w-16',
+                // Wide enough for five digits with a separator, and no wider:
+                // on a phone every spare pixel goes to the name.
+                emphasis ? 'w-28' : 'w-12',
               )}
             >
               {format.number(row.score)}

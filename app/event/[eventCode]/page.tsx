@@ -70,17 +70,21 @@ export default async function ParticipantEventPage({
   const sessionId = await readSessionId();
   if (!sessionId) redirect(`/join?code=${encodeURIComponent(code)}`);
 
-  const [participant] = await db
-    .select({ id: participants.id, displayName: participants.displayName })
-    .from(participants)
-    .where(
-      and(eq(participants.eventId, event.id), eq(participants.sessionId, sessionId)),
-    )
-    .limit(1);
+  // Asked together: a phone reloads this page on every change in the room, so
+  // each round trip saved here is one every player feels.
+  const [[participant], interaction] = await Promise.all([
+    db
+      .select({ id: participants.id, displayName: participants.displayName })
+      .from(participants)
+      .where(
+        and(eq(participants.eventId, event.id), eq(participants.sessionId, sessionId)),
+      )
+      .limit(1),
+    getActiveInteraction(event.id),
+  ]);
 
   if (!participant) redirect(`/join?code=${encodeURIComponent(code)}`);
 
-  const interaction = await getActiveInteraction(event.id);
   const isQa = interaction?.type === 'q_and_a';
   const isQuiz = interaction?.type === 'quiz';
   const isSurvey = interaction?.type === 'survey';
@@ -204,6 +208,8 @@ export default async function ParticipantEventPage({
                 view={quizView}
                 leaderboard={leaderboard}
                 participantId={participant.id}
+                eventId={event.id}
+                displayName={participant.displayName}
                 serverNow={serverNow()}
               />
             ) : isSurvey && survey ? (

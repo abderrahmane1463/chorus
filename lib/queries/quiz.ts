@@ -45,76 +45,84 @@ export type QuizDetail = {
 
 /** Loads a quiz and its child questions. Options include the correct flags. */
 export async function getQuizDetail(quizId: string): Promise<QuizDetail | null> {
-  const [quiz] = await db
-    .select({
-      id: interactions.id,
-      eventId: interactions.eventId,
-      title: interactions.title,
-      status: interactions.status,
-      settings: interactions.settings,
-      currentChildId: interactions.currentChildId,
-      answerRevealed: interactions.answerRevealed,
-      type: interactions.type,
-    })
-    .from(interactions)
-    .where(eq(interactions.id, quizId))
-    .limit(1);
+  // Every screen reloads this on every change in the room, so it is one round
+  // trip to the database whatever the number of questions: all four queries
+  // are keyed on the quiz and sent together.
+  const [[quiz], children, options, answers] = await Promise.all([
+    db
+      .select({
+        id: interactions.id,
+        eventId: interactions.eventId,
+        title: interactions.title,
+        status: interactions.status,
+        settings: interactions.settings,
+        currentChildId: interactions.currentChildId,
+        answerRevealed: interactions.answerRevealed,
+        type: interactions.type,
+      })
+      .from(interactions)
+      .where(eq(interactions.id, quizId))
+      .limit(1),
+
+    db
+      .select({
+        id: interactions.id,
+        title: interactions.title,
+        position: interactions.position,
+        settings: interactions.settings,
+        startedAt: interactions.startedAt,
+        // A question's `endedAt` is stamped when its answer is revealed.
+        revealedAt: interactions.endedAt,
+      })
+      .from(interactions)
+      .where(eq(interactions.parentId, quizId))
+      .orderBy(asc(interactions.position), asc(interactions.createdAt)),
+
+    db
+      .select({
+        questionId: interactionOptions.interactionId,
+        id: interactionOptions.id,
+        text: interactionOptions.text,
+        isCorrect: interactionOptions.isCorrect,
+        position: interactionOptions.position,
+      })
+      .from(interactionOptions)
+      .innerJoin(interactions, eq(interactions.id, interactionOptions.interactionId))
+      .where(eq(interactions.parentId, quizId))
+      .orderBy(asc(interactionOptions.position)),
+
+    db
+      .select({ questionId: responses.interactionId, data: responses.responseData })
+      .from(responses)
+      .innerJoin(interactions, eq(interactions.id, responses.interactionId))
+      .where(eq(interactions.parentId, quizId)),
+  ]);
 
   if (!quiz || quiz.type !== 'quiz') return null;
 
-  const children = await db
-    .select({
-      id: interactions.id,
-      title: interactions.title,
-      position: interactions.position,
-      settings: interactions.settings,
-      startedAt: interactions.startedAt,
-      // A question's `endedAt` is stamped when its answer is revealed.
-      revealedAt: interactions.endedAt,
-    })
-    .from(interactions)
-    .where(eq(interactions.parentId, quizId))
-    .orderBy(asc(interactions.position), asc(interactions.createdAt));
-
-  const questions: QuizQuestion[] = [];
-
-  for (const child of children) {
-    const [options, answers] = await Promise.all([
-      db
-        .select({
-          id: interactionOptions.id,
-          text: interactionOptions.text,
-          isCorrect: interactionOptions.isCorrect,
-          position: interactionOptions.position,
-        })
-        .from(interactionOptions)
-        .where(eq(interactionOptions.interactionId, child.id))
-        .orderBy(asc(interactionOptions.position)),
-
-      db
-        .select({ data: responses.responseData })
-        .from(responses)
-        .where(eq(responses.interactionId, child.id)),
-    ]);
-
-    const picks = new Map<string, number>();
-    for (const answer of answers) {
-      if (answer.data.kind !== 'quiz') continue;
-      for (const optionId of answer.data.optionIds) {
-        picks.set(optionId, (picks.get(optionId) ?? 0) + 1);
-      }
+  const picks = new Map<string, number>();
+  const answerCounts = new Map<string, number>();
+  for (const answer of answers) {
+    answerCounts.set(answer.questionId, (answerCounts.get(answer.questionId) ?? 0) + 1);
+    if (answer.data.kind !== 'quiz') continue;
+    for (const optionId of answer.data.optionIds) {
+      picks.set(optionId, (picks.get(optionId) ?? 0) + 1);
     }
+  }
 
-    questions.push({
-      ...child,
-      options: options.map((option) => ({
-        ...option,
+  const questions: QuizQuestion[] = children.map((child) => ({
+    ...child,
+    options: options
+      .filter((option) => option.questionId === child.id)
+      .map((option) => ({
+        id: option.id,
+        text: option.text,
         isCorrect: option.isCorrect ?? false,
+        position: option.position,
         picks: picks.get(option.id) ?? 0,
       })),
-      answerCount: answers.length,
-    });
-  }
+    answerCount: answerCounts.get(child.id) ?? 0,
+  }));
 
   return {
     id: quiz.id,
@@ -211,26 +219,31 @@ export async function getLeaderboard(
 ): Promise<LeaderboardRow[]> {
   // Unlimited here: ranks before the question must be computed over everyone,
   // or a player outside the top few could never be seen climbing into it.
-  const rows = await db
-    .select({
-      participantId: quizScores.participantId,
-      displayName: participants.displayName,
-      score: quizScores.score,
-      correctAnswers: quizScores.correctAnswers,
-      totalTime: quizScores.totalTime,
-    })
-    .from(quizScores)
-    .innerJoin(participants, eq(participants.id, quizScores.participantId))
-    .where(eq(quizScores.quizId, quizId))
-    .orderBy(desc(quizScores.score), asc(quizScores.totalTime));
+  const [rows, answers] = await Promise.all([
+    db
+      .select({
+        participantId: quizScores.participantId,
+        displayName: participants.displayName,
+        score: quizScores.score,
+        correctAnswers: quizScores.correctAnswers,
+        totalTime: quizScores.totalTime,
+      })
+      .from(quizScores)
+      .innerJoin(participants, eq(participants.id, quizScores.participantId))
+      .where(eq(quizScores.quizId, quizId))
+      .orderBy(desc(quizScores.score), asc(quizScores.totalTime)),
+
+    sinceQuestionId
+      ? db
+          .select({ participantId: responses.participantId, data: responses.responseData })
+          .from(responses)
+          .where(eq(responses.interactionId, sinceQuestionId))
+      : [],
+  ]);
 
   const previousRanks = new Map<string, number>();
 
   if (sinceQuestionId) {
-    const answers = await db
-      .select({ participantId: responses.participantId, data: responses.responseData })
-      .from(responses)
-      .where(eq(responses.interactionId, sinceQuestionId));
 
     const awarded = new Map<string, { points: number; ms: number }>();
     for (const answer of answers) {
@@ -286,6 +299,11 @@ export type ParticipantQuizView = {
     timeLimitSeconds: number;
     startedAt: Date | null;
     options: { id: string; text: string }[];
+    /**
+     * Whether more than one answer is correct, so the phone knows to let the
+     * player pick several. It says how to answer, not what the answer is.
+     */
+    multiple: boolean;
     /** Only populated once the host reveals the answer. */
     correctOptionIds: string[];
     explanation: string | null;
@@ -312,40 +330,42 @@ export async function getParticipantQuizView(
     ? quiz.questions.findIndex((q) => q.id === current.id) + 1
     : null;
 
-  let myAnswer: ParticipantQuizView['myAnswer'] = null;
-  if (current) {
-    const [row] = await db
-      .select({ data: responses.responseData })
-      .from(responses)
+  const [[answer], [score], [{ playerCount }]] = await Promise.all([
+    current
+      ? db
+          .select({ data: responses.responseData })
+          .from(responses)
+          .where(
+            and(
+              eq(responses.interactionId, current.id),
+              eq(responses.participantId, participantId),
+            ),
+          )
+          .limit(1)
+      : [],
+
+    db
+      .select({ score: quizScores.score, correctAnswers: quizScores.correctAnswers })
+      .from(quizScores)
       .where(
-        and(
-          eq(responses.interactionId, current.id),
-          eq(responses.participantId, participantId),
-        ),
+        and(eq(quizScores.quizId, quizId), eq(quizScores.participantId, participantId)),
       )
-      .limit(1);
+      .limit(1),
 
-    if (row && row.data.kind === 'quiz') {
-      myAnswer = {
-        optionIds: row.data.optionIds,
-        correct: row.data.correct,
-        points: row.data.points,
-      };
-    }
-  }
+    db
+      .select({ playerCount: count() })
+      .from(participants)
+      .where(eq(participants.eventId, quiz.eventId)),
+  ]);
 
-  const [score] = await db
-    .select({ score: quizScores.score, correctAnswers: quizScores.correctAnswers })
-    .from(quizScores)
-    .where(
-      and(eq(quizScores.quizId, quizId), eq(quizScores.participantId, participantId)),
-    )
-    .limit(1);
-
-  const [{ playerCount }] = await db
-    .select({ playerCount: count() })
-    .from(participants)
-    .where(eq(participants.eventId, quiz.eventId));
+  const myAnswer: ParticipantQuizView['myAnswer'] =
+    answer && answer.data.kind === 'quiz'
+      ? {
+          optionIds: answer.data.optionIds,
+          correct: answer.data.correct,
+          points: answer.data.points,
+        }
+      : null;
 
   const timing = quizTiming(quiz, Boolean(score));
 
@@ -370,6 +390,7 @@ export async function getParticipantQuizView(
             id: option.id,
             text: option.text,
           })),
+          multiple: current.options.filter((option) => option.isCorrect).length > 1,
           correctOptionIds: quiz.answerRevealed
             ? current.options.filter((o) => o.isCorrect).map((o) => o.id)
             : [],

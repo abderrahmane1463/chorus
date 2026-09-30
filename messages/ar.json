@@ -180,7 +180,20 @@
     "notStarted": "لم تبدأ المسابقة بعد",
     "noAnswer": "لم تجب عن هذا السؤال.",
     "nextIn": "السؤال التالي بعد {seconds}",
-    "resultsIn": "النتائج النهائية بعد {seconds}"
+    "resultsIn": "النتائج النهائية بعد {seconds}",
+    "noAnswerTitle": "لا إجابة",
+    "yourRank": "المرتبة {rank} من {total}",
+    "totalPoints": "{points} نقطة",
+    "correctAnswers": "{count, plural, one {الإجابة الصحيحة} other {الإجابات الصحيحة}}",
+    "yourAnswerWas": "أجبت بـ",
+    "answerSent": "أُرسلت الإجابة",
+    "timeUpTitle": "انتهى الوقت",
+    "pickSeveral": "أكثر من إجابة صحيحة. اختر كل ما ينطبق ثم أرسل.",
+    "submitAnswers": "إرسال",
+    "nicknameTitle": "اختر اسمًا مستعارًا",
+    "nicknameBody": "هو الاسم الذي يظهر في لوحة الترتيب.",
+    "nicknameLabel": "اسمك المستعار",
+    "nicknameSave": "انضم إلى المسابقة"
   },
   "survey": {
     "noQuestions": "لا يحتوي هذا الاستبيان على أسئلة بعد.",
@@ -297,7 +310,9 @@
     "passwordRequired": "أدخل كلمة السر",
     "titleRequired": "أعطِ الفعالية اسمًا",
     "titleTooLong": "هذا الاسم طويل جدًا",
-    "descriptionTooLong": "هذا الوصف طويل جدًا"
+    "descriptionTooLong": "هذا الوصف طويل جدًا",
+    "nicknameRequired": "أدخل اسمًا مستعارًا",
+    "nicknameTooLong": "هذا الاسم طويل جدًا"
   },
   "auth": {
     "signInTitle": "أهلًا بعودتك",
@@ -764,6 +779,11 @@
     "noQuestionsYet": "أضف أسئلة إلى هذه المسابقة قبل البدء.",
     "nextIn": "السؤال التالي بعد {seconds}",
     "resultsIn": "النتائج النهائية بعد {seconds}",
-    "picked": "{count, plural, zero {لم يختره أحد} one {اختاره لاعب واحد} two {اختاره لاعبان} few {اختاره # لاعبين} many {اختاره # لاعبًا} other {اختاره # لاعب}}"
+    "picked": "{count, plural, zero {لم يختره أحد} one {اختاره لاعب واحد} two {اختاره لاعبان} few {اختاره # لاعبين} many {اختاره # لاعبًا} other {اختاره # لاعب}}",
+    "soundOn": "تشغيل الصوت",
+    "soundOff": "إيقاف الصوت",
+    "scoreboard": "لوحة الترتيب",
+    "correct": "الإجابة الصحيحة",
+    "correctAnswer": "{count, plural, one {الإجابة الصحيحة:} other {الإجابات الصحيحة:}}"
   }
 }

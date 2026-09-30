@@ -3,6 +3,7 @@
 import { getTranslations } from 'next-intl/server';
 import { revalidatePath } from 'next/cache';
 import { and, count, eq, inArray, max, sql } from 'drizzle-orm';
+import { alias } from 'drizzle-orm/pg-core';
 import { db } from '@/lib/db';
 import {
   events,
@@ -40,6 +41,9 @@ import {
 import { quizPacing } from '@/lib/quiz/pacing';
 import { RealtimeEvent } from '@/lib/realtime/events';
 import type { ActionResult } from './auth';
+
+/** A question and its quiz live in the same table; this names the quiz side of a join. */
+const quizzes = alias(interactions, 'quizzes');
 
 /** A phone's clock-corrected tap can land a moment before the server's start. */
 const EARLY_TOLERANCE_MS = 300;
@@ -301,40 +305,51 @@ export async function submitQuizAnswerAction(input: unknown): Promise<ActionResu
   const sessionId = await readSessionId();
   if (!sessionId) return { ok: false, error: t('errors.rejoinToAnswer') };
 
-  const [context] = await db
-    .select({
-      questionId: interactions.id,
-      parentId: interactions.parentId,
-      settings: interactions.settings,
-      startedAt: interactions.startedAt,
-      eventId: events.id,
-      eventCode: events.eventCode,
-      participantId: participants.id,
-    })
-    .from(interactions)
-    .innerJoin(events, eq(events.id, interactions.eventId))
-    .innerJoin(
-      participants,
-      and(eq(participants.eventId, events.id), eq(participants.sessionId, sessionId)),
-    )
-    .where(eq(interactions.id, parsed.data.questionId))
-    .limit(1);
+  // The question, its quiz and its options are all keyed on the question, so
+  // they are asked for together: the time this takes is time the player waits
+  // between tapping and seeing the answer counted.
+  const [[context], [quiz], options] = await Promise.all([
+    db
+      .select({
+        questionId: interactions.id,
+        parentId: interactions.parentId,
+        settings: interactions.settings,
+        startedAt: interactions.startedAt,
+        eventId: events.id,
+        eventCode: events.eventCode,
+        participantId: participants.id,
+      })
+      .from(interactions)
+      .innerJoin(events, eq(events.id, interactions.eventId))
+      .innerJoin(
+        participants,
+        and(eq(participants.eventId, events.id), eq(participants.sessionId, sessionId)),
+      )
+      .where(eq(interactions.id, parsed.data.questionId))
+      .limit(1),
+
+    db
+      .select({
+        id: quizzes.id,
+        status: quizzes.status,
+        settings: quizzes.settings,
+        currentChildId: quizzes.currentChildId,
+        answerRevealed: quizzes.answerRevealed,
+      })
+      .from(interactions)
+      .innerJoin(quizzes, eq(quizzes.id, interactions.parentId))
+      .where(eq(interactions.id, parsed.data.questionId))
+      .limit(1),
+
+    db
+      .select({ id: interactionOptions.id, isCorrect: interactionOptions.isCorrect })
+      .from(interactionOptions)
+      .where(eq(interactionOptions.interactionId, parsed.data.questionId)),
+  ]);
 
   if (!context?.parentId) return { ok: false, error: t('errors.notQuizQuestion') };
 
   // The quiz must be running and showing exactly this question.
-  const [quiz] = await db
-    .select({
-      id: interactions.id,
-      status: interactions.status,
-      settings: interactions.settings,
-      currentChildId: interactions.currentChildId,
-      answerRevealed: interactions.answerRevealed,
-    })
-    .from(interactions)
-    .where(eq(interactions.id, context.parentId))
-    .limit(1);
-
   if (!quiz || quiz.status !== 'active') {
     return { ok: false, error: t('errors.quizNotRunning') };
   }
@@ -361,11 +376,6 @@ export async function submitQuizAnswerAction(input: unknown): Promise<ActionResu
   if (elapsedMs > timeLimitSeconds * 1000 + ANSWER_GRACE_MS) {
     return { ok: false, error: t('errors.timeUp') };
   }
-
-  const options = await db
-    .select({ id: interactionOptions.id, isCorrect: interactionOptions.isCorrect })
-    .from(interactionOptions)
-    .where(eq(interactionOptions.interactionId, context.questionId));
 
   const validIds = new Set(options.map((o) => o.id));
   if (!parsed.data.optionIds.every((id) => validIds.has(id))) {
@@ -405,45 +415,54 @@ export async function submitQuizAnswerAction(input: unknown): Promise<ActionResu
     return { ok: false, error: t('errors.alreadyAnsweredQuestion') };
   }
 
-  await db
-    .insert(quizScores)
-    .values({
-      quizId: quiz.id,
-      participantId: context.participantId,
-      score: points,
-      correctAnswers: correct ? 1 : 0,
-      totalTime: elapsedMs,
-    })
-    .onConflictDoUpdate({
-      target: [quizScores.quizId, quizScores.participantId],
-      set: {
-        score: sql`${quizScores.score} + ${points}`,
-        correctAnswers: sql`${quizScores.correctAnswers} + ${correct ? 1 : 0}`,
-        totalTime: sql`${quizScores.totalTime} + ${elapsedMs}`,
-        updatedAt: new Date(),
-      },
-    });
+  // Counted alongside the score, after the answer is stored so it is included.
+  const autoAdvance = quizPacing(quiz.settings).autoAdvance;
 
-  await publishQuiz(context.eventId, quiz.id, RealtimeEvent.ResponseCreated);
+  const [, [{ answered }], [{ joined }]] = await Promise.all([
+    db
+      .insert(quizScores)
+      .values({
+        quizId: quiz.id,
+        participantId: context.participantId,
+        score: points,
+        correctAnswers: correct ? 1 : 0,
+        totalTime: elapsedMs,
+      })
+      .onConflictDoUpdate({
+        target: [quizScores.quizId, quizScores.participantId],
+        set: {
+          score: sql`${quizScores.score} + ${points}`,
+          correctAnswers: sql`${quizScores.correctAnswers} + ${correct ? 1 : 0}`,
+          totalTime: sql`${quizScores.totalTime} + ${elapsedMs}`,
+          updatedAt: new Date(),
+        },
+      }),
+    autoAdvance
+      ? db
+          .select({ answered: count() })
+          .from(responses)
+          .where(eq(responses.interactionId, context.questionId))
+      : [{ answered: 0 }],
+    autoAdvance
+      ? db
+          .select({ joined: count() })
+          .from(participants)
+          .where(eq(participants.eventId, context.eventId))
+      : [{ joined: 0 }],
+  ]);
 
   // Nobody left to wait for: show the answer now instead of running the clock
   // down on a room that has finished. Counted against everyone who joined, so
   // a player who walked away simply leaves it to the timer.
-  if (quizPacing(quiz.settings).autoAdvance) {
-    const [[{ answered }], [{ joined }]] = await Promise.all([
-      db
-        .select({ answered: count() })
-        .from(responses)
-        .where(eq(responses.interactionId, context.questionId)),
-      db
-        .select({ joined: count() })
-        .from(participants)
-        .where(eq(participants.eventId, context.eventId)),
-    ]);
+  const revealed =
+    autoAdvance &&
+    joined > 0 &&
+    answered >= joined &&
+    (await revealAnswer(quiz.id, context.eventId, context.questionId));
 
-    if (joined > 0 && answered >= joined) {
-      await revealAnswer(quiz.id, context.eventId, context.questionId);
-    }
+  // A reveal already tells every screen to reload, which covers this answer.
+  if (!revealed) {
+    await publishQuiz(context.eventId, quiz.id, RealtimeEvent.ResponseCreated);
   }
 
   revalidatePath(`/event/${context.eventCode}`);

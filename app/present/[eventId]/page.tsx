@@ -35,8 +35,10 @@ export default async function PresentPage({
   const event = await getEventForOwner(eventId, user.id);
   if (!event) notFound();
 
-  const interactions = await listInteractions(event.id);
-  const active = await getActiveInteraction(event.id);
+  const [interactions, active] = await Promise.all([
+    listInteractions(event.id),
+    getActiveInteraction(event.id),
+  ]);
 
   const results =
     active && active.type !== 'q_and_a' && active.type !== 'quiz'

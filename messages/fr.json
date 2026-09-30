@@ -180,7 +180,20 @@
     "notStarted": "Le quiz n’a pas encore commencé",
     "noAnswer": "Vous n’avez pas répondu à celle-ci.",
     "nextIn": "Question suivante dans {seconds}",
-    "resultsIn": "Résultats finaux dans {seconds}"
+    "resultsIn": "Résultats finaux dans {seconds}",
+    "noAnswerTitle": "Pas de réponse",
+    "yourRank": "Place {rank} sur {total}",
+    "totalPoints": "{points} points",
+    "correctAnswers": "{count, plural, one {La bonne réponse} other {Les bonnes réponses}}",
+    "yourAnswerWas": "Vous avez répondu",
+    "answerSent": "Réponse envoyée",
+    "timeUpTitle": "Temps écoulé",
+    "pickSeveral": "Plusieurs réponses sont correctes. Choisissez-les toutes, puis validez.",
+    "submitAnswers": "Valider",
+    "nicknameTitle": "Choisissez un pseudo",
+    "nicknameBody": "C’est le nom affiché au classement.",
+    "nicknameLabel": "Votre pseudo",
+    "nicknameSave": "Rejoindre le quiz"
   },
   "survey": {
     "noQuestions": "Ce questionnaire n'a pas encore de questions.",
@@ -297,7 +310,9 @@
     "passwordRequired": "Saisissez votre mot de passe",
     "titleRequired": "Donnez un nom à l’événement",
     "titleTooLong": "Ce nom est trop long",
-    "descriptionTooLong": "Cette description est trop longue"
+    "descriptionTooLong": "Cette description est trop longue",
+    "nicknameRequired": "Saisissez un pseudo",
+    "nicknameTooLong": "Ce pseudo est trop long"
   },
   "auth": {
     "signInTitle": "Bon retour",
@@ -764,6 +779,11 @@
     "noQuestionsYet": "Ajoutez des questions à ce quiz avant de démarrer.",
     "nextIn": "Question suivante dans {seconds}",
     "resultsIn": "Résultats finaux dans {seconds}",
-    "picked": "{count, plural, one {# joueur a choisi cette réponse} other {# joueurs ont choisi cette réponse}}"
+    "picked": "{count, plural, one {# joueur a choisi cette réponse} other {# joueurs ont choisi cette réponse}}",
+    "soundOn": "Activer le son",
+    "soundOff": "Couper le son",
+    "scoreboard": "Classement",
+    "correct": "Bonne réponse",
+    "correctAnswer": "{count, plural, one {Bonne réponse :} other {Bonnes réponses :}}"
   }
 }

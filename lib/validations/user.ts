@@ -22,3 +22,13 @@ export const joinEventSchema = z.object({
 });
 
 export type JoinEventInput = z.infer<typeof joinEventSchema>;
+
+/** A name chosen after joining, for a quiz scoreboard that would otherwise say "Anonymous". */
+export const nicknameSchema = z.object({
+  eventId: z.string().uuid(),
+  displayName: z
+    .string()
+    .trim()
+    .min(1, 'validation.nicknameRequired')
+    .max(30, 'validation.nicknameTooLong'),
+});

@@ -180,7 +180,20 @@
     "notStarted": "The quiz has not started yet",
     "noAnswer": "You did not answer this one.",
     "nextIn": "Next question in {seconds}",
-    "resultsIn": "Final results in {seconds}"
+    "resultsIn": "Final results in {seconds}",
+    "noAnswerTitle": "No answer",
+    "yourRank": "Place {rank} of {total}",
+    "totalPoints": "{points} points",
+    "correctAnswers": "{count, plural, one {The correct answer} other {The correct answers}}",
+    "yourAnswerWas": "You answered",
+    "answerSent": "Answer sent",
+    "timeUpTitle": "Time is up",
+    "pickSeveral": "More than one answer is correct. Pick all that apply, then submit.",
+    "submitAnswers": "Submit",
+    "nicknameTitle": "Choose a nickname",
+    "nicknameBody": "It is the name shown on the scoreboard.",
+    "nicknameLabel": "Your nickname",
+    "nicknameSave": "Join the quiz"
   },
   "survey": {
     "noQuestions": "This survey has no questions yet.",
@@ -297,7 +310,9 @@
     "passwordRequired": "Enter your password",
     "titleRequired": "Give the event a name",
     "titleTooLong": "That name is too long",
-    "descriptionTooLong": "That description is too long"
+    "descriptionTooLong": "That description is too long",
+    "nicknameRequired": "Enter a nickname",
+    "nicknameTooLong": "That nickname is too long"
   },
   "auth": {
     "signInTitle": "Welcome back",
@@ -764,6 +779,11 @@
     "noQuestionsYet": "Add questions to this quiz before starting.",
     "nextIn": "Next question in {seconds}",
     "resultsIn": "Final results in {seconds}",
-    "picked": "{count, plural, one {# player chose this} other {# players chose this}}"
+    "picked": "{count, plural, one {# player chose this} other {# players chose this}}",
+    "soundOn": "Turn sound on",
+    "soundOff": "Turn sound off",
+    "scoreboard": "Scoreboard",
+    "correct": "Correct answer",
+    "correctAnswer": "{count, plural, one {Correct answer:} other {Correct answers:}}"
   }
 }

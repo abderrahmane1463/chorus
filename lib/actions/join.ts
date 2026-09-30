@@ -5,9 +5,9 @@ import { getTranslations } from 'next-intl/server';
 import { and, eq } from 'drizzle-orm';
 import { db } from '@/lib/db';
 import { events, participants } from '@/db/schema';
-import { ensureSessionId } from '@/lib/participant/session';
+import { ensureSessionId, readSessionId } from '@/lib/participant/session';
 import { normalizeEventCode } from '@/lib/utils/event-code';
-import { joinEventSchema } from '@/lib/validations/user';
+import { joinEventSchema, nicknameSchema } from '@/lib/validations/user';
 import { publish } from '@/lib/realtime/server';
 import { channels, RealtimeEvent } from '@/lib/realtime/events';
 import type { ActionResult } from './auth';
@@ -78,4 +78,47 @@ export async function joinEventAction(input: unknown): Promise<ActionResult> {
   }
 
   redirect(`/event/${event.code}`);
+}
+
+/**
+ * Gives a participant a name after they have joined.
+ *
+ * Joining never requires one, because polls and Q&A are better anonymous. A
+ * quiz is different: its scoreboard is the point, so the lobby asks. The
+ * participant is found by their own signed session, never by an id the
+ * browser sends, so nobody can rename someone else.
+ */
+export async function setNicknameAction(input: unknown): Promise<ActionResult> {
+  const t = await getTranslations();
+
+  const parsed = nicknameSchema.safeParse(input);
+  if (!parsed.success) {
+    return {
+      ok: false,
+      error: t(parsed.error.issues[0]?.message ?? 'validation.nicknameRequired'),
+    };
+  }
+
+  const sessionId = await readSessionId();
+  if (!sessionId) return { ok: false, error: t('errors.notPartOfEvent') };
+
+  const updated = await db
+    .update(participants)
+    .set({ displayName: parsed.data.displayName, lastSeenAt: new Date() })
+    .where(
+      and(
+        eq(participants.eventId, parsed.data.eventId),
+        eq(participants.sessionId, sessionId),
+      ),
+    )
+    .returning({ id: participants.id });
+
+  if (updated.length === 0) return { ok: false, error: t('errors.notPartOfEvent') };
+
+  // The lobby on the projector lists names, so it needs to hear about this one.
+  await publish(channels.event(parsed.data.eventId), RealtimeEvent.ParticipantJoined, {
+    eventId: parsed.data.eventId,
+  });
+
+  return { ok: true };
 }

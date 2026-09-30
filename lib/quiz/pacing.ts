@@ -32,7 +32,13 @@ export const EARLY_WINDOW_MS = 2500;
 export const REVEAL_SLACK_MS = 600;
 
 /** How long the answer and standings stay up before the next question. */
-export const DEFAULT_REVEAL_SECONDS = 8;
+export const DEFAULT_REVEAL_SECONDS = 10;
+
+/**
+ * The projector spends the first part of that pause on what the room picked
+ * and the rest on the scoreboard. This is the most the first part may take.
+ */
+export const ANSWER_VIEW_SECONDS = 5;
 export const MIN_REVEAL_SECONDS = 3;
 export const MAX_REVEAL_SECONDS = 60;
 
