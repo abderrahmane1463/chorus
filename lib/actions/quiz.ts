@@ -153,10 +153,18 @@ export async function saveQuizQuestionAction(input: unknown): Promise<ActionResu
 
   for (const [index, option] of filled.entries()) {
     if (option.id) {
+      // Scoped to this question: the id comes from the browser, and on its
+      // own it would let a host rewrite, or mark correct, an answer on
+      // someone else's quiz.
       await db
         .update(interactionOptions)
         .set({ text: option.text.trim(), position: index, isCorrect: option.isCorrect })
-        .where(eq(interactionOptions.id, option.id));
+        .where(
+          and(
+            eq(interactionOptions.id, option.id),
+            eq(interactionOptions.interactionId, question.id),
+          ),
+        );
     } else {
       await db.insert(interactionOptions).values({
         interactionId: question.id,

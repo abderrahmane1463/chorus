@@ -139,10 +139,17 @@ export async function saveSurveyQuestionAction(input: unknown): Promise<ActionRe
 
     for (const [index, option] of filled.entries()) {
       if (option.id) {
+        // Scoped to this question: the id comes from the browser, and on its
+        // own it would let a host rewrite an option on someone else's survey.
         await db
           .update(interactionOptions)
           .set({ text: option.text.trim(), position: index })
-          .where(eq(interactionOptions.id, option.id));
+          .where(
+            and(
+              eq(interactionOptions.id, option.id),
+              eq(interactionOptions.interactionId, question.id),
+            ),
+          );
       } else {
         await db.insert(interactionOptions).values({
           interactionId: question.id,

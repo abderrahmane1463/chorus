@@ -144,10 +144,17 @@ export async function updateInteractionAction(input: unknown): Promise<ActionRes
 
     for (const [index, option] of kept.entries()) {
       if (option.id) {
+        // Scoped to this interaction: the id comes from the browser, and on
+        // its own it would let a host rewrite an option on someone else's poll.
         await db
           .update(interactionOptions)
           .set({ text: option.text.trim(), position: index })
-          .where(eq(interactionOptions.id, option.id));
+          .where(
+            and(
+              eq(interactionOptions.id, option.id),
+              eq(interactionOptions.interactionId, parsed.data.interactionId),
+            ),
+          );
       } else {
         await db.insert(interactionOptions).values({
           interactionId: parsed.data.interactionId,
