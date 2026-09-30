@@ -496,7 +496,13 @@
     "optionPlaceholder": "الخيار {number}",
     "removeOption": "احذف الخيار {number}",
     "addOption": "أضف خيارًا",
-    "confirmOptionDelete": "هذا الاستطلاع يحتوي على إجابات. حذف هذا الخيار يحذف أيضًا الأصوات التي حصل عليها. أتريد المتابعة؟"
+    "confirmOptionDelete": "هذا الاستطلاع يحتوي على إجابات. حذف هذا الخيار يحذف أيضًا الأصوات التي حصل عليها. أتريد المتابعة؟",
+    "quizName": "اسم المسابقة",
+    "quizNamePlaceholder": "مسابقة التسويق",
+    "surveyName": "اسم الاستبيان",
+    "surveyNamePlaceholder": "رأيك في الجلسة",
+    "needName": "أعطه اسمًا قبل التشغيل.",
+    "questionsBelow": "هذا الاسم فقط. أضف الأسئلة وإجاباتها في الأسفل."
   },
   "settings": {
     "allowMultiple": "السماح بعدة إجابات",
@@ -597,7 +603,8 @@
     "explanationPlaceholder": "يظهر بعد إظهارك للإجابة",
     "save": "احفظ السؤال",
     "saved": "حُفظ السؤال",
-    "deleted": "حُذف السؤال"
+    "deleted": "حُذف السؤال",
+    "addFirst": "أضف سؤالك الأول"
   },
   "surveyEditor": {
     "questions": "أسئلة الاستبيان",

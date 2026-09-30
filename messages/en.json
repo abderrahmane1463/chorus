@@ -496,7 +496,13 @@
     "optionPlaceholder": "Option {number}",
     "removeOption": "Remove option {number}",
     "addOption": "Add option",
-    "confirmOptionDelete": "This poll already has responses. Removing this option also deletes the votes cast for it. Continue?"
+    "confirmOptionDelete": "This poll already has responses. Removing this option also deletes the votes cast for it. Continue?",
+    "quizName": "Quiz name",
+    "quizNamePlaceholder": "Marketing quiz",
+    "surveyName": "Survey name",
+    "surveyNamePlaceholder": "Session feedback",
+    "needName": "Give it a name before starting.",
+    "questionsBelow": "This is only the name. Add the questions and their answers below."
   },
   "settings": {
     "allowMultiple": "Allow multiple answers",
@@ -597,7 +603,8 @@
     "explanationPlaceholder": "Shown after you reveal the answer",
     "save": "Save question",
     "saved": "Question saved",
-    "deleted": "Question deleted"
+    "deleted": "Question deleted",
+    "addFirst": "Add your first question"
   },
   "surveyEditor": {
     "questions": "Survey questions",

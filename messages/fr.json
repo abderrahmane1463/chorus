@@ -496,7 +496,13 @@
     "optionPlaceholder": "Option {number}",
     "removeOption": "Supprimer l’option {number}",
     "addOption": "Ajouter une option",
-    "confirmOptionDelete": "Ce sondage a déjà des réponses. Supprimer cette option supprime aussi les votes qu’elle a reçus. Continuer ?"
+    "confirmOptionDelete": "Ce sondage a déjà des réponses. Supprimer cette option supprime aussi les votes qu’elle a reçus. Continuer ?",
+    "quizName": "Nom du quiz",
+    "quizNamePlaceholder": "Quiz marketing",
+    "surveyName": "Nom du questionnaire",
+    "surveyNamePlaceholder": "Avis sur la session",
+    "needName": "Donnez-lui un nom avant de le lancer.",
+    "questionsBelow": "Ceci est seulement le nom. Ajoutez les questions et leurs réponses ci-dessous."
   },
   "settings": {
     "allowMultiple": "Autoriser plusieurs réponses",
@@ -597,7 +603,8 @@
     "explanationPlaceholder": "Affichée après la révélation de la réponse",
     "save": "Enregistrer la question",
     "saved": "Question enregistrée",
-    "deleted": "Question supprimée"
+    "deleted": "Question supprimée",
+    "addFirst": "Ajouter votre première question"
   },
   "surveyEditor": {
     "questions": "Questions du questionnaire",

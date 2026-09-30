@@ -128,6 +128,18 @@ export function InteractionEditor({
 
   const hasResponses = results.total > 0;
   const isQuiz = interaction.type === 'quiz';
+  const isSurvey = interaction.type === 'survey';
+
+  // A quiz or survey holds questions; its own title is a name, not a question.
+  // Calling it "Question" sent hosts looking for an answers field that lives
+  // further down, on each question.
+  const container = isQuiz || isSurvey;
+  const titleLabel = isQuiz ? 'quizName' : isSurvey ? 'surveyName' : 'question';
+  const titlePlaceholder = isQuiz
+    ? 'quizNamePlaceholder'
+    : isSurvey
+      ? 'surveyNamePlaceholder'
+      : 'questionPlaceholder';
 
   return (
     <div className="space-y-5">
@@ -184,24 +196,27 @@ export function InteractionEditor({
 
       {title.trim().length === 0 && (
         <p className="rounded-md bg-accent-subtle px-3 py-2 text-sm text-accent">
-          {t('needQuestion')}
+          {container ? t('needName') : t('needQuestion')}
         </p>
       )}
 
       <Card>
         <CardHeader>
-          <CardTitle>{t('questionCard')}</CardTitle>
+          <CardTitle>{t(titleLabel)}</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="space-y-1.5">
-            <Label htmlFor="title">{t('question')}</Label>
+            <Label htmlFor="title">{t(titleLabel)}</Label>
             <Input
               id="title"
               value={title}
               onChange={(event) => setTitle(event.target.value)}
               maxLength={300}
-              placeholder={t('questionPlaceholder')}
+              placeholder={t(titlePlaceholder)}
             />
+            {container && (
+              <p className="text-xs text-muted-foreground">{t('questionsBelow')}</p>
+            )}
           </div>
 
           <div className="space-y-1.5">
@@ -223,7 +238,11 @@ export function InteractionEditor({
             />
           )}
 
-          <SettingsEditor type={interaction.type} settings={settings} onPatch={patch} />
+          {/* A quiz has no settings of its own; they sit on each question.
+              Rendering the empty box drew a stray line above Save. */}
+          {!isQuiz && (
+            <SettingsEditor type={interaction.type} settings={settings} onPatch={patch} />
+          )}
 
           <Button onClick={save} loading={saving}>
             {t('save')}

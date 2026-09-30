@@ -1,7 +1,7 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { useState, useTransition } from 'react';
+import { useRef, useState, useTransition } from 'react';
 import { Check, Eye, Play, Plus, RotateCcw, SkipForward, Square, Trash2, X } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { toast } from 'sonner';
@@ -49,17 +49,33 @@ export function QuizEditor({
     });
   }
 
-  function addQuestion() {
+  const questionsCardRef = useRef<HTMLDivElement>(null);
+
+  function addQuestion({ reveal = false }: { reveal?: boolean } = {}) {
     startTransition(async () => {
       const result = await addQuizQuestionAction({ quizId: quiz.id });
-      if (result.ok) router.refresh();
-      else toast.error(result.error);
+      if (!result.ok) {
+        toast.error(result.error);
+        return;
+      }
+      router.refresh();
+
+      // Asked for from the top of the page, the new form opens further down,
+      // so bring it to the host instead of leaving them to look for it.
+      if (reveal) {
+        const calm = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        questionsCardRef.current?.scrollIntoView({
+          behavior: calm ? 'auto' : 'smooth',
+          block: 'start',
+        });
+      }
     });
   }
 
-  return (
-    <div className="space-y-5">
-      <Card>
+  const empty = quiz.questions.length === 0;
+
+  const runCard = (
+    <Card>
         <CardHeader>
           <CardTitle>{t('run')}</CardTitle>
         </CardHeader>
@@ -120,15 +136,23 @@ export function QuizEditor({
               {quiz.answerRevealed ? t('answerRevealed') : ''}
             </p>
           )}
-          {quiz.questions.length === 0 && (
-            <p className="text-sm text-muted-foreground">
-              {t('needQuestion')}
-            </p>
+          {empty && (
+            // The first thing a new quiz needs, offered where the host is
+            // looking rather than only in the card below.
+            <div className="flex flex-wrap items-center gap-3 rounded-md bg-accent-subtle px-3 py-2.5">
+              <p className="min-w-0 flex-1 text-sm text-accent">{t('needQuestion')}</p>
+              <Button size="sm" onClick={() => addQuestion({ reveal: true })} loading={pending}>
+                <Plus />
+                {t('addFirst')}
+              </Button>
+            </div>
           )}
         </CardContent>
-      </Card>
+    </Card>
+  );
 
-      <Card>
+  const questionsCard = (
+    <Card>
         <CardHeader>
           <CardTitle>
             {t('questions')}{' '}
@@ -154,12 +178,24 @@ export function QuizEditor({
             ))
           )}
 
-          <Button variant="secondary" onClick={addQuestion} loading={pending}>
+          <Button variant="secondary" onClick={() => addQuestion()} loading={pending}>
             <Plus />
             {t('addQuestion')}
           </Button>
         </CardContent>
-      </Card>
+    </Card>
+  );
+
+  return (
+    <div className="space-y-5">
+      {/* A fixed order. Swapping these when the first question arrived moved
+          the form the host was about to fill in, so the cards stay put and
+          the run card points the way instead. */}
+      {runCard}
+      {/* scroll-mt keeps the card clear of the top edge when scrolled to. */}
+      <div ref={questionsCardRef} className="scroll-mt-6">
+        {questionsCard}
+      </div>
 
       <Card>
         <CardHeader>
