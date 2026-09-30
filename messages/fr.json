@@ -172,7 +172,8 @@
     "correctPoints": "Correct — {points, plural, one {# point} other {# points}}",
     "notQuite": "Pas tout à fait",
     "correctLabel": "Bonne réponse",
-    "yourAnswerLabel": "Votre réponse"
+    "yourAnswerLabel": "Votre réponse",
+    "pointsCaption": "{points, plural, one {point} other {points}}"
   },
   "survey": {
     "noQuestions": "Ce questionnaire n'a pas encore de questions.",
@@ -205,7 +206,11 @@
   },
   "leaderboard": {
     "noScores": "Aucun score pour l'instant.",
-    "anonymous": "Anonyme"
+    "anonymous": "Anonyme",
+    "you": "vous",
+    "rank": "Rang {rank}",
+    "correct": "{count, plural, one {# bonne} other {# bonnes}}",
+    "climbed": "{count, plural, one {Monte de # place} other {Monte de # places}}"
   },
   "ranking": {
     "reorder": "Réorganiser {option}",
@@ -720,6 +725,8 @@
     "questionCount": "{count, plural, one {# question} other {# questions}}",
     "previous": "Précédent",
     "next": "Suivant",
-    "metaTitle": "Présentation"
+    "metaTitle": "Présentation",
+    "answered": "{count} sur {total} ont répondu",
+    "everyoneAnswered": "Tout le monde a répondu"
   }
 }

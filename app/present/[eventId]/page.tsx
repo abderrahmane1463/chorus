@@ -12,6 +12,7 @@ import { getTopQuestions } from '@/lib/queries/questions';
 import { getLeaderboard, getQuizDetail } from '@/lib/queries/quiz';
 import { getSurveyDetail } from '@/lib/queries/survey';
 import { PresenterScreen } from '@/components/present/presenter-screen';
+import { serverNow } from '@/lib/utils/server-time';
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations('presenter');
@@ -41,7 +42,14 @@ export default async function PresentPage({
     active?.type === 'q_and_a' ? await getTopQuestions(active.id) : [];
 
   const quiz = active?.type === 'quiz' ? await getQuizDetail(active.id) : null;
-  const leaderboard = quiz ? await getLeaderboard(quiz.id, 8) : [];
+  // After a reveal, also ask who moved on the question just answered.
+  const leaderboard = quiz
+    ? await getLeaderboard(
+        quiz.id,
+        8,
+        quiz.answerRevealed ? quiz.currentChildId : null,
+      )
+    : [];
 
   const survey = active?.type === 'survey' ? await getSurveyDetail(active.id) : null;
 
@@ -61,6 +69,7 @@ export default async function PresentPage({
       quiz={quiz}
       leaderboard={leaderboard}
       survey={survey}
+      serverNow={serverNow()}
     />
   );
 }

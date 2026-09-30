@@ -113,16 +113,29 @@ export type LeaderboardRow = {
   correctAnswers: number;
   totalTime: number;
   rank: number;
+  /**
+   * Where this player stood before the question named in `sinceQuestionId`.
+   * Null when no question was given, or when they were not on the board yet.
+   */
+  previousRank: number | null;
 };
 
 /**
  * Ranked standings. Ties on score are broken by total answering time, so the
  * faster player places higher rather than the ordering being arbitrary.
+ *
+ * Pass `sinceQuestionId` to also learn how each player moved on that question.
+ * The earlier standings are derived by subtracting what the question awarded,
+ * not remembered by the client: a leaderboard that has just appeared, or a
+ * phone that reloaded, still knows who climbed.
  */
 export async function getLeaderboard(
   quizId: string,
   limit = 50,
+  sinceQuestionId?: string | null,
 ): Promise<LeaderboardRow[]> {
+  // Unlimited here: ranks before the question must be computed over everyone,
+  // or a player outside the top few could never be seen climbing into it.
   const rows = await db
     .select({
       participantId: quizScores.participantId,
@@ -134,10 +147,48 @@ export async function getLeaderboard(
     .from(quizScores)
     .innerJoin(participants, eq(participants.id, quizScores.participantId))
     .where(eq(quizScores.quizId, quizId))
-    .orderBy(desc(quizScores.score), asc(quizScores.totalTime))
-    .limit(limit);
+    .orderBy(desc(quizScores.score), asc(quizScores.totalTime));
 
-  return rows.map((row, index) => ({ ...row, rank: index + 1 }));
+  const previousRanks = new Map<string, number>();
+
+  if (sinceQuestionId) {
+    const answers = await db
+      .select({ participantId: responses.participantId, data: responses.responseData })
+      .from(responses)
+      .where(eq(responses.interactionId, sinceQuestionId));
+
+    const awarded = new Map<string, { points: number; ms: number }>();
+    for (const answer of answers) {
+      if (answer.data.kind === 'quiz') {
+        awarded.set(answer.participantId, {
+          points: answer.data.points,
+          ms: answer.data.answeredAtMs,
+        });
+      }
+    }
+
+    const before = rows
+      .map((row) => {
+        const earned = awarded.get(row.participantId);
+        return {
+          participantId: row.participantId,
+          score: row.score - (earned?.points ?? 0),
+          time: row.totalTime - (earned?.ms ?? 0),
+          // Someone whose only answer so far is this one had no standing yet.
+          onBoard: !earned || row.totalTime - earned.ms > 0,
+        };
+      })
+      .filter((row) => row.onBoard)
+      .sort((a, b) => b.score - a.score || a.time - b.time);
+
+    before.forEach((row, index) => previousRanks.set(row.participantId, index + 1));
+  }
+
+  return rows.slice(0, limit).map((row, index) => ({
+    ...row,
+    rank: index + 1,
+    previousRank: previousRanks.get(row.participantId) ?? null,
+  }));
 }
 
 export type ParticipantQuizView = {

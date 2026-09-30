@@ -1,47 +1,30 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { useEffect, useState, useTransition } from 'react';
+import { useState, useTransition } from 'react';
 import { Check, Timer, X } from 'lucide-react';
 import { useFormatter, useTranslations } from 'next-intl';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Leaderboard } from '@/components/interactions/leaderboard';
+import { CountdownBar, useCountdown } from '@/components/quiz/countdown';
+import { PointsBurst } from '@/components/quiz/points-burst';
 import { submitQuizAnswerAction } from '@/lib/actions/quiz';
 import type { LeaderboardRow, ParticipantQuizView } from '@/lib/queries/quiz';
 import { cn } from '@/lib/utils/cn';
-
-/**
- * Counts down from the server-stamped start time, so every phone in the room
- * shows the same number regardless of when it loaded the page.
- *
- * The clock is state and the remaining seconds are derived during render;
- * `now` starts null so the server and client agree on the first paint.
- */
-function useCountdown(startedAt: string | null, limitSeconds: number) {
-  const [now, setNow] = useState<number | null>(null);
-
-  useEffect(() => {
-    if (!startedAt) return;
-    const id = setInterval(() => setNow(Date.now()), 250);
-    return () => clearInterval(id);
-  }, [startedAt]);
-
-  if (!startedAt || now === null) return null;
-
-  const deadline = new Date(startedAt).getTime() + limitSeconds * 1000;
-  return Math.max(0, Math.ceil((deadline - now) / 1000));
-}
 
 export function QuizPanel({
   view,
   leaderboard,
   participantId,
+  serverNow,
 }: {
   view: ParticipantQuizView;
   leaderboard: LeaderboardRow[];
   participantId: string;
+  /** The server's clock when it rendered, so the timer ignores a wrong phone clock. */
+  serverNow: number;
 }) {
   const router = useRouter();
   const t = useTranslations('quiz');
@@ -53,7 +36,8 @@ export function QuizPanel({
 
   const question = view.question;
   const startedAt = question?.startedAt ? new Date(question.startedAt).toISOString() : null;
-  const remaining = useCountdown(startedAt, question?.timeLimitSeconds ?? 20);
+  const countdown = useCountdown(startedAt, question?.timeLimitSeconds ?? 20, serverNow);
+  const remaining = countdown?.remaining ?? null;
 
   // Selection is cleared between questions by remounting: the page keys this
   // component on the current question id.
@@ -132,6 +116,14 @@ export function QuizPanel({
         )}
       </div>
 
+      {!locked && countdown && startedAt && (
+        <CountdownBar
+          startedAt={startedAt}
+          limitSeconds={question.timeLimitSeconds}
+          countdown={countdown}
+        />
+      )}
+
       <h1 className="text-xl font-semibold leading-snug">{question.title}</h1>
 
       <Card className="p-5">
@@ -196,16 +188,10 @@ export function QuizPanel({
         )}
 
         {view.answerRevealed && view.myAnswer && (
-          <p
-            className={cn(
-              'mt-4 text-center text-sm font-medium',
-              view.myAnswer.correct ? 'text-success' : 'text-destructive',
-            )}
-          >
-            {view.myAnswer.correct
-              ? t('correctPoints', { points: view.myAnswer.points })
-              : t('notQuite')}
-          </p>
+          <PointsBurst
+            correct={view.myAnswer.correct}
+            points={view.myAnswer.points}
+          />
         )}
 
         {view.answerRevealed && question.explanation && (

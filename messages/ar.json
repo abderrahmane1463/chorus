@@ -172,7 +172,8 @@
     "correctPoints": "صحيح — {points, plural, zero {لا نقاط} one {نقطة واحدة} two {نقطتان} few {# نقاط} many {# نقطة} other {# نقطة}}",
     "notQuite": "ليست صحيحة",
     "correctLabel": "الإجابة الصحيحة",
-    "yourAnswerLabel": "إجابتك"
+    "yourAnswerLabel": "إجابتك",
+    "pointsCaption": "{points, plural, one {نقطة} two {نقطتان} few {نقاط} many {نقطة} other {نقطة}}"
   },
   "survey": {
     "noQuestions": "لا يحتوي هذا الاستبيان على أسئلة بعد.",
@@ -205,7 +206,11 @@
   },
   "leaderboard": {
     "noScores": "لا توجد نتائج بعد.",
-    "anonymous": "مجهول"
+    "anonymous": "مجهول",
+    "you": "أنت",
+    "rank": "المرتبة {rank}",
+    "correct": "{count, plural, zero {لا صحيحة} one {صحيحة واحدة} two {صحيحتان} few {# صحيحة} many {# صحيحة} other {# صحيحة}}",
+    "climbed": "{count, plural, one {صعد مرتبة واحدة} two {صعد مرتبتين} few {صعد # مراتب} many {صعد # مرتبة} other {صعد # مرتبة}}"
   },
   "ranking": {
     "reorder": "أعد ترتيب {option}",
@@ -720,6 +725,8 @@
     "questionCount": "{count, plural, zero {لا أسئلة} one {سؤال واحد} two {سؤالان} few {# أسئلة} many {# سؤالًا} other {# سؤال}}",
     "previous": "السابق",
     "next": "التالي",
-    "metaTitle": "العرض"
+    "metaTitle": "العرض",
+    "answered": "أجاب {count} من {total}",
+    "everyoneAnswered": "أجاب الجميع"
   }
 }

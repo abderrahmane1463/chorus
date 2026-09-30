@@ -134,9 +134,51 @@
     transition: width 500ms cubic-bezier(0.22, 1, 0.36, 1);
   }
 
+  /*
+   * Quiz countdown. The browser runs these on its own timeline, so a draining
+   * timer costs no React renders. Each element sets its own duration and a
+   * negative delay equal to the time already elapsed, which starts the
+   * animation part-way through for anyone who opened the page late.
+   */
+  .countdown-ring {
+    animation: countdown-drain linear forwards;
+  }
+
+  .countdown-bar {
+    animation: countdown-shrink linear forwards;
+  }
+
+  .countdown-urgent {
+    animation: countdown-pulse 1s ease-in-out infinite;
+  }
+
+  @keyframes countdown-drain {
+    to {
+      stroke-dashoffset: var(--countdown-length);
+    }
+  }
+
+  @keyframes countdown-shrink {
+    to {
+      transform: scaleX(0);
+    }
+  }
+
+  @keyframes countdown-pulse {
+    50% {
+      transform: scale(1.06);
+    }
+  }
+
   @media (prefers-reduced-motion: reduce) {
     .bar-fill {
       transition: none;
+    }
+
+    /* The draining timer stays: it is information, not decoration. The pulse
+       is only emphasis, so it goes. */
+    .countdown-urgent {
+      animation: none;
     }
   }
 }

@@ -9,15 +9,17 @@ import {
   ChevronRight,
   Maximize,
   Minimize,
-  Timer,
   Users,
   X,
 } from 'lucide-react';
-import { useTranslations } from 'next-intl';
+import { motion, useReducedMotion } from 'framer-motion';
+import { useFormatter, useTranslations } from 'next-intl';
 import { toast } from 'sonner';
 import { Logo } from '@/components/shared/logo';
 import { ResultsView } from '@/components/interactions/results-view';
 import { Leaderboard } from '@/components/interactions/leaderboard';
+import { CountdownRing, useCountdown } from '@/components/quiz/countdown';
+import { Podium } from '@/components/quiz/podium';
 import { useEventSync } from '@/hooks/use-event-sync';
 import { channels } from '@/lib/realtime/events';
 import { setInteractionStatusAction } from '@/lib/actions/interaction';
@@ -31,19 +33,51 @@ import type { LeaderboardRow, QuizDetail } from '@/lib/queries/quiz';
 import type { SurveyDetail } from '@/lib/queries/survey';
 import { cn } from '@/lib/utils/cn';
 
-/** Counts down from the server-stamped start of the current quiz question. */
-function useCountdown(startedAt: Date | null | undefined, limitSeconds: number) {
-  const [now, setNow] = useState<number | null>(null);
+/**
+ * How many of the room have answered the question on screen.
+ *
+ * The count comes from the server on every refresh, and each answer already
+ * triggers one, so this climbs as the room taps without any polling.
+ */
+function AnswerProgress({ answered, total }: { answered: number; total: number }) {
+  const t = useTranslations('presenter');
+  const format = useFormatter();
 
-  useEffect(() => {
-    if (!startedAt) return;
-    const id = setInterval(() => setNow(Date.now()), 250);
-    return () => clearInterval(id);
-  }, [startedAt]);
+  // Someone can answer and leave, or join mid-question, so never show more
+  // than the whole room or divide by an empty one.
+  const capped = Math.min(answered, total);
+  const share = total === 0 ? 0 : (capped / total) * 100;
+  const everyone = total > 0 && capped === total;
 
-  if (!startedAt || now === null) return null;
-  const deadline = new Date(startedAt).getTime() + limitSeconds * 1000;
-  return Math.max(0, Math.ceil((deadline - now) / 1000));
+  return (
+    <div className="mt-8">
+      <div className="mb-2 flex items-center justify-between text-xl text-muted-foreground">
+        <span className={cn(everyone && 'font-medium text-success')}>
+          {everyone
+            ? t('everyoneAnswered')
+            : t('answered', {
+                count: format.number(capped),
+                total: format.number(total),
+              })}
+        </span>
+      </div>
+      <div
+        className="h-2.5 overflow-hidden rounded-full bg-muted"
+        role="progressbar"
+        aria-valuenow={capped}
+        aria-valuemin={0}
+        aria-valuemax={total}
+      >
+        <div
+          className={cn(
+            'bar-fill h-full rounded-full',
+            everyone ? 'bg-success' : 'bg-primary',
+          )}
+          style={{ width: `${share}%` }}
+        />
+      </div>
+    </div>
+  );
 }
 
 export function PresenterScreen({
@@ -59,7 +93,10 @@ export function PresenterScreen({
   quiz,
   leaderboard,
   survey,
+  serverNow,
 }: {
+  /** The server's clock when it rendered, so the timer ignores a wrong device clock. */
+  serverNow: number;
   eventId: string;
   eventTitle: string;
   eventCode: string;
@@ -75,6 +112,7 @@ export function PresenterScreen({
 }) {
   const router = useRouter();
   const t = useTranslations('presenter');
+  const reduceMotion = useReducedMotion();
   const [pending, startTransition] = useTransition();
   const [fullscreen, setFullscreen] = useState(false);
 
@@ -122,9 +160,10 @@ export function PresenterScreen({
   }
 
   const quizQuestion = quiz?.questions.find((q) => q.id === quiz.currentChildId) ?? null;
-  const remaining = useCountdown(
+  const countdown = useCountdown(
     quizQuestion?.startedAt,
     quizQuestion?.settings.timeLimitSeconds ?? 20,
+    serverNow,
   );
 
   return (
@@ -184,18 +223,15 @@ export function PresenterScreen({
                       total: quiz.questions.length,
                     })}
                   </p>
-                  {remaining !== null && !quiz.answerRevealed && (
-                    <span
-                      className={cn(
-                        'inline-flex items-center gap-2 rounded-full px-5 py-2 text-3xl font-semibold tabular-nums',
-                        remaining <= 5
-                          ? 'bg-destructive-subtle text-destructive'
-                          : 'bg-muted text-foreground',
-                      )}
-                    >
-                      <Timer className="size-7" aria-hidden />
-                      {remaining}
-                    </span>
+                  {countdown && !quiz.answerRevealed && quizQuestion.startedAt && (
+                    // Keyed on the question so the ring restarts from full
+                    // when the host moves on, instead of carrying over.
+                    <CountdownRing
+                      key={quizQuestion.id}
+                      startedAt={quizQuestion.startedAt}
+                      limitSeconds={quizQuestion.settings.timeLimitSeconds ?? 20}
+                      countdown={countdown}
+                    />
                   )}
                 </div>
 
@@ -204,20 +240,43 @@ export function PresenterScreen({
                 </h2>
 
                 <ul className="mt-10 grid gap-4 sm:grid-cols-2">
-                  {quizQuestion.options.map((option) => (
-                    <li
-                      key={option.id}
-                      className={cn(
-                        'rounded-xl border px-6 py-5 text-3xl',
-                        quiz.answerRevealed && option.isCorrect
-                          ? 'border-success bg-success-subtle text-success'
-                          : 'border-border',
-                      )}
-                    >
-                      {option.text}
-                    </li>
-                  ))}
+                  {quizQuestion.options.map((option) => {
+                    const revealed = quiz.answerRevealed;
+                    const correct = revealed && option.isCorrect;
+
+                    return (
+                      <motion.li
+                        key={option.id}
+                        // On reveal the right answer lifts and the rest fall
+                        // back, so the eye lands on it from across the room.
+                        animate={
+                          reduceMotion
+                            ? undefined
+                            : {
+                                scale: correct ? 1.03 : 1,
+                                opacity: revealed && !correct ? 0.45 : 1,
+                              }
+                        }
+                        transition={{ type: 'spring', stiffness: 300, damping: 24 }}
+                        className={cn(
+                          'rounded-xl border px-6 py-5 text-3xl transition-colors duration-300',
+                          correct
+                            ? 'border-success bg-success-subtle text-success'
+                            : 'border-border',
+                        )}
+                      >
+                        {option.text}
+                      </motion.li>
+                    );
+                  })}
                 </ul>
+
+                {!quiz.answerRevealed && (
+                  <AnswerProgress
+                    answered={quizQuestion.answerCount}
+                    total={participantCount}
+                  />
+                )}
 
                 {quiz.answerRevealed && leaderboard.length > 0 && (
                   <div className="mt-10">
@@ -232,9 +291,23 @@ export function PresenterScreen({
                 <p className="mt-4 text-2xl text-muted-foreground">
                   {quiz.status === 'closed' ? t('finalScores') : t('getReady')}
                 </p>
-                <div className="mx-auto mt-10 max-w-3xl text-start">
-                  <Leaderboard rows={leaderboard} emphasis />
-                </div>
+                {quiz.status === 'closed' && leaderboard.length > 0 ? (
+                  <>
+                    <div className="mt-12">
+                      <Podium rows={leaderboard} />
+                    </div>
+                    {/* Everyone below the podium still gets their place. */}
+                    {leaderboard.length > 3 && (
+                      <div className="mx-auto mt-10 max-w-3xl text-start">
+                        <Leaderboard rows={leaderboard.slice(3)} emphasis />
+                      </div>
+                    )}
+                  </>
+                ) : (
+                  <div className="mx-auto mt-10 max-w-3xl text-start">
+                    <Leaderboard rows={leaderboard} emphasis />
+                  </div>
+                )}
               </div>
             ) : active.type === 'q_and_a' ? (
               <>

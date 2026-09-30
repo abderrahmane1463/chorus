@@ -6,6 +6,7 @@ import { db } from '@/lib/db';
 import { events, participants } from '@/db/schema';
 import { readSessionId } from '@/lib/participant/session';
 import { normalizeEventCode } from '@/lib/utils/event-code';
+import { serverNow } from '@/lib/utils/server-time';
 import {
   getActiveInteraction,
   getInteractionResults,
@@ -92,7 +93,15 @@ export default async function ParticipantEventPage({
   const quizView = isQuiz
     ? await getParticipantQuizView(interaction.id, participant.id)
     : null;
-  const leaderboard = isQuiz && interaction ? await getLeaderboard(interaction.id) : [];
+  const leaderboard =
+    isQuiz && interaction
+      ? await getLeaderboard(
+          interaction.id,
+          50,
+          // Only once revealed: before that, movement would leak who is right.
+          quizView?.answerRevealed ? (quizView.question?.id ?? null) : null,
+        )
+      : [];
 
   const questions = isQa
     ? await listQuestions({
@@ -195,6 +204,7 @@ export default async function ParticipantEventPage({
                 view={quizView}
                 leaderboard={leaderboard}
                 participantId={participant.id}
+                serverNow={serverNow()}
               />
             ) : isSurvey && survey ? (
               <SurveyPanel survey={survey} answers={surveyAnswers} />
