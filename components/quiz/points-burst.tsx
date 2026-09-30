@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
+import { useLayoutEffect, useRef } from 'react';
 import { animate, motion, useReducedMotion } from 'framer-motion';
 import { useFormatter, useTranslations } from 'next-intl';
 import { cn } from '@/lib/utils/cn';
@@ -18,7 +18,10 @@ export function PointsBurst({ correct, points }: { correct: boolean; points: num
   const reduceMotion = useReducedMotion();
   const number = useRef<HTMLSpanElement>(null);
 
-  useEffect(() => {
+  // A layout effect, not a plain effect: it runs before the browser paints, so
+  // the count starts from zero on the very first frame. With a plain effect
+  // the final score was visible for one frame before dropping and climbing.
+  useLayoutEffect(() => {
     const node = number.current;
     if (!node || !correct) return;
 
@@ -31,6 +34,7 @@ export function PointsBurst({ correct, points }: { correct: boolean; points: num
       return;
     }
 
+    show(0);
     const controls = animate(0, points, {
       duration: 0.9,
       ease: [0.22, 1, 0.36, 1],
@@ -52,8 +56,9 @@ export function PointsBurst({ correct, points }: { correct: boolean; points: num
     >
       {correct ? (
         <>
-          {/* Rendered with the final value so it is right before the effect
-              runs, and for anyone who has animations turned off. */}
+          {/* Rendered with the final value, which is what stays on screen if
+              the count-up never runs. The layout effect replaces it before
+              the first paint when it does. */}
           <span ref={number} dir="ltr" className="block text-5xl font-semibold tabular-nums">
             +{format.number(points)}
           </span>
