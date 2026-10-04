@@ -15,7 +15,7 @@ import { PointsBurst } from '@/components/quiz/points-burst';
 import { useQuizPacer } from '@/hooks/use-quiz-pacer';
 import { setNicknameAction } from '@/lib/actions/join';
 import { submitQuizAnswerAction } from '@/lib/actions/quiz';
-import type { LeaderboardRow, ParticipantQuizView } from '@/lib/queries/quiz';
+import type { LeaderboardRow, ParticipantQuizView, PlayerStanding } from '@/lib/queries/quiz';
 import { cn } from '@/lib/utils/cn';
 
 type Option = { id: string; text: string };
@@ -30,13 +30,17 @@ type Option = { id: string; text: string };
 export function QuizPanel({
   view,
   leaderboard,
+  standing,
   participantId,
   eventId,
   displayName,
   serverNow,
 }: {
   view: ParticipantQuizView;
+  /** The top of the board; the player may not be on it. */
   leaderboard: LeaderboardRow[];
+  /** This player's own place, wherever it is. Null before they score. */
+  standing: PlayerStanding | null;
   participantId: string;
   eventId: string;
   /** Null when the player joined without a name. */
@@ -44,7 +48,6 @@ export function QuizPanel({
   /** The server's clock when it rendered, so the timer ignores a wrong phone clock. */
   serverNow: number;
 }) {
-  const router = useRouter();
   const t = useTranslations('quiz');
   // Scores are read aloud in the room: they follow the reader's digits and
   // grouping, so 1200 is "1,200", "1 200" or "١٬٢٠٠".
@@ -155,9 +158,10 @@ export function QuizPanel({
         questionId: question!.id,
         optionIds,
       });
-      if (result.ok) {
-        router.refresh();
-      } else {
+      // Nothing to fetch when it counted: the screen already says "Answer
+      // sent", and the reveal brings the result. A refetch here would be one
+      // more page render per player per question, all landing together.
+      if (!result.ok) {
         // The tap did not count (time ran out on the way, say), so give the
         // tiles back rather than leave the player looking at a false "sent".
         setSent(null);
@@ -178,7 +182,6 @@ export function QuizPanel({
     question.options.findIndex((option) => option.id === optionId);
 
   if (view.answerRevealed) {
-    const mine = leaderboard.find((row) => row.participantId === participantId);
     const correct = question.options.filter((option) =>
       question.correctOptionIds.includes(option.id),
     );
@@ -196,11 +199,11 @@ export function QuizPanel({
           </div>
         )}
 
-        {mine && (
+        {standing && (
           <p className="text-center text-lg font-medium">
             {t('yourRank', {
-              rank: format.number(mine.rank),
-              total: format.number(leaderboard.length),
+              rank: format.number(standing.rank),
+              total: format.number(standing.total),
             })}
             {/* Two numbers side by side read as one ("3" and "0" as "30"), and
                 in Arabic they also swap places. The dot and the isolated box
@@ -209,7 +212,7 @@ export function QuizPanel({
               ·
             </span>
             <span className="inline-block text-muted-foreground">
-              {t('totalPoints', { points: format.number(mine.score) })}
+              {t('totalPoints', { points: format.number(standing.score) })}
             </span>
           </p>
         )}

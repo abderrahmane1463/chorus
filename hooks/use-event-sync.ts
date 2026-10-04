@@ -1,13 +1,26 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { useCallback, useEffect, useRef } from 'react';
+import { useCallback, useEffect, useMemo, useRef } from 'react';
 import { useRealtime } from './use-realtime';
-import type { RealtimeMessage } from '@/lib/realtime/events';
+import type { RealtimeEventName, RealtimeMessage } from '@/lib/realtime/events';
 import type { ConnectionStatus } from '@/lib/realtime/client';
 
 /** Messages arriving in a burst (a room voting at once) collapse into one refetch. */
 const REFRESH_DEBOUNCE_MS = 220;
+
+/**
+ * The least time between two refetches by one screen.
+ *
+ * A refetch re-renders the page on the server, so a room of phones each
+ * refetching on every message is the one thing that can bring the server
+ * down: the work grows with the number of people times the number of things
+ * they do. Debouncing alone does not bound it, because messages that arrive
+ * further apart than the debounce each cost a refetch. This does bound it,
+ * at one per screen per interval, and nothing is lost: the refetch that
+ * eventually runs reads the current state, not the state at the message.
+ */
+const MIN_REFRESH_INTERVAL_MS = 1000;
 
 /**
  * Keeps a server-rendered page in step with an event.
@@ -25,25 +38,49 @@ const REFRESH_DEBOUNCE_MS = 220;
  */
 export function useEventSync(
   eventId: string,
-  options: { channels?: string[]; onMessage?: (message: RealtimeMessage) => void } = {},
+  options: {
+    channels?: string[];
+    onMessage?: (message: RealtimeMessage) => void;
+    /**
+     * Messages this screen listens for but does not refetch for, because they
+     * change nothing it shows. A phone during a quiz question is the case
+     * that matters: it displays nothing about anyone else's answer, so
+     * refetching for each of them is work every player pays for every player.
+     */
+    ignore?: readonly RealtimeEventName[];
+  } = {},
 ): ConnectionStatus {
   const router = useRouter();
   const timer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+  const lastRefresh = useRef(0);
   const onMessage = options.onMessage;
 
   const channelNames = options.channels ?? [`event-${eventId}`];
 
+  // Compared by content: callers build the list inline on every render.
+  const ignoreKey = options.ignore?.join(',') ?? '';
+  const ignored = useMemo(
+    () => new Set(ignoreKey ? ignoreKey.split(',') : []),
+    [ignoreKey],
+  );
+
   const scheduleRefresh = useCallback(() => {
     clearTimeout(timer.current);
-    timer.current = setTimeout(() => router.refresh(), REFRESH_DEBOUNCE_MS);
+    const sinceLast = Date.now() - lastRefresh.current;
+    const wait = Math.max(REFRESH_DEBOUNCE_MS, MIN_REFRESH_INTERVAL_MS - sinceLast);
+
+    timer.current = setTimeout(() => {
+      lastRefresh.current = Date.now();
+      router.refresh();
+    }, wait);
   }, [router]);
 
   const handle = useCallback(
     (message: RealtimeMessage) => {
       onMessage?.(message);
-      scheduleRefresh();
+      if (!ignored.has(message.event)) scheduleRefresh();
     },
-    [onMessage, scheduleRefresh],
+    [onMessage, scheduleRefresh, ignored],
   );
 
   useEffect(() => () => clearTimeout(timer.current), []);

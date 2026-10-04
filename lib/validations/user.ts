@@ -32,3 +32,8 @@ export const nicknameSchema = z.object({
     .min(1, 'validation.nicknameRequired')
     .max(30, 'validation.nicknameTooLong'),
 });
+
+/** A host taking a player out of their event. */
+export const removeParticipantSchema = z.object({
+  participantId: z.string().uuid(),
+});

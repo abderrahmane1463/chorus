@@ -301,7 +301,8 @@
     "questionNotOpen": "This question is not open yet",
     "noPlayersYet": "Wait for at least one player to join before starting.",
     "invalidDesign": "That design is not valid",
-    "imageMissing": "One of the images is missing. Upload it again."
+    "imageMissing": "One of the images is missing. Upload it again.",
+    "participantNotFound": "That player is no longer in the room"
   },
   "validation": {
     "codeRequired": "Enter the event code",
@@ -861,5 +862,11 @@
     "errorTooLarge": "That image is too large, even after resizing. Try a smaller one.",
     "errorTooMany": "Too many images are waiting. Save the design, then add more.",
     "partnerPlate": "White plate behind partner logos"
+  },
+  "players": {
+    "anonymous": "Anonymous",
+    "remove": "Remove {name}",
+    "confirmRemove": "Confirm: remove {name}",
+    "removed": "{name} was removed"
   }
 }

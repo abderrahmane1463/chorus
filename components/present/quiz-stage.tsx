@@ -11,6 +11,7 @@ import { Leaderboard } from '@/components/interactions/leaderboard';
 import { TileLetter, tileFor } from '@/components/quiz/answer-tiles';
 import { CountdownRing, useCountdown, useSecondsUntil } from '@/components/quiz/countdown';
 import { Podium } from '@/components/quiz/podium';
+import { PlayerChip } from '@/components/quiz/player-chip';
 import { useQuizPacer } from '@/hooks/use-quiz-pacer';
 import { useQuizSounds } from '@/hooks/use-quiz-sounds';
 import { controlQuizAction } from '@/lib/actions/quiz';
@@ -476,12 +477,8 @@ function Lobby({
                 initial={reduceMotion ? false : { opacity: 0, scale: 0.6 }}
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ type: 'spring', stiffness: 380, damping: 24 }}
-                // dir="auto": an Arabic name reads right to left on an
-                // English screen, and the other way round.
-                dir="auto"
-                className="rounded-full border border-border bg-card px-4 py-2 text-xl font-medium"
               >
-                {player.displayName ?? t('anonymous')}
+                <PlayerChip player={player} size="lg" />
               </motion.li>
             ))}
           </AnimatePresence>

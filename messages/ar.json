@@ -301,7 +301,8 @@
     "questionNotOpen": "هذا السؤال لم يُفتح بعد",
     "noPlayersYet": "انتظر انضمام لاعب واحد على الأقل قبل البدء.",
     "invalidDesign": "هذا التصميم غير صالح",
-    "imageMissing": "إحدى الصور مفقودة. ارفعها مجددًا."
+    "imageMissing": "إحدى الصور مفقودة. ارفعها مجددًا.",
+    "participantNotFound": "هذا اللاعب لم يعد في القاعة"
   },
   "validation": {
     "codeRequired": "أدخل رمز الفعالية",
@@ -861,5 +862,11 @@
     "errorTooLarge": "هذه الصورة كبيرة جدًا حتى بعد تصغيرها. جرّب صورة أصغر.",
     "errorTooMany": "صور كثيرة بانتظار الحفظ. احفظ التصميم ثم أضف المزيد.",
     "partnerPlate": "خلفية بيضاء خلف شعارات الشركاء"
+  },
+  "players": {
+    "anonymous": "مجهول",
+    "remove": "إزالة {name}",
+    "confirmRemove": "تأكيد: إزالة {name}",
+    "removed": "تمت إزالة {name}"
   }
 }

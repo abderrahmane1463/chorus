@@ -123,6 +123,13 @@ export async function getActiveInteraction(
 
   if (!row) return null;
 
+  // A quiz, a survey and a Q&A keep their answers elsewhere (on their
+  // questions, or as questions), so their own option list is always empty.
+  // Skipping the read saves a round trip on the page every phone reloads.
+  if (row.type === 'quiz' || row.type === 'survey' || row.type === 'q_and_a') {
+    return { ...row, options: [] };
+  }
+
   const options = await db
     .select({
       id: interactionOptions.id,

@@ -15,6 +15,7 @@ import {
   getQuizDetail,
   quizTiming,
 } from '@/lib/queries/quiz';
+import { countPresentPlayers } from '@/lib/queries/presence';
 import { getSurveyDetail } from '@/lib/queries/survey';
 import { PresenterScreen } from '@/components/present/presenter-screen';
 import { serverNow } from '@/lib/utils/server-time';
@@ -68,7 +69,9 @@ export default async function PresentPage({
   const lobby =
     quiz && timing.phase === 'lobby'
       ? await getLobbyPlayers(event.id)
-      : { players: [], total: event.participantCount };
+      : // Outside the lobby only the number is shown: who is in the room now,
+        // which is what "X of Y answered" has to be measured against.
+        { players: [], total: await countPresentPlayers(event.id) };
 
   const origin = process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000';
 

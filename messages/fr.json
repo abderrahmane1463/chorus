@@ -301,7 +301,8 @@
     "questionNotOpen": "Cette question n’est pas encore ouverte",
     "noPlayersYet": "Attendez qu’au moins un joueur rejoigne avant de démarrer.",
     "invalidDesign": "Ce design n’est pas valide",
-    "imageMissing": "Une des images est introuvable. Importez-la à nouveau."
+    "imageMissing": "Une des images est introuvable. Importez-la à nouveau.",
+    "participantNotFound": "Ce joueur n’est plus dans la salle"
   },
   "validation": {
     "codeRequired": "Saisissez le code de l'événement",
@@ -861,5 +862,11 @@
     "errorTooLarge": "Cette image est trop lourde, même redimensionnée. Essayez-en une plus petite.",
     "errorTooMany": "Trop d’images en attente. Enregistrez le design, puis ajoutez-en d’autres.",
     "partnerPlate": "Fond blanc derrière les logos des partenaires"
+  },
+  "players": {
+    "anonymous": "Anonyme",
+    "remove": "Retirer {name}",
+    "confirmRemove": "Confirmer : retirer {name}",
+    "removed": "{name} a été retiré"
   }
 }

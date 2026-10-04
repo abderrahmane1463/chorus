@@ -20,6 +20,7 @@ export const RealtimeEvent = {
   QuizAnswerRevealed: 'QUIZ_ANSWER_REVEALED',
   QuizFinished: 'QUIZ_FINISHED',
   ParticipantJoined: 'PARTICIPANT_JOINED',
+  ParticipantRemoved: 'PARTICIPANT_REMOVED',
 } as const;
 
 export type RealtimeEventName = (typeof RealtimeEvent)[keyof typeof RealtimeEvent];

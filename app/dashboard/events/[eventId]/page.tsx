@@ -20,6 +20,7 @@ import {
   getQuizDetail,
   quizTiming,
 } from '@/lib/queries/quiz';
+import { countPresentPlayers } from '@/lib/queries/presence';
 import { serverNow } from '@/lib/utils/server-time';
 import { getSurveyDetail } from '@/lib/queries/survey';
 import { InteractionList } from '@/components/dashboard/interaction-list';
@@ -107,7 +108,9 @@ export default async function EventWorkspacePage({
   const lobby =
     timing?.phase === 'lobby'
       ? await getLobbyPlayers(event.id)
-      : { players: [], total: event.participantCount };
+      : // Outside the lobby only the number is shown: who is in the room now,
+        // which is what "X of Y answered" has to be measured against.
+        { players: [], total: await countPresentPlayers(event.id) };
 
   const quizRun = timing
     ? {

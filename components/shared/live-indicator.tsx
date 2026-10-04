@@ -2,7 +2,7 @@
 
 import { useTranslations } from 'next-intl';
 import { useEventSync } from '@/hooks/use-event-sync';
-import { channels } from '@/lib/realtime/events';
+import { channels, type RealtimeEventName } from '@/lib/realtime/events';
 import { cn } from '@/lib/utils/cn';
 import type { ConnectionStatus } from '@/lib/realtime/client';
 
@@ -31,11 +31,14 @@ const PRESENTATION: Record<
 export function LiveIndicator({
   eventId,
   withQa = false,
+  ignore,
   className,
 }: {
   eventId: string;
   /** Also listen on the Q&A channel. */
   withQa?: boolean;
+  /** Messages that change nothing on this page. See `useEventSync`. */
+  ignore?: readonly RealtimeEventName[];
   className?: string;
 }) {
   const names = withQa
@@ -43,7 +46,7 @@ export function LiveIndicator({
     : [channels.event(eventId)];
 
   const t = useTranslations('live');
-  const status = useEventSync(eventId, { channels: names });
+  const status = useEventSync(eventId, { channels: names, ignore });
   const view = PRESENTATION[status];
 
   return (

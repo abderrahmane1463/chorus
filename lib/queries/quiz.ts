@@ -1,5 +1,5 @@
 import 'server-only';
-import { and, asc, count, desc, eq } from 'drizzle-orm';
+import { and, asc, count, desc, eq, sql } from 'drizzle-orm';
 import { db } from '@/lib/db';
 import {
   events,
@@ -11,6 +11,7 @@ import {
 } from '@/db/schema';
 import type { InteractionSettings } from '@/types/interactions';
 import { nextDueAt, quizPacing, quizPhase, type QuizPhase } from '@/lib/quiz/pacing';
+import { isPresent } from '@/lib/queries/presence';
 
 export type QuizQuestion = {
   id: string;
@@ -169,21 +170,27 @@ export function quizTiming(
 export type LobbyPlayer = { id: string; displayName: string | null };
 
 /**
- * The players to show joining, oldest first so names hold their place on
- * screen as new ones arrive, plus the true total when the list is capped.
+ * The players in the room, oldest first so names hold their place on screen
+ * as new ones arrive, plus the true total when the list is capped.
+ *
+ * Only players present now (see `lib/participant/presence.ts`): an event is
+ * reused from session to session, and listing everyone who ever joined it
+ * would fill the lobby with last week's room.
  */
 export async function getLobbyPlayers(
   eventId: string,
   limit = 60,
 ): Promise<{ players: LobbyPlayer[]; total: number }> {
+  const here = and(eq(participants.eventId, eventId), isPresent);
+
   const [players, [{ total }]] = await Promise.all([
     db
       .select({ id: participants.id, displayName: participants.displayName })
       .from(participants)
-      .where(eq(participants.eventId, eventId))
+      .where(here)
       .orderBy(asc(participants.joinedAt))
       .limit(limit),
-    db.select({ total: count() }).from(participants).where(eq(participants.eventId, eventId)),
+    db.select({ total: count() }).from(participants).where(here),
   ]);
 
   return { players, total };
@@ -217,21 +224,24 @@ export async function getLeaderboard(
   limit = 50,
   sinceQuestionId?: string | null,
 ): Promise<LeaderboardRow[]> {
-  // Unlimited here: ranks before the question must be computed over everyone,
-  // or a player outside the top few could never be seen climbing into it.
+  // Movement needs everyone: ranks before the question must be computed over
+  // the whole board, or a player outside the top few could never be seen
+  // climbing into it. Without it, only the rows shown are read.
+  const board = db
+    .select({
+      participantId: quizScores.participantId,
+      displayName: participants.displayName,
+      score: quizScores.score,
+      correctAnswers: quizScores.correctAnswers,
+      totalTime: quizScores.totalTime,
+    })
+    .from(quizScores)
+    .innerJoin(participants, eq(participants.id, quizScores.participantId))
+    .where(eq(quizScores.quizId, quizId))
+    .orderBy(desc(quizScores.score), asc(quizScores.totalTime));
+
   const [rows, answers] = await Promise.all([
-    db
-      .select({
-        participantId: quizScores.participantId,
-        displayName: participants.displayName,
-        score: quizScores.score,
-        correctAnswers: quizScores.correctAnswers,
-        totalTime: quizScores.totalTime,
-      })
-      .from(quizScores)
-      .innerJoin(participants, eq(participants.id, quizScores.participantId))
-      .where(eq(quizScores.quizId, quizId))
-      .orderBy(desc(quizScores.score), asc(quizScores.totalTime)),
+    sinceQuestionId ? board : board.limit(limit),
 
     sinceQuestionId
       ? db
@@ -279,6 +289,119 @@ export async function getLeaderboard(
   }));
 }
 
+export type PlayerStanding = { rank: number; total: number; score: number };
+
+/**
+ * One player's place on the board, and how many are on it.
+ *
+ * A phone needs its own place, but not the whole board to find it: with a
+ * few hundred players, every phone reading every row on every reveal is the
+ * cost that delays the reveal itself. Ordered as `getLeaderboard` orders,
+ * so the two never disagree: score first, then the faster total time.
+ */
+export async function getPlayerStanding(
+  quizId: string,
+  participantId: string,
+): Promise<PlayerStanding | null> {
+  const result = await db.execute<{ rank: number; total: number; score: number }>(sql`
+    select me.score,
+           (select count(*)::int from quiz_scores s where s.quiz_id = ${quizId}) as total,
+           (select count(*)::int + 1 from quiz_scores s
+             where s.quiz_id = ${quizId}
+               and (s.score > me.score
+                    or (s.score = me.score and s.total_time < me.total_time))) as rank
+      from quiz_scores me
+     where me.quiz_id = ${quizId} and me.participant_id = ${participantId}
+  `);
+
+  const row = result.rows[0];
+  return row ? { rank: Number(row.rank), total: Number(row.total), score: Number(row.score) } : null;
+}
+
+/**
+ * A quiz as a phone needs it: every question's timing, but answers only for
+ * the question on screen, and no one else's responses at all.
+ *
+ * `getQuizDetail` reads every response to every question, which the host's
+ * screens need for their charts. Read by every phone on every refetch, that
+ * grows with the players squared and lands all at once at each reveal.
+ */
+async function getQuizForPlayer(quizId: string): Promise<QuizDetail | null> {
+  const [[quiz], children, options] = await Promise.all([
+    db
+      .select({
+        id: interactions.id,
+        eventId: interactions.eventId,
+        title: interactions.title,
+        status: interactions.status,
+        settings: interactions.settings,
+        currentChildId: interactions.currentChildId,
+        answerRevealed: interactions.answerRevealed,
+        type: interactions.type,
+      })
+      .from(interactions)
+      .where(eq(interactions.id, quizId))
+      .limit(1),
+
+    db
+      .select({
+        id: interactions.id,
+        title: interactions.title,
+        position: interactions.position,
+        settings: interactions.settings,
+        startedAt: interactions.startedAt,
+        revealedAt: interactions.endedAt,
+      })
+      .from(interactions)
+      .where(eq(interactions.parentId, quizId))
+      .orderBy(asc(interactions.position), asc(interactions.createdAt)),
+
+    db
+      .select({
+        questionId: interactionOptions.interactionId,
+        id: interactionOptions.id,
+        text: interactionOptions.text,
+        isCorrect: interactionOptions.isCorrect,
+        position: interactionOptions.position,
+      })
+      .from(interactionOptions)
+      .where(
+        eq(
+          interactionOptions.interactionId,
+          sql`(select ${interactions.currentChildId} from ${interactions} where ${interactions.id} = ${quizId})`,
+        ),
+      )
+      .orderBy(asc(interactionOptions.position)),
+  ]);
+
+  if (!quiz || quiz.type !== 'quiz') return null;
+
+  return {
+    id: quiz.id,
+    eventId: quiz.eventId,
+    title: quiz.title,
+    status: quiz.status,
+    settings: quiz.settings,
+    currentChildId: quiz.currentChildId,
+    answerRevealed: quiz.answerRevealed,
+    questions: children.map((child) => ({
+      ...child,
+      // Matched by question, in case the quiz moved on between the reads:
+      // then the phone shows no answers until the refetch that move causes.
+      options: options
+        .filter((option) => option.questionId === child.id)
+        .map((option) => ({
+          id: option.id,
+          text: option.text,
+          isCorrect: option.isCorrect ?? false,
+          position: option.position,
+          picks: 0,
+        })),
+      answerCount: 0,
+    })),
+  };
+}
+
 export type ParticipantQuizView = {
   quizId: string;
   quizTitle: string;
@@ -291,7 +414,7 @@ export type ParticipantQuizView = {
   dueAt: number | null;
   /** Whether another question follows the one on screen. */
   hasNext: boolean;
-  /** Everyone who has joined the event, for the lobby. */
+  /** The players in the room now, for the lobby. */
   playerCount: number;
   question: {
     id: string;
@@ -322,7 +445,7 @@ export async function getParticipantQuizView(
   quizId: string,
   participantId: string,
 ): Promise<ParticipantQuizView | null> {
-  const quiz = await getQuizDetail(quizId);
+  const quiz = await getQuizForPlayer(quizId);
   if (!quiz) return null;
 
   const current = quiz.questions.find((q) => q.id === quiz.currentChildId) ?? null;
@@ -355,7 +478,7 @@ export async function getParticipantQuizView(
     db
       .select({ playerCount: count() })
       .from(participants)
-      .where(eq(participants.eventId, quiz.eventId)),
+      .where(and(eq(participants.eventId, quiz.eventId), isPresent)),
   ]);
 
   const myAnswer: ParticipantQuizView['myAnswer'] =

@@ -8,6 +8,7 @@ import { events, participants } from '@/db/schema';
 import { ensureSessionId, readSessionId } from '@/lib/participant/session';
 import { normalizeEventCode } from '@/lib/utils/event-code';
 import { joinEventSchema, nicknameSchema } from '@/lib/validations/user';
+import { seenNow } from '@/lib/queries/presence';
 import { publish } from '@/lib/realtime/server';
 import { channels, RealtimeEvent } from '@/lib/realtime/events';
 import type { ActionResult } from './auth';
@@ -60,7 +61,7 @@ export async function joinEventAction(input: unknown): Promise<ActionResult> {
     await db
       .update(participants)
       .set({
-        lastSeenAt: new Date(),
+        lastSeenAt: seenNow,
         // Keep the stored name unless a new one was supplied.
         ...(displayName ? { displayName } : {}),
       })
@@ -104,7 +105,7 @@ export async function setNicknameAction(input: unknown): Promise<ActionResult> {
 
   const updated = await db
     .update(participants)
-    .set({ displayName: parsed.data.displayName, lastSeenAt: new Date() })
+    .set({ displayName: parsed.data.displayName, lastSeenAt: seenNow })
     .where(
       and(
         eq(participants.eventId, parsed.data.eventId),

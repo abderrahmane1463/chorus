@@ -2,7 +2,7 @@
 
 import { getTranslations } from 'next-intl/server';
 import { revalidatePath } from 'next/cache';
-import { and, count, eq, inArray, max, sql } from 'drizzle-orm';
+import { and, count, eq, inArray, max, notExists, sql } from 'drizzle-orm';
 import { alias } from 'drizzle-orm/pg-core';
 import { db } from '@/lib/db';
 import {
@@ -16,6 +16,7 @@ import {
 import { requireUser } from '@/lib/auth';
 import { readSessionId } from '@/lib/participant/session';
 import { assertQuizOwner, getQuizDetail } from '@/lib/queries/quiz';
+import { countPresentPlayers, isPresent } from '@/lib/queries/presence';
 import {
   ANSWER_GRACE_MS,
   computeScore,
@@ -248,12 +249,10 @@ export async function controlQuizAction(input: unknown): Promise<ActionResult> {
 
     case 'start': {
       // A quiz with nobody in the room has no one to play it. The screens
-      // keep Start locked until someone joins; this holds for any other caller.
-      const [{ joined }] = await db
-        .select({ joined: count() })
-        .from(participants)
-        .where(eq(participants.eventId, owned.eventId));
-      if (joined === 0) return { ok: false, error: t('errors.noPlayersYet') };
+      // keep Start locked until someone is here; this holds for any caller.
+      if ((await countPresentPlayers(owned.eventId)) === 0) {
+        return { ok: false, error: t('errors.noPlayersYet') };
+      }
 
       if (quiz.status !== 'active') await openLobby(quiz.id, owned.eventId);
       // From the lobby only: pressing Start twice must not restart question one.
@@ -434,7 +433,7 @@ export async function submitQuizAnswerAction(input: unknown): Promise<ActionResu
   // Counted alongside the score, after the answer is stored so it is included.
   const autoAdvance = quizPacing(quiz.settings).autoAdvance;
 
-  const [, [{ answered }], [{ joined }]] = await Promise.all([
+  const [, [{ waitingFor }]] = await Promise.all([
     db
       .insert(quizScores)
       .values({
@@ -453,27 +452,39 @@ export async function submitQuizAnswerAction(input: unknown): Promise<ActionResu
           updatedAt: new Date(),
         },
       }),
+    // Players in the room who have not answered this question yet. Counted
+    // after this answer is stored, so it is never one of them.
     autoAdvance
       ? db
-          .select({ answered: count() })
-          .from(responses)
-          .where(eq(responses.interactionId, context.questionId))
-      : [{ answered: 0 }],
-    autoAdvance
-      ? db
-          .select({ joined: count() })
+          .select({ waitingFor: count() })
           .from(participants)
-          .where(eq(participants.eventId, context.eventId))
-      : [{ joined: 0 }],
+          .where(
+            and(
+              eq(participants.eventId, context.eventId),
+              isPresent,
+              notExists(
+                db
+                  .select({ one: sql`1` })
+                  .from(responses)
+                  .where(
+                    and(
+                      eq(responses.interactionId, context.questionId),
+                      eq(responses.participantId, participants.id),
+                    ),
+                  ),
+              ),
+            ),
+          )
+      : [{ waitingFor: 1 }],
   ]);
 
   // Nobody left to wait for: show the answer now instead of running the clock
-  // down on a room that has finished. Counted against everyone who joined, so
-  // a player who walked away simply leaves it to the timer.
+  // down on a room that has finished. Only players still in the room are
+  // waited for, so one who locked their phone or walked out does not hold
+  // the question open until the buzzer.
   const revealed =
     autoAdvance &&
-    joined > 0 &&
-    answered >= joined &&
+    waitingFor === 0 &&
     (await revealAnswer(quiz.id, context.eventId, context.questionId));
 
   // A reveal already tells every screen to reload, which covers this answer.
@@ -481,7 +492,10 @@ export async function submitQuizAnswerAction(input: unknown): Promise<ActionResu
     await publishQuiz(context.eventId, quiz.id, RealtimeEvent.ResponseCreated);
   }
 
-  revalidatePath(`/event/${context.eventCode}`);
-  revalidatePath(`/dashboard/events/${context.eventId}`);
+  // No revalidatePath here, on purpose. Revalidating makes the action's
+  // response carry a fresh render of the whole page, and a phone has nothing
+  // to redraw: it shows "Answer sent" from its own state until the reveal,
+  // which refetches. The host's screens hear about the answer over realtime.
+  // In a full room that render, once per answer, was most of the cost.
   return { ok: true };
 }

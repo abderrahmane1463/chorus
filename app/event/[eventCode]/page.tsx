@@ -1,3 +1,4 @@
+import { cache } from 'react';
 import { notFound, redirect } from 'next/navigation';
 import { getTranslations } from 'next-intl/server';
 import { and, eq } from 'drizzle-orm';
@@ -20,16 +21,48 @@ import { AnswerForm } from '@/components/participant/answer-form';
 import { QaPanel } from '@/components/participant/qa-panel';
 import { listQuestions } from '@/lib/queries/questions';
 import { QuizPanel } from '@/components/participant/quiz-panel';
-import { getLeaderboard, getParticipantQuizView } from '@/lib/queries/quiz';
+import {
+  getLeaderboard,
+  getParticipantQuizView,
+  getPlayerStanding,
+} from '@/lib/queries/quiz';
 import { SurveyPanel } from '@/components/participant/survey-panel';
 import { getSurveyAnswers, getSurveyDetail } from '@/lib/queries/survey';
 import { ResultsView } from '@/components/interactions/results-view';
 import { LiveIndicator } from '@/components/shared/live-indicator';
+import { RealtimeEvent } from '@/lib/realtime/events';
+import { Presence } from '@/hooks/use-presence';
 import { Card } from '@/components/ui/card';
 import { BrandLogo, BrandStyle, PartnerLogos } from '@/components/branding/brand';
 import { readBranding } from '@/lib/branding/templates';
 import { cn } from '@/lib/utils/cn';
 import type { ResponseData } from '@/types/interactions';
+
+/** How many rows of the scoreboard a phone shows. */
+const PHONE_BOARD_SIZE = 10;
+
+/**
+ * The event behind a code, read once per request.
+ *
+ * The page's title and its body both need it; a phone refetches the page
+ * on every change in the room, so the second read was a query every player
+ * paid for every time.
+ */
+const findEvent = cache(async (code: string) => {
+  const [event] = await db
+    .select({
+      id: events.id,
+      title: events.title,
+      eventCode: events.eventCode,
+      status: events.status,
+      branding: events.branding,
+    })
+    .from(events)
+    .where(eq(events.eventCode, code))
+    .limit(1);
+
+  return event ?? null;
+});
 
 export async function generateMetadata({
   params,
@@ -37,11 +70,7 @@ export async function generateMetadata({
   params: Promise<{ eventCode: string }>;
 }) {
   const { eventCode } = await params;
-  const [event] = await db
-    .select({ title: events.title })
-    .from(events)
-    .where(eq(events.eventCode, normalizeEventCode(eventCode)))
-    .limit(1);
+  const event = await findEvent(normalizeEventCode(eventCode));
 
   const t = await getTranslations('event');
   return { title: event?.title ?? t('fallbackTitle') };
@@ -56,17 +85,7 @@ export default async function ParticipantEventPage({
   const code = normalizeEventCode(eventCode);
   const t = await getTranslations('event');
 
-  const [event] = await db
-    .select({
-      id: events.id,
-      title: events.title,
-      eventCode: events.eventCode,
-      status: events.status,
-      branding: events.branding,
-    })
-    .from(events)
-    .where(eq(events.eventCode, code))
-    .limit(1);
+  const event = await findEvent(code);
 
   if (!event) notFound();
 
@@ -103,15 +122,20 @@ export default async function ParticipantEventPage({
   const quizView = isQuiz
     ? await getParticipantQuizView(interaction.id, participant.id)
     : null;
-  const leaderboard =
-    isQuiz && interaction
-      ? await getLeaderboard(
-          interaction.id,
-          50,
-          // Only once revealed: before that, movement would leak who is right.
-          quizView?.answerRevealed ? (quizView.question?.id ?? null) : null,
-        )
-      : [];
+  // The board is only on screen between questions and at the end, so it is
+  // only read then: not in the lobby, and not while a question is open,
+  // which is when every phone refetches at once. A phone shows the top of
+  // the board and its own place, read directly rather than found in a list
+  // that would otherwise have to hold every player.
+  const boardShown =
+    quizView !== null && quizView.phase !== 'lobby' && quizView.phase !== 'question';
+  const [leaderboard, standing] =
+    isQuiz && interaction && boardShown
+      ? await Promise.all([
+          getLeaderboard(interaction.id, PHONE_BOARD_SIZE),
+          getPlayerStanding(interaction.id, participant.id),
+        ])
+      : [[], null];
 
   const questions = isQa
     ? await listQuestions({
@@ -144,6 +168,25 @@ export default async function ParticipantEventPage({
   const answered = mine.length > 0;
   const showResults = Boolean(results) && answered;
 
+  /**
+   * What this phone does not need to hear about.
+   *
+   * A phone shows nothing about who else has joined, and during a quiz
+   * nothing about anyone else's answer. Refetching the page for each of
+   * those makes every player's tap cost a page render on every other
+   * player's phone, which is what falls over in a full room. A poll that
+   * shows live results is the exception: there, other people's answers are
+   * on screen.
+   */
+  const liveResults = interaction?.settings.showResultsToParticipants ?? false;
+  const ignore = liveResults
+    ? [RealtimeEvent.ParticipantJoined]
+    : [
+        RealtimeEvent.ParticipantJoined,
+        RealtimeEvent.ResponseCreated,
+        RealtimeEvent.ResponseUpdated,
+      ];
+
   const mySelections = mine.flatMap((entry) =>
     entry.data.kind === 'multiple_choice' ? entry.data.optionIds : [],
   );
@@ -168,6 +211,8 @@ export default async function ParticipantEventPage({
   return (
     <div className={cn('flex min-h-dvh flex-col', branding && 'brand-backdrop')}>
       <BrandStyle branding={branding} />
+      {/* Keeps this player counted as in the room while the page is open. */}
+      <Presence eventId={event.id} />
       <header className="sticky top-0 z-30 border-b border-border bg-background/90 px-4 py-3 backdrop-blur">
         <div className="mx-auto flex max-w-2xl items-center gap-3">
           <BrandLogo
@@ -185,7 +230,7 @@ export default async function ParticipantEventPage({
           </div>
           <div className="flex shrink-0 items-center gap-1">
             <div className="flex flex-col items-end gap-0.5">
-              <LiveIndicator eventId={event.id} withQa />
+              <LiveIndicator eventId={event.id} withQa ignore={ignore} />
               {participant.displayName && (
                 <span className="text-xs text-muted-foreground">
                   {participant.displayName}
@@ -222,6 +267,7 @@ export default async function ParticipantEventPage({
                 key={quizView.question?.id ?? 'none'}
                 view={quizView}
                 leaderboard={leaderboard}
+                standing={standing}
                 participantId={participant.id}
                 eventId={event.id}
                 displayName={participant.displayName}

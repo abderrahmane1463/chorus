@@ -40,6 +40,7 @@ import type {
 } from '@/lib/queries/quiz';
 import { quizPacing, type QuizPhase } from '@/lib/quiz/pacing';
 import { useQuizPacer } from '@/hooks/use-quiz-pacer';
+import { PlayerChip } from '@/components/quiz/player-chip';
 import { cn } from '@/lib/utils/cn';
 
 const START_LOCK_MS = 1500;
@@ -169,11 +170,8 @@ export function QuizEditor({
               {players.length > 0 && (
                 <ul className="mt-3 flex flex-wrap gap-2">
                   {players.map((player) => (
-                    <li
-                      key={player.id}
-                      className="rounded-full border border-border bg-card px-3 py-1 text-sm font-medium"
-                    >
-                      <bdi>{player.displayName ?? t('anonymous')}</bdi>
+                    <li key={player.id}>
+                      <PlayerChip player={player} size="sm" />
                     </li>
                   ))}
                   {playerCount > players.length && (
