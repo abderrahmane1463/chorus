@@ -1,6 +1,5 @@
 'use client';
 
-import { useRouter } from 'next/navigation';
 import { useState, useTransition } from 'react';
 import { useFormatter, useTranslations } from 'next-intl';
 import { toast } from 'sonner';
@@ -28,7 +27,6 @@ type Props = {
 };
 
 export function AnswerForm(props: Props) {
-  const router = useRouter();
   const t = useTranslations('answers');
   const [pending, startTransition] = useTransition();
 
@@ -39,9 +37,11 @@ export function AnswerForm(props: Props) {
         ...payload,
       });
       if (result.ok) {
+        // The action's response already carries the page re-rendered with this
+        // change (it revalidates the page), so a refresh here would render it
+        // a second time for nothing, once per tap, for every player.
         toast.success(t('sent'));
         onDone?.();
-        router.refresh();
       } else {
         toast.error(result.error);
       }

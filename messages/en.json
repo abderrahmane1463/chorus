@@ -306,7 +306,9 @@
     "tooManyAttempts": "Too many attempts. Wait a few minutes, then try again.",
     "slowDown": "You are going a little fast. Wait a moment, then try again.",
     "wrongPassword": "That is not your current password",
-    "noPasswordToChange": "This account signs in with Google and has no password"
+    "noPasswordToChange": "This account signs in with Google and has no password",
+    "eventEnded": "This event has ended",
+    "eventEndedHost": "This event has ended. Set it back to Live in Settings to run the quiz."
   },
   "validation": {
     "codeRequired": "Enter the event code",
@@ -320,7 +322,12 @@
     "titleTooLong": "That name is too long",
     "descriptionTooLong": "That description is too long",
     "nicknameRequired": "Enter a nickname",
-    "nicknameTooLong": "That nickname is too long"
+    "nicknameTooLong": "That nickname is too long",
+    "questionRequired": "Add a question",
+    "optionEmpty": "Options cannot be empty",
+    "answerEmpty": "Answers cannot be empty",
+    "questionTooShort": "Write a bit more",
+    "questionTooLong": "Questions are limited to 500 characters"
   },
   "auth": {
     "signInTitle": "Welcome back",

@@ -43,7 +43,23 @@ export type InteractionDetail = {
   description: string | null;
   status: 'draft' | 'active' | 'closed';
   settings: InteractionSettings;
+  /** A quiz's question on screen; null in its lobby and for other types. */
+  currentChildId: string | null;
+  /** Whether a quiz's current answer is showing. False for other types. */
+  answerRevealed: boolean;
   options: { id: string; text: string; position: number }[];
+};
+
+const INTERACTION_FIELDS = {
+  id: interactions.id,
+  eventId: interactions.eventId,
+  type: interactions.type,
+  title: interactions.title,
+  description: interactions.description,
+  status: interactions.status,
+  settings: interactions.settings,
+  currentChildId: interactions.currentChildId,
+  answerRevealed: interactions.answerRevealed,
 };
 
 /** Loads an interaction, enforcing that the requesting host owns its event. */
@@ -52,15 +68,7 @@ export async function getInteractionForOwner(
   userId: string,
 ): Promise<InteractionDetail | null> {
   const [row] = await db
-    .select({
-      id: interactions.id,
-      eventId: interactions.eventId,
-      type: interactions.type,
-      title: interactions.title,
-      description: interactions.description,
-      status: interactions.status,
-      settings: interactions.settings,
-    })
+    .select(INTERACTION_FIELDS)
     .from(interactions)
     .innerJoin(events, eq(events.id, interactions.eventId))
     .where(and(eq(interactions.id, interactionId), eq(events.ownerId, userId)))
@@ -81,15 +89,6 @@ export async function getInteractionForOwner(
   return { ...row, options };
 }
 
-const INTERACTION_FIELDS = {
-  id: interactions.id,
-  eventId: interactions.eventId,
-  type: interactions.type,
-  title: interactions.title,
-  description: interactions.description,
-  status: interactions.status,
-  settings: interactions.settings,
-};
 
 /** The interaction the audience should currently see, if any. */
 export async function getActiveInteraction(

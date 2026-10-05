@@ -15,7 +15,7 @@ export const creatableTypes = [
 
 const optionSchema = z.object({
   id: z.string().uuid().optional(),
-  text: z.string().trim().min(1, 'Options cannot be empty').max(160),
+  text: z.string().trim().min(1, 'validation.optionEmpty').max(160),
 });
 
 export const interactionSettingsSchema = z.object({
@@ -63,7 +63,7 @@ export const createInteractionSchema = z.object({
 
 export const updateInteractionSchema = z.object({
   interactionId: z.string().uuid(),
-  title: z.string().trim().min(1, 'Add a question').max(300),
+  title: z.string().trim().min(1, 'validation.questionRequired').max(300),
   description: z.string().trim().max(500).optional().or(z.literal('')),
   settings: interactionSettingsSchema,
   options: z.array(optionSchema).max(10).optional(),

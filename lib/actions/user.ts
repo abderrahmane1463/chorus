@@ -10,6 +10,7 @@ import { hashPassword, verifyPassword } from '@/lib/auth/password';
 import { take } from '@/lib/security/rate-limit';
 import { changePasswordSchema } from '@/lib/validations/auth';
 import { updateProfileSchema } from '@/lib/validations/user';
+import { messageKey } from '@/lib/validations/message';
 import type { ActionResult } from './auth';
 
 export async function updateProfileAction(input: unknown): Promise<ActionResult> {
@@ -18,7 +19,7 @@ export async function updateProfileAction(input: unknown): Promise<ActionResult>
 
   const parsed = updateProfileSchema.safeParse(input);
   if (!parsed.success) {
-    return { ok: false, error: t(parsed.error.issues[0]?.message ?? 'validation.nameTooShort') };
+    return { ok: false, error: t(messageKey(parsed.error, 'validation.nameTooShort')) };
   }
 
   await db
@@ -46,7 +47,7 @@ export async function changePasswordAction(input: unknown): Promise<ActionResult
 
   const parsed = changePasswordSchema.safeParse(input);
   if (!parsed.success) {
-    return { ok: false, error: t(parsed.error.issues[0]?.message ?? 'validation.passwordRequired') };
+    return { ok: false, error: t(messageKey(parsed.error, 'validation.passwordRequired')) };
   }
 
   if (!take('signInPerAccount', user.email)) {

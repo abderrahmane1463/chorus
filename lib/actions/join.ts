@@ -9,9 +9,11 @@ import { ensureSessionId, readSessionId } from '@/lib/participant/session';
 import { normalizeEventCode } from '@/lib/utils/event-code';
 import { joinEventSchema, nicknameSchema } from '@/lib/validations/user';
 import { seenNow } from '@/lib/queries/presence';
+import { acceptsAudience } from '@/lib/utils/event-status';
 import { callerAddress, take } from '@/lib/security/rate-limit';
 import { publish } from '@/lib/realtime/server';
 import { channels, RealtimeEvent } from '@/lib/realtime/events';
+import { messageKey } from '@/lib/validations/message';
 import type { ActionResult } from './auth';
 
 /**
@@ -28,7 +30,7 @@ export async function joinEventAction(input: unknown): Promise<ActionResult> {
 
   const parsed = joinEventSchema.safeParse(input);
   if (!parsed.success) {
-    return { ok: false, error: t(parsed.error.issues[0]?.message ?? 'validation.codeRequired') };
+    return { ok: false, error: t(messageKey(parsed.error, 'validation.codeRequired')) };
   }
 
   if (!take('joinPerAddress', await callerAddress())) {
@@ -49,6 +51,9 @@ export async function joinEventAction(input: unknown): Promise<ActionResult> {
 
   if (event.status === 'archived') {
     return { ok: false, error: t('errors.eventArchived') };
+  }
+  if (!acceptsAudience(event.status)) {
+    return { ok: false, error: t('errors.eventEnded') };
   }
 
   const sessionId = await ensureSessionId();
@@ -101,7 +106,7 @@ export async function setNicknameAction(input: unknown): Promise<ActionResult> {
   if (!parsed.success) {
     return {
       ok: false,
-      error: t(parsed.error.issues[0]?.message ?? 'validation.nicknameRequired'),
+      error: t(messageKey(parsed.error, 'validation.nicknameRequired')),
     };
   }
 

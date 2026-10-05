@@ -306,7 +306,9 @@
     "tooManyAttempts": "محاولات كثيرة جدًا. انتظر بضع دقائق ثم حاول مجددًا.",
     "slowDown": "أنت سريع قليلًا. انتظر لحظة ثم حاول مجددًا.",
     "wrongPassword": "هذه ليست كلمة مرورك الحالية",
-    "noPasswordToChange": "هذا الحساب يسجّل الدخول عبر Google وليس له كلمة مرور"
+    "noPasswordToChange": "هذا الحساب يسجّل الدخول عبر Google وليس له كلمة مرور",
+    "eventEnded": "انتهت هذه الفعالية",
+    "eventEndedHost": "انتهت هذه الفعالية. أعدها إلى «مباشر» من الإعدادات لتشغيل المسابقة."
   },
   "validation": {
     "codeRequired": "أدخل رمز الفعالية",
@@ -320,7 +322,12 @@
     "titleTooLong": "هذا الاسم طويل جدًا",
     "descriptionTooLong": "هذا الوصف طويل جدًا",
     "nicknameRequired": "أدخل اسمًا مستعارًا",
-    "nicknameTooLong": "هذا الاسم طويل جدًا"
+    "nicknameTooLong": "هذا الاسم طويل جدًا",
+    "questionRequired": "أضف سؤالًا",
+    "optionEmpty": "لا يمكن أن تكون الخيارات فارغة",
+    "answerEmpty": "لا يمكن أن تكون الإجابات فارغة",
+    "questionTooShort": "اكتب أكثر قليلًا",
+    "questionTooLong": "الأسئلة محدودة بـ 500 حرف"
   },
   "auth": {
     "signInTitle": "أهلًا بعودتك",

@@ -119,23 +119,25 @@ export default async function ParticipantEventPage({
     ? await getSurveyAnswers(interaction.id, participant.id)
     : {};
 
-  const quizView = isQuiz
-    ? await getParticipantQuizView(interaction.id, participant.id)
-    : null;
   // The board is only on screen between questions and at the end, so it is
   // only read then: not in the lobby, and not while a question is open,
-  // which is when every phone refetches at once. A phone shows the top of
-  // the board and its own place, read directly rather than found in a list
-  // that would otherwise have to hold every player.
-  const boardShown =
-    quizView !== null && quizView.phase !== 'lobby' && quizView.phase !== 'question';
-  const [leaderboard, standing] =
-    isQuiz && interaction && boardShown
-      ? await Promise.all([
-          getLeaderboard(interaction.id, PHONE_BOARD_SIZE),
-          getPlayerStanding(interaction.id, participant.id),
-        ])
-      : [[], null];
+  // which is when every phone refetches at once. Whether it will be shown is
+  // known from the interaction itself, so it is read alongside the quiz
+  // rather than after it. A phone shows the top of the board and its own
+  // place, read directly rather than found in a list that would otherwise
+  // have to hold every player.
+  const questionOpen =
+    interaction?.status === 'active' &&
+    (interaction.currentChildId === null || !interaction.answerRevealed);
+  const boardShown = isQuiz && !questionOpen;
+
+  const [quizView, leaderboard, standing] = isQuiz
+    ? await Promise.all([
+        getParticipantQuizView(interaction.id, participant.id),
+        boardShown ? getLeaderboard(interaction.id, PHONE_BOARD_SIZE) : [],
+        boardShown ? getPlayerStanding(interaction.id, participant.id) : null,
+      ])
+    : [null, [], null];
 
   const questions = isQa
     ? await listQuestions({

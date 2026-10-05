@@ -1,5 +1,7 @@
 'use server';
 
+import { messageKey } from '@/lib/validations/message';
+
 import { AuthError } from 'next-auth';
 import { getTranslations } from 'next-intl/server';
 import { eq } from 'drizzle-orm';
@@ -23,7 +25,7 @@ export async function signUpAction(input: unknown): Promise<ActionResult> {
 
   const parsed = signUpSchema.safeParse(input);
   if (!parsed.success) {
-    return { ok: false, error: t(parsed.error.issues[0]?.message ?? 'validation.emailInvalid') };
+    return { ok: false, error: t(messageKey(parsed.error, 'validation.emailInvalid')) };
   }
 
   const { name, email, password } = parsed.data;
@@ -84,7 +86,7 @@ export async function signInAction(
 
   const parsed = signInSchema.safeParse(input);
   if (!parsed.success) {
-    return { ok: false, error: t(parsed.error.issues[0]?.message ?? 'validation.emailInvalid') };
+    return { ok: false, error: t(messageKey(parsed.error, 'validation.emailInvalid')) };
   }
 
   try {

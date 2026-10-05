@@ -17,6 +17,7 @@ import {
 } from '@/lib/validations/interaction';
 import { publish } from '@/lib/realtime/server';
 import { channels, RealtimeEvent } from '@/lib/realtime/events';
+import { messageKey } from '@/lib/validations/message';
 import type { ActionResult } from './auth';
 
 type OwnedInteraction = { id: string; eventId: string; type: string };
@@ -97,7 +98,7 @@ export async function updateInteractionAction(input: unknown): Promise<ActionRes
 
   const parsed = updateInteractionSchema.safeParse(input);
   if (!parsed.success) {
-    return { ok: false, error: parsed.error.issues[0]?.message ?? 'Invalid details' };
+    return { ok: false, error: t(messageKey(parsed.error, 'validation.questionRequired')) };
   }
 
   const owned = await requireOwnedInteraction(parsed.data.interactionId, user.id);

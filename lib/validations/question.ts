@@ -5,8 +5,8 @@ export const askQuestionSchema = z.object({
   text: z
     .string()
     .trim()
-    .min(3, 'Write a bit more')
-    .max(500, 'Questions are limited to 500 characters'),
+    .min(3, 'validation.questionTooShort')
+    .max(500, 'validation.questionTooLong'),
   isAnonymous: z.boolean().default(false),
 });
 

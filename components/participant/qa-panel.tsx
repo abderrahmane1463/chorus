@@ -1,6 +1,5 @@
 'use client';
 
-import { useRouter } from 'next/navigation';
 import { useState, useTransition } from 'react';
 import { MessagesSquare } from 'lucide-react';
 import { useTranslations } from 'next-intl';
@@ -26,7 +25,6 @@ export function QaPanel({
   settings: InteractionSettings;
   questions: QuestionItem[];
 }) {
-  const router = useRouter();
   const t = useTranslations('qa');
   const [text, setText] = useState('');
   const [anonymous, setAnonymous] = useState(false);
@@ -45,10 +43,10 @@ export function QaPanel({
       });
       if (result.ok) {
         setText('');
+        // No refresh: the action's response already carries the updated page.
         toast.success(
           moderated ? t('sentForReview') : t('sent'),
         );
-        router.refresh();
       } else {
         toast.error(result.error);
       }
@@ -58,8 +56,8 @@ export function QaPanel({
   function upvote(questionId: string) {
     startTransition(async () => {
       const result = await toggleQuestionVoteAction({ questionId });
-      if (result.ok) router.refresh();
-      else toast.error(result.error);
+      // On success the action's response already carries the new count.
+      if (!result.ok) toast.error(result.error);
     });
   }
 

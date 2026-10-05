@@ -8,6 +8,7 @@ import { events, interactions, participants, questionVotes, questions } from '@/
 import { requireUser } from '@/lib/auth';
 import { readSessionId } from '@/lib/participant/session';
 import { take } from '@/lib/security/rate-limit';
+import { acceptsAudience } from '@/lib/utils/event-status';
 import {
   askQuestionSchema,
   moderateQuestionSchema,
@@ -15,6 +16,7 @@ import {
 } from '@/lib/validations/question';
 import { publish } from '@/lib/realtime/server';
 import { channels, RealtimeEvent } from '@/lib/realtime/events';
+import { messageKey } from '@/lib/validations/message';
 import type { ActionResult } from './auth';
 
 /**
@@ -54,7 +56,7 @@ export async function askQuestionAction(input: unknown): Promise<ActionResult> {
 
   const parsed = askQuestionSchema.safeParse(input);
   if (!parsed.success) {
-    return { ok: false, error: t(parsed.error.issues[0]?.message ?? 'errors.invalidQuestion') };
+    return { ok: false, error: t(messageKey(parsed.error, 'errors.invalidQuestion')) };
   }
 
   const context = await participantContext(parsed.data.interactionId);
@@ -65,7 +67,7 @@ export async function askQuestionAction(input: unknown): Promise<ActionResult> {
   if (!take('questionPerPlayer', context.participantId)) {
     return { ok: false, error: t('errors.slowDown') };
   }
-  if (context.eventStatus === 'archived') {
+  if (!acceptsAudience(context.eventStatus)) {
     return { ok: false, error: t('errors.eventClosed') };
   }
   if (context.status !== 'active') {
@@ -120,6 +122,7 @@ export async function toggleQuestionVoteAction(input: unknown): Promise<ActionRe
       settings: interactions.settings,
       eventId: events.id,
       eventCode: events.eventCode,
+      eventStatus: events.status,
       participantId: participants.id,
     })
     .from(questions)
@@ -133,6 +136,7 @@ export async function toggleQuestionVoteAction(input: unknown): Promise<ActionRe
     .limit(1);
 
   if (!target) return { ok: false, error: t('errors.notPartOfEvent') };
+  if (!acceptsAudience(target.eventStatus)) return { ok: false, error: t('errors.eventClosed') };
   if (!take('actionPerPlayer', target.participantId)) {
     return { ok: false, error: t('errors.slowDown') };
   }

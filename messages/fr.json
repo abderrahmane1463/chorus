@@ -306,7 +306,9 @@
     "tooManyAttempts": "Trop de tentatives. Attendez quelques minutes, puis réessayez.",
     "slowDown": "Vous allez un peu vite. Patientez un instant, puis réessayez.",
     "wrongPassword": "Ce n’est pas votre mot de passe actuel",
-    "noPasswordToChange": "Ce compte se connecte avec Google et n’a pas de mot de passe"
+    "noPasswordToChange": "Ce compte se connecte avec Google et n’a pas de mot de passe",
+    "eventEnded": "Cet événement est terminé",
+    "eventEndedHost": "Cet événement est terminé. Repassez-le en direct dans les paramètres pour lancer le quiz."
   },
   "validation": {
     "codeRequired": "Saisissez le code de l'événement",
@@ -320,7 +322,12 @@
     "titleTooLong": "Ce nom est trop long",
     "descriptionTooLong": "Cette description est trop longue",
     "nicknameRequired": "Saisissez un pseudo",
-    "nicknameTooLong": "Ce pseudo est trop long"
+    "nicknameTooLong": "Ce pseudo est trop long",
+    "questionRequired": "Ajoutez une question",
+    "optionEmpty": "Les options ne peuvent pas être vides",
+    "answerEmpty": "Les réponses ne peuvent pas être vides",
+    "questionTooShort": "Écrivez un peu plus",
+    "questionTooLong": "Les questions sont limitées à 500 caractères"
   },
   "auth": {
     "signInTitle": "Bon retour",

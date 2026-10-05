@@ -12,6 +12,7 @@ import { getInteractionMeta, SURVEY_CHILD_TYPES } from '@/lib/interactions/regis
 import { publish } from '@/lib/realtime/server';
 import { channels, RealtimeEvent } from '@/lib/realtime/events';
 import { interactionSettingsSchema } from '@/lib/validations/interaction';
+import { messageKey } from '@/lib/validations/message';
 import type { ActionResult } from './auth';
 
 const addSurveyQuestionSchema = z.object({
@@ -21,7 +22,7 @@ const addSurveyQuestionSchema = z.object({
 
 const saveSurveyQuestionSchema = z.object({
   questionId: z.string().uuid(),
-  title: z.string().trim().min(1, 'Add a question').max(300),
+  title: z.string().trim().min(1, 'validation.questionRequired').max(300),
   settings: interactionSettingsSchema,
   options: z
     .array(
@@ -86,7 +87,7 @@ export async function saveSurveyQuestionAction(input: unknown): Promise<ActionRe
 
   const parsed = saveSurveyQuestionSchema.safeParse(input);
   if (!parsed.success) {
-    return { ok: false, error: t(parsed.error.issues[0]?.message ?? 'errors.invalidQuestion') };
+    return { ok: false, error: t(messageKey(parsed.error, 'errors.invalidQuestion')) };
   }
 
   // Ownership runs through the child's event, same as every other interaction.

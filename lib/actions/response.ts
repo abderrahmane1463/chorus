@@ -13,6 +13,7 @@ import {
 } from '@/db/schema';
 import { readSessionId } from '@/lib/participant/session';
 import { take } from '@/lib/security/rate-limit';
+import { acceptsAudience } from '@/lib/utils/event-status';
 import { maxEntriesFor } from '@/lib/interactions/registry';
 import { normalizeWord } from '@/lib/interactions/normalize';
 import { submitResponseSchema } from '@/lib/validations/interaction';
@@ -68,7 +69,7 @@ export async function submitResponseAction(input: unknown): Promise<ActionResult
   if (!take('actionPerPlayer', context.participantId)) {
     return { ok: false, error: t('errors.slowDown') };
   }
-  if (context.eventStatus === 'archived') {
+  if (!acceptsAudience(context.eventStatus)) {
     return { ok: false, error: t('errors.eventClosed') };
   }
   // Survey questions are children and are never "active" themselves; what

@@ -17,6 +17,7 @@ import {
 } from '@/lib/validations/event';
 import { publish } from '@/lib/realtime/server';
 import { channels, RealtimeEvent } from '@/lib/realtime/events';
+import { messageKey } from '@/lib/validations/message';
 import type { ActionResult } from './auth';
 
 const MAX_CODE_ATTEMPTS = 10;
@@ -34,7 +35,7 @@ export async function createEventAction(input: unknown): Promise<ActionResult> {
 
   const parsed = createEventSchema.safeParse(input);
   if (!parsed.success) {
-    return { ok: false, error: parsed.error.issues[0]?.message ?? 'Invalid details' };
+    return { ok: false, error: t(messageKey(parsed.error, 'validation.titleRequired')) };
   }
 
   const description = parsed.data.description?.trim() || null;
@@ -77,7 +78,7 @@ export async function updateEventAction(input: unknown): Promise<ActionResult> {
 
   const parsed = updateEventSchema.safeParse(input);
   if (!parsed.success) {
-    return { ok: false, error: parsed.error.issues[0]?.message ?? 'Invalid details' };
+    return { ok: false, error: t(messageKey(parsed.error, 'validation.titleRequired')) };
   }
 
   const owned = await assertEventOwner(parsed.data.eventId, user.id);

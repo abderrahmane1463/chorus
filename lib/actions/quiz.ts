@@ -40,7 +40,9 @@ import {
   showQuestion,
 } from '@/lib/quiz/flow';
 import { quizPacing } from '@/lib/quiz/pacing';
+import { acceptsAudience } from '@/lib/utils/event-status';
 import { RealtimeEvent } from '@/lib/realtime/events';
+import { messageKey } from '@/lib/validations/message';
 import type { ActionResult } from './auth';
 
 /** A question and its quiz live in the same table; this names the quiz side of a join. */
@@ -101,7 +103,7 @@ export async function saveQuizQuestionAction(input: unknown): Promise<ActionResu
 
   const parsed = saveQuizQuestionSchema.safeParse(input);
   if (!parsed.success) {
-    return { ok: false, error: t(parsed.error.issues[0]?.message ?? 'errors.invalidQuestion') };
+    return { ok: false, error: t(messageKey(parsed.error, 'errors.invalidQuestion')) };
   }
 
   const filled = parsed.data.options.filter((o) => o.text.trim().length > 0);
@@ -221,6 +223,20 @@ export async function controlQuizAction(input: unknown): Promise<ActionResult> {
   const owned = await assertQuizOwner(parsed.data.quizId, user.id);
   if (!owned) return { ok: false, error: t('errors.quizNotFound') };
 
+  // A quiz run in an ended event would show questions nobody can answer.
+  // Moving on and finishing stay allowed, to wind a run down.
+  const startsRun = ['open', 'start', 'restart'].includes(parsed.data.action);
+  if (startsRun) {
+    const [event] = await db
+      .select({ status: events.status })
+      .from(events)
+      .where(eq(events.id, owned.eventId))
+      .limit(1);
+    if (event && !acceptsAudience(event.status)) {
+      return { ok: false, error: t('errors.eventEndedHost') };
+    }
+  }
+
   const quiz = await getQuizDetail(owned.id);
   if (!quiz) return { ok: false, error: t('errors.quizNotFound') };
 
@@ -332,6 +348,7 @@ export async function submitQuizAnswerAction(input: unknown): Promise<ActionResu
         startedAt: interactions.startedAt,
         eventId: events.id,
         eventCode: events.eventCode,
+        eventStatus: events.status,
         participantId: participants.id,
       })
       .from(interactions)
@@ -363,6 +380,7 @@ export async function submitQuizAnswerAction(input: unknown): Promise<ActionResu
   ]);
 
   if (!context?.parentId) return { ok: false, error: t('errors.notQuizQuestion') };
+  if (!acceptsAudience(context.eventStatus)) return { ok: false, error: t('errors.eventClosed') };
 
   // The quiz must be running and showing exactly this question.
   if (!quiz || quiz.status !== 'active') {

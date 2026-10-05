@@ -4,13 +4,13 @@ export const quizIdSchema = z.object({ quizId: z.string().uuid() });
 
 export const quizQuestionOptionSchema = z.object({
   id: z.string().uuid().optional(),
-  text: z.string().trim().min(1, 'Answers cannot be empty').max(160),
+  text: z.string().trim().min(1, 'validation.answerEmpty').max(160),
   isCorrect: z.boolean(),
 });
 
 export const saveQuizQuestionSchema = z.object({
   questionId: z.string().uuid(),
-  title: z.string().trim().min(1, 'Add a question').max(300),
+  title: z.string().trim().min(1, 'validation.questionRequired').max(300),
   timeLimitSeconds: z.number().int().min(5).max(180),
   points: z.number().int().min(100).max(5000),
   speedBonus: z.boolean(),

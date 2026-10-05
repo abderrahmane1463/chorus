@@ -445,27 +445,27 @@ export async function getParticipantQuizView(
   quizId: string,
   participantId: string,
 ): Promise<ParticipantQuizView | null> {
-  const quiz = await getQuizForPlayer(quizId);
-  if (!quiz) return null;
+  // Everything a phone needs, asked in one round trip. The answer and the
+  // player count are keyed on the quiz through subqueries, rather than
+  // waiting to learn the question and the event first: at a reveal every
+  // phone renders this at the same moment, and each round trip saved is one
+  // the whole room stops waiting for.
+  const [quiz, [answer], [score], [{ playerCount }]] = await Promise.all([
+    getQuizForPlayer(quizId),
 
-  const current = quiz.questions.find((q) => q.id === quiz.currentChildId) ?? null;
-  const questionNumber = current
-    ? quiz.questions.findIndex((q) => q.id === current.id) + 1
-    : null;
-
-  const [[answer], [score], [{ playerCount }]] = await Promise.all([
-    current
-      ? db
-          .select({ data: responses.responseData })
-          .from(responses)
-          .where(
-            and(
-              eq(responses.interactionId, current.id),
-              eq(responses.participantId, participantId),
-            ),
-          )
-          .limit(1)
-      : [],
+    db
+      .select({ questionId: responses.interactionId, data: responses.responseData })
+      .from(responses)
+      .where(
+        and(
+          eq(
+            responses.interactionId,
+            sql`(select ${interactions.currentChildId} from ${interactions} where ${interactions.id} = ${quizId})`,
+          ),
+          eq(responses.participantId, participantId),
+        ),
+      )
+      .limit(1),
 
     db
       .select({ score: quizScores.score, correctAnswers: quizScores.correctAnswers })
@@ -478,11 +478,28 @@ export async function getParticipantQuizView(
     db
       .select({ playerCount: count() })
       .from(participants)
-      .where(and(eq(participants.eventId, quiz.eventId), isPresent)),
+      .where(
+        and(
+          eq(
+            participants.eventId,
+            sql`(select ${interactions.eventId} from ${interactions} where ${interactions.id} = ${quizId})`,
+          ),
+          isPresent,
+        ),
+      ),
   ]);
 
+  if (!quiz) return null;
+
+  const current = quiz.questions.find((q) => q.id === quiz.currentChildId) ?? null;
+  const questionNumber = current
+    ? quiz.questions.findIndex((q) => q.id === current.id) + 1
+    : null;
+
+  // Only this question's answer: if the quiz moved on between the reads,
+  // an answer to the previous question must not show as one to this.
   const myAnswer: ParticipantQuizView['myAnswer'] =
-    answer && answer.data.kind === 'quiz'
+    answer && current && answer.questionId === current.id && answer.data.kind === 'quiz'
       ? {
           optionIds: answer.data.optionIds,
           correct: answer.data.correct,
