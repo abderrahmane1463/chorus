@@ -1,5 +1,6 @@
 'use client';
 
+import Image from 'next/image';
 import { motion, useTransform, type MotionValue } from 'framer-motion';
 import { useTranslations } from 'next-intl';
 import { BarChart3, CalendarDays, LayoutList, MessagesSquare, MonitorPlay, Users } from 'lucide-react';
@@ -176,12 +177,9 @@ function Spoke({
   );
 }
 
-/**
- * 08 — The name, and who stands behind it. Sense Conseil's logo is shown
- * from its own file when one is in `public/brand`; until then, its name.
- */
-export function BrandScene({ time, layout, partnerLogo }: SceneProps & { partnerLogo: string | null }) {
-  const t = useTranslations('explainer');
+/** 08 — The name, and who stands behind it: Sense Conseil, from its own logo. */
+export function BrandScene({ time, layout }: SceneProps) {
+  const t = useTranslations('brand');
   const wide = layout === 'wide';
   const powered = useEnter(time, 50.3, { rise: 14 });
   const logo = useEnter(time, 50.7, { rise: 14 });
@@ -209,16 +207,16 @@ export function BrandScene({ time, layout, partnerLogo }: SceneProps & { partner
         >
           {t('poweredBy')}
         </motion.p>
-        <motion.div className="mt-6 flex h-[84px] items-center" style={logo}>
-          {partnerLogo ? (
-            // A plain image: the logo is the partner's own file, shown as it is.
-            // eslint-disable-next-line @next/next/no-img-element
-            <img src={partnerLogo} alt="Sense Conseil" className="h-full w-auto object-contain" />
-          ) : (
-            <span dir="ltr" className="text-[44px] font-semibold tracking-tight text-foreground">
-              Sense Conseil
-            </span>
-          )}
+        <motion.div className="mt-7" style={logo}>
+          <Image
+            src="/brand/sense-on-dark.png"
+            alt="Sense Conseil"
+            width={787}
+            height={149}
+            sizes="640px"
+            className="w-auto"
+            style={{ height: wide ? 60 : 72 }}
+          />
         </motion.div>
       </motion.div>
     </Scene>

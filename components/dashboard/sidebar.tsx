@@ -70,7 +70,7 @@ export function DashboardSidebar({ user }: { user: User }) {
         <Link href="/dashboard" aria-label={t('dashboardHome')}>
           <Logo />
         </Link>
-        <div className="ms-auto">
+        <div className="ms-auto min-w-0">
           <UserMenu user={user} />
         </div>
       </div>

@@ -941,8 +941,10 @@
     "pieceDisplay": "Live display",
     "pieceData": "Data",
     "oneEvent": "One event.",
-    "poweredBy": "Powered by",
     "joinedLabel": "joined",
     "pointsLabel": "points"
+  },
+  "brand": {
+    "poweredBy": "Powered by"
   }
 }

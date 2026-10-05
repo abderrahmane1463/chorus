@@ -16,6 +16,6 @@ const Explainer = dynamic(() => import('./explainer').then((module) => module.Ex
   ),
 });
 
-export function LazyExplainer({ partnerLogo }: { partnerLogo: string | null }) {
-  return <Explainer partnerLogo={partnerLogo} />;
+export function LazyExplainer() {
+  return <Explainer />;
 }

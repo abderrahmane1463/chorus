@@ -941,8 +941,10 @@
     "pieceDisplay": "الشاشة المباشرة",
     "pieceData": "البيانات",
     "oneEvent": "فعالية واحدة.",
-    "poweredBy": "مدعوم من",
     "joinedLabel": "منضمًا",
     "pointsLabel": "نقطة"
+  },
+  "brand": {
+    "poweredBy": "مدعوم من"
   }
 }

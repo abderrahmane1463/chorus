@@ -941,8 +941,10 @@
     "pieceDisplay": "Écran en direct",
     "pieceData": "Données",
     "oneEvent": "Un événement.",
-    "poweredBy": "Propulsé par",
     "joinedLabel": "inscrits",
     "pointsLabel": "points"
+  },
+  "brand": {
+    "poweredBy": "Propulsé par"
   }
 }

@@ -23,7 +23,7 @@ const TALL_BELOW = 600;
  * while it is on screen, loops, and stops when scrolled past. With reduced
  * motion it shows its closing frame and waits to be played.
  */
-export function Explainer({ partnerLogo }: { partnerLogo: string | null }) {
+export function Explainer() {
   const t = useTranslations('explainer');
   const reduced = useReducedMotion() ?? false;
   const frame = useRef<HTMLDivElement>(null);
@@ -87,7 +87,7 @@ export function Explainer({ partnerLogo }: { partnerLogo: string | null }) {
             <LiveScene time={time} layout={layout} />
             <OrganizerScene time={time} layout={layout} />
             <BigPictureScene time={time} layout={layout} />
-            <BrandScene time={time} layout={layout} partnerLogo={partnerLogo} />
+            <BrandScene time={time} layout={layout} />
           </div>
         )}
       </div>
