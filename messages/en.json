@@ -13,7 +13,7 @@
     "pricing": "Pricing",
     "join": "Join an event",
     "signIn": "Sign in",
-    "getStarted": "Get started free",
+    "getStarted": "Get started",
     "privacy": "Privacy",
     "menu": "Menu"
   },
@@ -111,8 +111,8 @@
       }
     },
     "pricing": {
-      "title": "Free while it is yours",
-      "body": "This is a self-hosted Chorus instance. Unlimited events, unlimited participants, every interaction type. The only limit is your database.",
+      "title": "Pricing coming soon",
+      "body": "Plans and pricing for Chorus will be announced soon.",
       "cta": "Create your first event"
     }
   },
@@ -333,7 +333,7 @@
     "signInTitle": "Welcome back",
     "signInSubtitle": "Sign in to run your events.",
     "signUpTitle": "Create your account",
-    "signUpSubtitle": "Free, and your audience never needs one.",
+    "signUpSubtitle": "Your audience never needs one.",
     "name": "Name",
     "namePlaceholder": "Amine Cherfaoui",
     "email": "Email",

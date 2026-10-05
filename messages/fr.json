@@ -13,7 +13,7 @@
     "pricing": "Tarifs",
     "join": "Rejoindre un événement",
     "signIn": "Se connecter",
-    "getStarted": "Commencer gratuitement",
+    "getStarted": "Commencer",
     "privacy": "Confidentialité",
     "menu": "Menu"
   },
@@ -111,8 +111,8 @@
       }
     },
     "pricing": {
-      "title": "Gratuit, parce qu'il est à vous",
-      "body": "Cette instance de Chorus est hébergée par vous. Événements illimités, participants illimités, tous les types d'interaction. La seule limite est votre base de données.",
+      "title": "Tarifs bientôt disponibles",
+      "body": "Les offres et les tarifs de Chorus seront annoncés prochainement.",
       "cta": "Créer votre premier événement"
     }
   },
@@ -333,7 +333,7 @@
     "signInTitle": "Bon retour",
     "signInSubtitle": "Connectez-vous pour animer vos événements.",
     "signUpTitle": "Créez votre compte",
-    "signUpSubtitle": "Gratuit, et votre public n’en a jamais besoin.",
+    "signUpSubtitle": "Votre public n’en a jamais besoin.",
     "name": "Nom",
     "namePlaceholder": "Amine Cherfaoui",
     "email": "E-mail",
