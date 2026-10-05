@@ -9,6 +9,7 @@ import { ensureSessionId, readSessionId } from '@/lib/participant/session';
 import { normalizeEventCode } from '@/lib/utils/event-code';
 import { joinEventSchema, nicknameSchema } from '@/lib/validations/user';
 import { seenNow } from '@/lib/queries/presence';
+import { callerAddress, take } from '@/lib/security/rate-limit';
 import { publish } from '@/lib/realtime/server';
 import { channels, RealtimeEvent } from '@/lib/realtime/events';
 import type { ActionResult } from './auth';
@@ -28,6 +29,10 @@ export async function joinEventAction(input: unknown): Promise<ActionResult> {
   const parsed = joinEventSchema.safeParse(input);
   if (!parsed.success) {
     return { ok: false, error: t(parsed.error.issues[0]?.message ?? 'validation.codeRequired') };
+  }
+
+  if (!take('joinPerAddress', await callerAddress())) {
+    return { ok: false, error: t('errors.tooManyAttempts') };
   }
 
   const code = normalizeEventCode(parsed.data.code);
@@ -102,6 +107,7 @@ export async function setNicknameAction(input: unknown): Promise<ActionResult> {
 
   const sessionId = await readSessionId();
   if (!sessionId) return { ok: false, error: t('errors.notPartOfEvent') };
+  if (!take('actionPerPlayer', sessionId)) return { ok: false, error: t('errors.slowDown') };
 
   const updated = await db
     .update(participants)

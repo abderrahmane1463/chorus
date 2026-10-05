@@ -3,6 +3,7 @@ import { db } from '@/lib/db';
 import { participants } from '@/db/schema';
 import { readSessionId } from '@/lib/participant/session';
 import { seenNow } from '@/lib/queries/presence';
+import { take } from '@/lib/security/rate-limit';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -29,6 +30,7 @@ export async function POST(
 
   const sessionId = await readSessionId();
   if (!sessionId) return new Response(null, { status: 401 });
+  if (!take('presencePerPlayer', sessionId)) return new Response(null, { status: 429 });
 
   const touched = await db
     .update(participants)

@@ -26,11 +26,42 @@ const allowedOrigins = [
     .filter(Boolean) ?? []),
 ];
 
+/**
+ * Headers sent with every response.
+ *
+ * - HSTS: once a browser has seen the site over HTTPS, it never tries plain
+ *   HTTP again, so nobody on the venue's Wi-Fi can serve it a fake copy.
+ *   Browsers ignore it over plain HTTP, so local development is unaffected.
+ * - Framing refused: no other site can show Chorus inside its own page and
+ *   trick a host into clicking Delete or Start on it.
+ * - nosniff: a file is only ever treated as the type it was sent as.
+ * - Referrer: other sites learn which site a visitor came from, never the
+ *   page, which would include an event's join code.
+ * - Permissions: the app never needs the camera, microphone or location,
+ *   so no page of it can ask for them.
+ *
+ * No full content policy: Next.js and the theme script rely on inline
+ * scripts, and a policy that blocked them would break every page.
+ */
+const securityHeaders = [
+  { key: 'Strict-Transport-Security', value: 'max-age=15552000; includeSubDomains' },
+  { key: 'X-Frame-Options', value: 'DENY' },
+  { key: 'Content-Security-Policy', value: "frame-ancestors 'none'; base-uri 'self'; object-src 'none'" },
+  { key: 'X-Content-Type-Options', value: 'nosniff' },
+  { key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' },
+  { key: 'Permissions-Policy', value: 'camera=(), microphone=(), geolocation=(), payment=()' },
+];
+
 const nextConfig = {
+  // Do not announce the framework and version to every visitor.
+  poweredByHeader: false,
   experimental: {
     serverActions: {
       allowedOrigins,
     },
+  },
+  async headers() {
+    return [{ source: '/:path*', headers: securityHeaders }];
   },
 };
 

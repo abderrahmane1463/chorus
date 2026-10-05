@@ -302,7 +302,11 @@
     "noPlayersYet": "Wait for at least one player to join before starting.",
     "invalidDesign": "That design is not valid",
     "imageMissing": "One of the images is missing. Upload it again.",
-    "participantNotFound": "That player is no longer in the room"
+    "participantNotFound": "That player is no longer in the room",
+    "tooManyAttempts": "Too many attempts. Wait a few minutes, then try again.",
+    "slowDown": "You are going a little fast. Wait a moment, then try again.",
+    "wrongPassword": "That is not your current password",
+    "noPasswordToChange": "This account signs in with Google and has no password"
   },
   "validation": {
     "codeRequired": "Enter the event code",
@@ -441,7 +445,9 @@
   "settingsPage": {
     "title": "Settings",
     "description": "Your account details.",
-    "profile": "Profile"
+    "profile": "Profile",
+    "password": "Password",
+    "googleOnly": "You sign in with Google, so this account has no password to change."
   },
   "profile": {
     "displayName": "Display name",
@@ -861,12 +867,20 @@
     "errorNotImage": "That file is not an image the browser can read.",
     "errorTooLarge": "That image is too large, even after resizing. Try a smaller one.",
     "errorTooMany": "Too many images are waiting. Save the design, then add more.",
-    "partnerPlate": "White plate behind partner logos"
+    "partnerPlate": "White plate behind partner logos",
+    "errorSlowDown": "Too many uploads in a short time. Wait a few minutes, then try again."
   },
   "players": {
     "anonymous": "Anonymous",
     "remove": "Remove {name}",
     "confirmRemove": "Confirm: remove {name}",
     "removed": "{name} was removed"
+  },
+  "passwordForm": {
+    "current": "Current password",
+    "new": "New password",
+    "hint": "At least 8 characters.",
+    "save": "Change password",
+    "changed": "Password changed"
   }
 }

@@ -3,6 +3,7 @@ import { db } from '@/lib/db';
 import { eventAssets } from '@/db/schema';
 import { auth } from '@/lib/auth';
 import { assertEventOwner } from '@/lib/queries/events';
+import { take } from '@/lib/security/rate-limit';
 import {
   ASSET_KINDS,
   ASSET_LIMITS,
@@ -48,6 +49,8 @@ export async function POST(
 ) {
   const session = await auth();
   if (!session?.user?.id) return refuse(401, 'unauthorised');
+
+  if (!take('uploadPerHost', session.user.id)) return refuse(429, 'slow-down');
 
   const { eventId } = await params;
   const owned = await assertEventOwner(eventId, session.user.id);

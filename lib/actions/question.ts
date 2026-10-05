@@ -7,6 +7,7 @@ import { db } from '@/lib/db';
 import { events, interactions, participants, questionVotes, questions } from '@/db/schema';
 import { requireUser } from '@/lib/auth';
 import { readSessionId } from '@/lib/participant/session';
+import { take } from '@/lib/security/rate-limit';
 import {
   askQuestionSchema,
   moderateQuestionSchema,
@@ -59,6 +60,11 @@ export async function askQuestionAction(input: unknown): Promise<ActionResult> {
   const context = await participantContext(parsed.data.interactionId);
   if (!context) return { ok: false, error: t('errors.notPartOfEvent') };
   if (context.type !== 'q_and_a') return { ok: false, error: t('errors.notQa') };
+  // One person cannot fill the room's list: a few questions a minute is
+  // plenty for anyone actually asking.
+  if (!take('questionPerPlayer', context.participantId)) {
+    return { ok: false, error: t('errors.slowDown') };
+  }
   if (context.eventStatus === 'archived') {
     return { ok: false, error: t('errors.eventClosed') };
   }
@@ -127,6 +133,9 @@ export async function toggleQuestionVoteAction(input: unknown): Promise<ActionRe
     .limit(1);
 
   if (!target) return { ok: false, error: t('errors.notPartOfEvent') };
+  if (!take('actionPerPlayer', target.participantId)) {
+    return { ok: false, error: t('errors.slowDown') };
+  }
   if ((target.settings.allowUpvotes ?? true) === false) {
     return { ok: false, error: t('errors.upvotesOff') };
   }

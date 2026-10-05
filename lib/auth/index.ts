@@ -8,6 +8,7 @@ import { db, getDb } from '@/lib/db';
 import { accounts, sessions, users, verificationTokens } from '@/db/schema';
 import { signInSchema } from '@/lib/validations/auth';
 import { verifyPassword } from './password';
+import { clientAddress, take } from '@/lib/security/rate-limit';
 import { authConfig } from './config';
 
 /**
@@ -42,9 +43,20 @@ export const { handlers, auth, signIn, signOut } = NextAuth(() => ({
         email: { label: 'Email', type: 'email' },
         password: { label: 'Password', type: 'password' },
       },
-      async authorize(credentials) {
+      async authorize(credentials, request) {
         const parsed = signInSchema.safeParse(credentials);
         if (!parsed.success) return null;
+
+        // Checked here, where every password attempt passes, and not only in
+        // the sign-in form's action: Auth.js's own endpoint takes attempts
+        // directly, and a limit placed only in the form would not see those.
+        // Counted per account and per address, so guessing one account from
+        // many places and many accounts from one place are both slowed.
+        const address = clientAddress(request.headers);
+        const allowed =
+          take('signInPerAccount', parsed.data.email) &&
+          take('signInPerAddress', address);
+        if (!allowed) return null;
 
         const [user] = await db
           .select()

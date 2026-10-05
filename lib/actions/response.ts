@@ -12,6 +12,7 @@ import {
   responses,
 } from '@/db/schema';
 import { readSessionId } from '@/lib/participant/session';
+import { take } from '@/lib/security/rate-limit';
 import { maxEntriesFor } from '@/lib/interactions/registry';
 import { normalizeWord } from '@/lib/interactions/normalize';
 import { submitResponseSchema } from '@/lib/validations/interaction';
@@ -64,6 +65,9 @@ export async function submitResponseAction(input: unknown): Promise<ActionResult
   // No row means the interaction does not exist, or this session never joined
   // that event. Both are "you cannot answer this".
   if (!context) return { ok: false, error: t('errors.notPartOfEvent') };
+  if (!take('actionPerPlayer', context.participantId)) {
+    return { ok: false, error: t('errors.slowDown') };
+  }
   if (context.eventStatus === 'archived') {
     return { ok: false, error: t('errors.eventClosed') };
   }

@@ -18,3 +18,14 @@ export const signInSchema = z.object({
 
 export type SignUpInput = z.infer<typeof signUpSchema>;
 export type SignInInput = z.infer<typeof signInSchema>;
+
+/** A signed-in host replacing their password. */
+export const changePasswordSchema = z.object({
+  currentPassword: z.string().min(1, 'validation.passwordRequired'),
+  newPassword: z
+    .string()
+    .min(8, 'validation.passwordTooShort')
+    .max(200, 'validation.passwordTooLong'),
+});
+
+export type ChangePasswordInput = z.infer<typeof changePasswordSchema>;

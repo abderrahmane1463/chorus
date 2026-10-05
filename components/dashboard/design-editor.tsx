@@ -43,10 +43,14 @@ const SWATCHES = [
   '#16a34a',
 ];
 
-const UPLOAD_ERRORS: Record<string, 'errorTooLarge' | 'errorNotImage' | 'errorTooMany'> = {
+const UPLOAD_ERRORS: Record<
+  string,
+  'errorTooLarge' | 'errorNotImage' | 'errorTooMany' | 'errorSlowDown'
+> = {
   'too-large': 'errorTooLarge',
   'not-an-image': 'errorNotImage',
   'too-many': 'errorTooMany',
+  'slow-down': 'errorSlowDown',
 };
 
 export function DesignEditor({

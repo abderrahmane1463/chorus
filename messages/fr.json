@@ -302,7 +302,11 @@
     "noPlayersYet": "Attendez qu’au moins un joueur rejoigne avant de démarrer.",
     "invalidDesign": "Ce design n’est pas valide",
     "imageMissing": "Une des images est introuvable. Importez-la à nouveau.",
-    "participantNotFound": "Ce joueur n’est plus dans la salle"
+    "participantNotFound": "Ce joueur n’est plus dans la salle",
+    "tooManyAttempts": "Trop de tentatives. Attendez quelques minutes, puis réessayez.",
+    "slowDown": "Vous allez un peu vite. Patientez un instant, puis réessayez.",
+    "wrongPassword": "Ce n’est pas votre mot de passe actuel",
+    "noPasswordToChange": "Ce compte se connecte avec Google et n’a pas de mot de passe"
   },
   "validation": {
     "codeRequired": "Saisissez le code de l'événement",
@@ -441,7 +445,9 @@
   "settingsPage": {
     "title": "Paramètres",
     "description": "Les informations de votre compte.",
-    "profile": "Profil"
+    "profile": "Profil",
+    "password": "Mot de passe",
+    "googleOnly": "Vous vous connectez avec Google : ce compte n’a pas de mot de passe à modifier."
   },
   "profile": {
     "displayName": "Nom affiché",
@@ -861,12 +867,20 @@
     "errorNotImage": "Ce fichier n’est pas une image lisible par le navigateur.",
     "errorTooLarge": "Cette image est trop lourde, même redimensionnée. Essayez-en une plus petite.",
     "errorTooMany": "Trop d’images en attente. Enregistrez le design, puis ajoutez-en d’autres.",
-    "partnerPlate": "Fond blanc derrière les logos des partenaires"
+    "partnerPlate": "Fond blanc derrière les logos des partenaires",
+    "errorSlowDown": "Trop d’envois en peu de temps. Attendez quelques minutes, puis réessayez."
   },
   "players": {
     "anonymous": "Anonyme",
     "remove": "Retirer {name}",
     "confirmRemove": "Confirmer : retirer {name}",
     "removed": "{name} a été retiré"
+  },
+  "passwordForm": {
+    "current": "Mot de passe actuel",
+    "new": "Nouveau mot de passe",
+    "hint": "Au moins 8 caractères.",
+    "save": "Changer le mot de passe",
+    "changed": "Mot de passe changé"
   }
 }

@@ -8,6 +8,7 @@ import { users } from '@/db/schema';
 import { signIn } from '@/lib/auth';
 import { hashPassword } from '@/lib/auth/password';
 import { signInSchema, signUpSchema } from '@/lib/validations/auth';
+import { callerAddress, exhausted, take } from '@/lib/security/rate-limit';
 
 export type ActionResult = { ok: true } | { ok: false; error: string };
 
@@ -26,6 +27,10 @@ export async function signUpAction(input: unknown): Promise<ActionResult> {
   }
 
   const { name, email, password } = parsed.data;
+
+  if (!take('signUpPerAddress', await callerAddress())) {
+    return { ok: false, error: t('errors.tooManyAttempts') };
+  }
 
   const [existing] = await db
     .select({ id: users.id })
@@ -90,7 +95,12 @@ export async function signInAction(
     });
   } catch (error) {
     if (error instanceof AuthError) {
-      return { ok: false, error: t('auth.badCredentials') };
+      // The attempt was refused either way; say which, so someone locked out
+      // by too many tries does not keep retrying a password that is right.
+      const lockedOut =
+        exhausted('signInPerAccount', parsed.data.email) ||
+        exhausted('signInPerAddress', await callerAddress());
+      return { ok: false, error: t(lockedOut ? 'errors.tooManyAttempts' : 'auth.badCredentials') };
     }
     throw error;
   }
