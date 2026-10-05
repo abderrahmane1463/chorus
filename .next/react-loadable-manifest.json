@@ -1,0 +1,26 @@
+{
+  "components/analytics/lazy-charts.tsx -> ./charts": {
+    "id": 50765,
+    "files": [
+      "static/chunks/2028.fbf7f315944d41d1.js",
+      "static/chunks/765.dbeff6e210ea3646.js"
+    ]
+  },
+  "components/marketing/explainer/lazy-explainer.tsx -> ./explainer": {
+    "id": 89546,
+    "files": [
+      "static/chunks/9714-1b443cdafba8f736.js",
+      "static/chunks/4185-c9838273236e7898.js",
+      "static/chunks/8437-5e456dd2e7c2468a.js",
+      "static/chunks/1055-4b8b59a8aec4c808.js",
+      "static/chunks/7273-fe878b5b145cf0fc.js",
+      "static/chunks/9546.c686fbefc63338e3.js"
+    ]
+  },
+  "lib/realtime/client.ts -> pusher-js": {
+    "id": 9620,
+    "files": [
+      "static/chunks/9620.e7111dd170afab1e.js"
+    ]
+  }
+}
