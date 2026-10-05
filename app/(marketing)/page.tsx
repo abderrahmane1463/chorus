@@ -9,7 +9,7 @@ import {
   Trophy,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { HeroPreview } from '@/components/marketing/hero-preview';
+import { ExplainerSection } from '@/components/marketing/explainer/explainer-section';
 
 // Keys, not copy: the icon and the order live here, the words in messages/.
 const features = [
@@ -50,7 +50,7 @@ export default async function LandingPage() {
         </div>
 
         <div className="mt-14">
-          <HeroPreview />
+          <ExplainerSection />
         </div>
       </section>
 
