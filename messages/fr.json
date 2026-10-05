@@ -813,7 +813,10 @@
     "correctAnswer": "{count, plural, one {Bonne réponse :} other {Bonnes réponses :}}",
     "playAgain": "Rejouer",
     "exit": "Quitter",
-    "startNeedsPlayer": "Le démarrage se débloque quand le premier joueur rejoint."
+    "startNeedsPlayer": "Le démarrage se débloque quand le premier joueur rejoint.",
+    "revealAnswer": "Révéler la réponse",
+    "nextQuestion": "Question suivante",
+    "showResults": "Voir les résultats"
   },
   "design": {
     "metaTitle": "Design · {title}",

@@ -813,7 +813,10 @@
     "correctAnswer": "{count, plural, one {الإجابة الصحيحة:} other {الإجابات الصحيحة:}}",
     "playAgain": "العب مجددًا",
     "exit": "خروج",
-    "startNeedsPlayer": "يُفتح زر البدء عند انضمام أول لاعب."
+    "startNeedsPlayer": "يُفتح زر البدء عند انضمام أول لاعب.",
+    "revealAnswer": "إظهار الإجابة",
+    "nextQuestion": "السؤال التالي",
+    "showResults": "عرض النتائج"
   },
   "design": {
     "metaTitle": "التصميم · {title}",

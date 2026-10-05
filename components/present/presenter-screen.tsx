@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useEffect, useState, useTransition } from 'react';
+import { useEffect, useRef, useState, useTransition } from 'react';
 import { QRCodeSVG } from 'qrcode.react';
 import {
   ChevronLeft,
@@ -20,6 +20,7 @@ import { QuizStage } from './quiz-stage';
 import { useEventSync } from '@/hooks/use-event-sync';
 import { channels } from '@/lib/realtime/events';
 import { setInteractionStatusAction } from '@/lib/actions/interaction';
+import { controlQuizAction } from '@/lib/actions/quiz';
 import type {
   InteractionDetail,
   InteractionListItem,
@@ -33,6 +34,15 @@ import { BrandLogo, BrandStyle, PartnerLogos } from '@/components/branding/brand
 import { assetUrl } from '@/lib/branding/templates';
 import { cn } from '@/lib/utils/cn';
 import type { EventBranding } from '@/types/branding';
+
+type QuizStep = 'start' | 'reveal' | 'next' | 'finish';
+
+const QUIZ_STEP_LABELS = {
+  start: 'startQuiz',
+  reveal: 'revealAnswer',
+  next: 'nextQuestion',
+  finish: 'showResults',
+} as const satisfies Record<QuizStep, string>;
 
 export function PresenterScreen({
   eventId,
@@ -122,6 +132,77 @@ export function PresenterScreen({
       else toast.error(result.error);
     });
   }
+
+  /**
+   * What Next does while a quiz is on screen: the quiz's own next step, not
+   * the next activity. Paced by hand, this button is how the host runs the
+   * whole quiz from the big screen; paced automatically, it skips ahead.
+   */
+  const quizIndex = quiz ? quiz.questions.findIndex((q) => q.id === quiz.currentChildId) : -1;
+  const quizStep: QuizStep | null = !quiz
+    ? null
+    : quizPhase === 'lobby'
+      ? 'start'
+      : quizPhase === 'question'
+        ? 'reveal'
+        : quizPhase === 'revealed'
+          ? quizIndex === quiz.questions.length - 1
+            ? 'finish'
+            : 'next'
+          : null;
+
+  function forward() {
+    if (quiz && quizStep) {
+      startTransition(async () => {
+        const result = await controlQuizAction({ quizId: quiz.id, action: quizStep });
+        if (result.ok) router.refresh();
+        else toast.error(result.error);
+      });
+      return;
+    }
+    go(1);
+  }
+
+  // Leaving a quiz while it runs would close it mid-question, so Previous
+  // waits until it is over.
+  const canGoBack = !pending && !quizStep && currentIndex > 0;
+  const canGoForward =
+    !pending &&
+    (quizStep !== null || (interactions.length > 0 && currentIndex < interactions.length - 1));
+
+  // A presentation clicker sends Page Down and Page Up; arrow keys work too.
+  // Read through a ref, so the listener always acts on the current step.
+  const keys = useRef({ forward, back: () => go(-1), canGoForward, canGoBack });
+  useEffect(() => {
+    keys.current = { forward, back: () => go(-1), canGoForward, canGoBack };
+  });
+
+  useEffect(() => {
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.altKey || event.ctrlKey || event.metaKey || event.repeat) return;
+      const target = event.target instanceof Element ? event.target : null;
+      if (target?.closest('input, textarea, select, [contenteditable="true"]')) return;
+      // Space and Enter already press a focused button; acting again would
+      // take two steps for one press.
+      const onControl = Boolean(target?.closest('button, a'));
+
+      const { forward: next, back, canGoForward: canNext, canGoBack: canBack } = keys.current;
+      if (
+        ['PageDown', 'ArrowRight', 'ArrowDown'].includes(event.key) ||
+        ([' ', 'Enter'].includes(event.key) && !onControl)
+      ) {
+        if (!canNext) return;
+        event.preventDefault();
+        next();
+      } else if (['PageUp', 'ArrowLeft', 'ArrowUp'].includes(event.key)) {
+        if (!canBack) return;
+        event.preventDefault();
+        back();
+      }
+    };
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, []);
 
   const backdrop = branding?.backgroundId ? assetUrl(branding.backgroundId) : null;
 
@@ -293,7 +374,7 @@ export function PresenterScreen({
           <button
             type="button"
             onClick={() => go(-1)}
-            disabled={pending || currentIndex <= 0}
+            disabled={!canGoBack}
             className="flex items-center gap-2 rounded-lg border border-border px-5 py-3 text-lg hover:bg-muted disabled:opacity-40"
           >
             <ChevronLeft className="size-5 rtl:rotate-180" />
@@ -301,15 +382,11 @@ export function PresenterScreen({
           </button>
           <button
             type="button"
-            onClick={() => go(1)}
-            disabled={
-              pending ||
-              interactions.length === 0 ||
-              currentIndex === interactions.length - 1
-            }
+            onClick={forward}
+            disabled={!canGoForward}
             className="flex items-center gap-2 rounded-lg bg-primary px-5 py-3 text-lg text-primary-foreground hover:bg-primary-hover disabled:opacity-40"
           >
-            {t('next')}
+            {quizStep ? t(QUIZ_STEP_LABELS[quizStep]) : t('next')}
             <ChevronRight className="size-5 rtl:rotate-180" />
           </button>
         </div>

@@ -813,7 +813,10 @@
     "correctAnswer": "{count, plural, one {Correct answer:} other {Correct answers:}}",
     "playAgain": "Play again",
     "exit": "Exit",
-    "startNeedsPlayer": "Start unlocks when the first player joins."
+    "startNeedsPlayer": "Start unlocks when the first player joins.",
+    "revealAnswer": "Reveal answer",
+    "nextQuestion": "Next question",
+    "showResults": "Show results"
   },
   "design": {
     "metaTitle": "Design · {title}",
