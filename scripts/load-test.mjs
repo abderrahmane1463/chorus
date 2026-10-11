@@ -277,22 +277,36 @@ await wait(SETTLE_MS);
 stop.abort();
 players.forEach((p) => p.close());
 
-const [{ stored }] = await sql`select count(*)::int as stored from responses where interaction_id = ${room.questionId}`;
-const [{ revealed }] = await sql`select answer_revealed as revealed from interactions where id =
-  (select parent_id from interactions where id = ${room.questionId})`;
-await sql`delete from events where event_code = ${CODE}`;
-
+// The timings first: they are what the run is for, and they must not be lost
+// if the database is briefly unreachable from this machine afterwards.
 console.log(summary('first page', stats.page));
 console.log(summary('answer', stats.answer));
 console.log(summary('refetch', stats.refresh));
 console.log(summary('heartbeat', stats.presence));
 const reasons = [...stats.reasons].map(([reason, n]) => `${reason}×${n}`).join(', ');
 console.log(
-  `answers stored ${stored}/${PLAYERS} · revealed ${revealed} · ` +
-    `realtime messages ${stats.messages} (${stats.ignored} needed no refetch) · ` +
+  `realtime messages ${stats.messages} (${stats.ignored} needed no refetch) · ` +
     `requests ${stats.requests} · errors ${stats.errors}${reasons ? ` (${reasons})` : ''}`,
 );
 console.log(
   `answering took ${((answered - answering) / 1000).toFixed(1)}s · whole run ${((performance.now() - started) / 1000).toFixed(1)}s`,
 );
+
+/** A query that waits out a brief network drop, so the temporary event is always removed. */
+async function settled(run) {
+  for (let attempt = 1; ; attempt++) {
+    try {
+      return await run();
+    } catch (error) {
+      if (attempt === 5) throw error;
+      await wait(2000 * attempt);
+    }
+  }
+}
+
+const [{ stored }] = await settled(() => sql`select count(*)::int as stored from responses where interaction_id = ${room.questionId}`);
+const [{ revealed }] = await settled(() => sql`select answer_revealed as revealed from interactions where id =
+  (select parent_id from interactions where id = ${room.questionId})`);
+await settled(() => sql`delete from events where event_code = ${CODE}`);
+console.log(`answers stored ${stored}/${PLAYERS} · revealed ${revealed}`);
 process.exit(0);
