@@ -35,13 +35,13 @@ import {
   advanceIfDue,
   finishQuiz,
   openLobby,
-  publishQuiz,
   revealAnswer,
   showQuestion,
 } from '@/lib/quiz/flow';
 import { quizPacing } from '@/lib/quiz/pacing';
 import { acceptsAudience } from '@/lib/utils/event-status';
-import { RealtimeEvent } from '@/lib/realtime/events';
+import { channels, RealtimeEvent } from '@/lib/realtime/events';
+import { publish } from '@/lib/realtime/server';
 import { messageKey } from '@/lib/validations/message';
 import type { ActionResult } from './auth';
 
@@ -506,8 +506,12 @@ export async function submitQuizAnswerAction(input: unknown): Promise<ActionResu
     (await revealAnswer(quiz.id, context.eventId, context.questionId));
 
   // A reveal already tells every screen to reload, which covers this answer.
+  // Only the host's screens count answers; phones wait for the reveal.
   if (!revealed) {
-    await publishQuiz(context.eventId, quiz.id, RealtimeEvent.ResponseCreated);
+    await publish(channels.host(context.eventId), RealtimeEvent.ResponseCreated, {
+      eventId: context.eventId,
+      interactionId: quiz.id,
+    });
   }
 
   // No revalidatePath here, on purpose. Revalidating makes the action's

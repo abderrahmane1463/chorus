@@ -31,19 +31,24 @@ const PRESENTATION: Record<
 export function LiveIndicator({
   eventId,
   withQa = false,
+  withHost = false,
   ignore,
   className,
 }: {
   eventId: string;
   /** Also listen on the Q&A channel. */
   withQa?: boolean;
+  /** Also listen on the host-only channel: joins and quiz answers. */
+  withHost?: boolean;
   /** Messages that change nothing on this page. See `useEventSync`. */
   ignore?: readonly RealtimeEventName[];
   className?: string;
 }) {
-  const names = withQa
-    ? [channels.event(eventId), channels.qa(eventId)]
-    : [channels.event(eventId)];
+  const names = [
+    channels.event(eventId),
+    ...(withQa ? [channels.qa(eventId)] : []),
+    ...(withHost ? [channels.host(eventId)] : []),
+  ];
 
   const t = useTranslations('live');
   const status = useEventSync(eventId, { channels: names, ignore });

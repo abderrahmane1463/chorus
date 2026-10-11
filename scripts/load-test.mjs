@@ -108,6 +108,8 @@ async function setup() {
 const stats = {
   page: [],
   refresh: [],
+  /** From a phone hearing of the reveal to its page showing the result: what the room waits through. */
+  reveal: [],
   answer: [],
   presence: [],
   errors: 0,
@@ -140,15 +142,19 @@ function player(sessionId, room, answerAction, stop) {
   const page = `${BASE}/event/${CODE}`;
   let timer;
   let lastRefresh = 0;
+  let revealHeardAt = null;
 
-  const refresh = () => {
+  const refresh = async () => {
     lastRefresh = Date.now();
-    return timed('refresh', async () => {
+    const waitingForReveal = revealHeardAt;
+    revealHeardAt = null;
+    await timed('refresh', async () => {
       // What router.refresh() asks for: the page as a component payload.
       const response = await fetch(page, { headers: { cookie, RSC: '1' } });
       await response.text();
       return response.ok || `refetch ${response.status}`;
     });
+    if (waitingForReveal !== null) stats.reveal.push(performance.now() - waitingForReveal);
   };
 
   const scheduleRefresh = () => {
@@ -182,7 +188,10 @@ function player(sessionId, room, answerAction, stop) {
           continue;
         }
         if (IGNORED.has(name)) stats.ignored += 1;
-        else scheduleRefresh();
+        else {
+          if (name === 'QUIZ_ANSWER_REVEALED') revealHeardAt = performance.now();
+          scheduleRefresh();
+        }
       }
     }
   };
@@ -282,6 +291,7 @@ players.forEach((p) => p.close());
 console.log(summary('first page', stats.page));
 console.log(summary('answer', stats.answer));
 console.log(summary('refetch', stats.refresh));
+console.log(summary('reveal shown', stats.reveal));
 console.log(summary('heartbeat', stats.presence));
 const reasons = [...stats.reasons].map(([reason, n]) => `${reason}×${n}`).join(', ');
 console.log(

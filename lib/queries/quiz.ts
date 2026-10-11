@@ -9,9 +9,10 @@ import {
   quizScores,
   responses,
 } from '@/db/schema';
-import type { InteractionSettings } from '@/types/interactions';
+import type { InteractionSettings, ResponseData } from '@/types/interactions';
 import { nextDueAt, quizPacing, quizPhase, type QuizPhase } from '@/lib/quiz/pacing';
 import { isPresent } from '@/lib/queries/presence';
+import { roomVersion, shared } from '@/lib/cache/room';
 
 export type QuizQuestion = {
   id: string;
@@ -292,33 +293,6 @@ export async function getLeaderboard(
 export type PlayerStanding = { rank: number; total: number; score: number };
 
 /**
- * One player's place on the board, and how many are on it.
- *
- * A phone needs its own place, but not the whole board to find it: with a
- * few hundred players, every phone reading every row on every reveal is the
- * cost that delays the reveal itself. Ordered as `getLeaderboard` orders,
- * so the two never disagree: score first, then the faster total time.
- */
-export async function getPlayerStanding(
-  quizId: string,
-  participantId: string,
-): Promise<PlayerStanding | null> {
-  const result = await db.execute<{ rank: number; total: number; score: number }>(sql`
-    select me.score,
-           (select count(*)::int from quiz_scores s where s.quiz_id = ${quizId}) as total,
-           (select count(*)::int + 1 from quiz_scores s
-             where s.quiz_id = ${quizId}
-               and (s.score > me.score
-                    or (s.score = me.score and s.total_time < me.total_time))) as rank
-      from quiz_scores me
-     where me.quiz_id = ${quizId} and me.participant_id = ${participantId}
-  `);
-
-  const row = result.rows[0];
-  return row ? { rank: Number(row.rank), total: Number(row.total), score: Number(row.score) } : null;
-}
-
-/**
  * A quiz as a phone needs it: every question's timing, but answers only for
  * the question on screen, and no one else's responses at all.
  *
@@ -435,45 +409,50 @@ export type ParticipantQuizView = {
   myScore: { score: number; correctAnswers: number } | null;
 };
 
+type BoardRow = Omit<LeaderboardRow, 'rank' | 'previousRank'>;
+
+/** What every phone in the room reads alike, for one version of the room. */
+type QuizRoom = {
+  quiz: QuizDetail;
+  playerCount: number;
+  /** Each player's answer to the question on screen, if they gave one. */
+  answers: Map<string, { questionId: string; data: ResponseData }>;
+  /** Everyone with a score, best first, ordered as `getLeaderboard` orders. */
+  board: BoardRow[];
+};
+
 /**
- * What one participant should currently see of a quiz.
- *
- * Correct answers are withheld until the host reveals them — the flags never
- * reach the browser early, so they cannot be read out of the page source.
+ * The quiz, the answers to the question on screen, the scoreboard and the
+ * players in the room, in one round trip. These are the same for every
+ * phone; each phone then picks out its own answer, score and place.
  */
-export async function getParticipantQuizView(
-  quizId: string,
-  participantId: string,
-): Promise<ParticipantQuizView | null> {
-  // Everything a phone needs, asked in one round trip. The answer and the
-  // player count are keyed on the quiz through subqueries, rather than
-  // waiting to learn the question and the event first: at a reveal every
-  // phone renders this at the same moment, and each round trip saved is one
-  // the whole room stops waiting for.
-  const [quiz, [answer], [score], [{ playerCount }]] = await Promise.all([
+async function readQuizRoom(quizId: string): Promise<QuizRoom | null> {
+  const currentQuestion = sql`(select ${interactions.currentChildId} from ${interactions} where ${interactions.id} = ${quizId})`;
+
+  const [quiz, answers, board, [{ playerCount }]] = await Promise.all([
     getQuizForPlayer(quizId),
 
     db
-      .select({ questionId: responses.interactionId, data: responses.responseData })
+      .select({
+        participantId: responses.participantId,
+        questionId: responses.interactionId,
+        data: responses.responseData,
+      })
       .from(responses)
-      .where(
-        and(
-          eq(
-            responses.interactionId,
-            sql`(select ${interactions.currentChildId} from ${interactions} where ${interactions.id} = ${quizId})`,
-          ),
-          eq(responses.participantId, participantId),
-        ),
-      )
-      .limit(1),
+      .where(eq(responses.interactionId, currentQuestion)),
 
     db
-      .select({ score: quizScores.score, correctAnswers: quizScores.correctAnswers })
+      .select({
+        participantId: quizScores.participantId,
+        displayName: participants.displayName,
+        score: quizScores.score,
+        correctAnswers: quizScores.correctAnswers,
+        totalTime: quizScores.totalTime,
+      })
       .from(quizScores)
-      .where(
-        and(eq(quizScores.quizId, quizId), eq(quizScores.participantId, participantId)),
-      )
-      .limit(1),
+      .innerJoin(participants, eq(participants.id, quizScores.participantId))
+      .where(eq(quizScores.quizId, quizId))
+      .orderBy(desc(quizScores.score), asc(quizScores.totalTime)),
 
     db
       .select({ playerCount: count() })
@@ -491,6 +470,43 @@ export async function getParticipantQuizView(
 
   if (!quiz) return null;
 
+  return {
+    quiz,
+    playerCount,
+    answers: new Map(answers.map((row) => [row.participantId, row])),
+    board,
+  };
+}
+
+export type PhoneQuiz = {
+  view: ParticipantQuizView;
+  leaderboard: LeaderboardRow[];
+  standing: PlayerStanding | null;
+};
+
+/**
+ * What one phone shows of a quiz: its view, the top of the board, and its
+ * own place on it.
+ *
+ * Read through the room cache: at a reveal, the first phone reads the room
+ * and every other phone shares that read, so the database sees one read per
+ * change in the room instead of one per player.
+ *
+ * Correct answers are withheld until the host reveals them: the flags never
+ * reach the browser early, so they cannot be read out of the page source.
+ */
+export async function getPhoneQuiz(
+  eventId: string,
+  quizId: string,
+  participantId: string,
+  boardSize: number,
+): Promise<PhoneQuiz | null> {
+  const room = await shared(`quiz:${eventId}:${roomVersion(eventId)}:${quizId}`, () =>
+    readQuizRoom(quizId),
+  );
+  if (!room) return null;
+
+  const { quiz } = room;
   const current = quiz.questions.find((q) => q.id === quiz.currentChildId) ?? null;
   const questionNumber = current
     ? quiz.questions.findIndex((q) => q.id === current.id) + 1
@@ -498,6 +514,7 @@ export async function getParticipantQuizView(
 
   // Only this question's answer: if the quiz moved on between the reads,
   // an answer to the previous question must not show as one to this.
+  const answer = room.answers.get(participantId);
   const myAnswer: ParticipantQuizView['myAnswer'] =
     answer && current && answer.questionId === current.id && answer.data.kind === 'quiz'
       ? {
@@ -507,9 +524,10 @@ export async function getParticipantQuizView(
         }
       : null;
 
-  const timing = quizTiming(quiz, Boolean(score));
+  const mine = room.board.find((row) => row.participantId === participantId);
+  const timing = quizTiming(quiz, Boolean(mine));
 
-  return {
+  const view: ParticipantQuizView = {
     quizId: quiz.id,
     quizTitle: quiz.title,
     status: quiz.status,
@@ -519,7 +537,7 @@ export async function getParticipantQuizView(
     phase: timing.phase,
     dueAt: timing.dueAt,
     hasNext: questionNumber !== null && questionNumber < quiz.questions.length,
-    playerCount,
+    playerCount: room.playerCount,
     question: current
       ? {
           id: current.id,
@@ -540,8 +558,30 @@ export async function getParticipantQuizView(
         }
       : null,
     myAnswer,
-    myScore: score ?? null,
+    myScore: mine ? { score: mine.score, correctAnswers: mine.correctAnswers } : null,
   };
+
+  // Ranked as `getLeaderboard` ranks: by place in the ordered board.
+  const leaderboard = room.board
+    .slice(0, boardSize)
+    .map((row, index) => ({ ...row, rank: index + 1, previousRank: null }));
+
+  // A player's own place counts only those strictly ahead, so players level
+  // on score and time share a place.
+  const standing: PlayerStanding | null = mine
+    ? {
+        score: mine.score,
+        total: room.board.length,
+        rank:
+          room.board.filter(
+            (row) =>
+              row.score > mine.score ||
+              (row.score === mine.score && row.totalTime < mine.totalTime),
+          ).length + 1,
+      }
+    : null;
+
+  return { view, leaderboard, standing };
 }
 
 /** Confirms the caller owns the event a quiz belongs to. */

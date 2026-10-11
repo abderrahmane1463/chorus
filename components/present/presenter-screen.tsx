@@ -91,7 +91,12 @@ export function PresenterScreen({
   const [fullscreen, setFullscreen] = useState(false);
 
   useEventSync(eventId, {
-    channels: [channels.event(eventId), channels.qa(eventId), channels.quiz(eventId)],
+    channels: [
+      channels.event(eventId),
+      channels.qa(eventId),
+      channels.quiz(eventId),
+      channels.host(eventId),
+    ],
   });
 
   useEffect(() => {

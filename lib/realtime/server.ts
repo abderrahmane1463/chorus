@@ -1,6 +1,7 @@
 import 'server-only';
+import { roomChanged } from '@/lib/cache/room';
 import { bus } from './bus';
-import type { RealtimeEventName, RealtimeMessage } from './events';
+import { RealtimeEvent, type RealtimeEventName, type RealtimeMessage } from './events';
 
 const pusherConfigured = Boolean(
   process.env.PUSHER_APP_ID &&
@@ -40,6 +41,10 @@ export async function publish(
   payload: Omit<RealtimeMessage, 'event' | 'at'>,
 ): Promise<void> {
   const message: RealtimeMessage = { ...payload, event, at: Date.now() };
+
+  // Before anyone hears of the change, so no screen reloads into a room
+  // read before it.
+  roomChanged(payload.eventId, { removal: event === RealtimeEvent.ParticipantRemoved });
 
   if (realtimeDriver === 'pusher') {
     try {

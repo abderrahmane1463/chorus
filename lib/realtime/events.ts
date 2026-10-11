@@ -3,6 +3,13 @@ export const channels = {
   event: (eventId: string) => `event-${eventId}`,
   qa: (eventId: string) => `event-${eventId}-qa`,
   quiz: (eventId: string) => `event-${eventId}-quiz`,
+  /**
+   * What only the host's screens show: who joined, and how many have
+   * answered a quiz question. A phone shows neither, and in a full room
+   * sending each of these to every phone was hundreds of messages per
+   * answer, arriving just as the room was waiting for the reveal.
+   */
+  host: (eventId: string) => `event-${eventId}-host`,
 };
 
 export const RealtimeEvent = {

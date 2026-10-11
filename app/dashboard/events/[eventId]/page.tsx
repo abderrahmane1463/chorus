@@ -142,7 +142,7 @@ export default async function EventWorkspacePage({
               <div className="flex flex-wrap items-center gap-2">
                 <h1 className="truncate text-xl font-semibold">{event.title}</h1>
                 <Badge variant={statusVariant[event.status]}>{tStatus(event.status)}</Badge>
-                <LiveIndicator eventId={event.id} withQa />
+                <LiveIndicator eventId={event.id} withQa withHost />
               </div>
             </div>
 

@@ -21,11 +21,15 @@ import { AnswerForm } from '@/components/participant/answer-form';
 import { QaPanel } from '@/components/participant/qa-panel';
 import { listQuestions } from '@/lib/queries/questions';
 import { QuizPanel } from '@/components/participant/quiz-panel';
+import { getPhoneQuiz } from '@/lib/queries/quiz';
 import {
-  getLeaderboard,
-  getParticipantQuizView,
-  getPlayerStanding,
-} from '@/lib/queries/quiz';
+  IDENTITY_LIFETIME_MS,
+  knownEventFor,
+  rememberEventCode,
+  rosterVersion,
+  roomVersion,
+  shared,
+} from '@/lib/cache/room';
 import { SurveyPanel } from '@/components/participant/survey-panel';
 import { getSurveyAnswers, getSurveyDetail } from '@/lib/queries/survey';
 import { ResultsView } from '@/components/interactions/results-view';
@@ -48,7 +52,7 @@ const PHONE_BOARD_SIZE = 10;
  * on every change in the room, so the second read was a query every player
  * paid for every time.
  */
-const findEvent = cache(async (code: string) => {
+async function readEvent(code: string) {
   const [event] = await db
     .select({
       id: events.id,
@@ -62,7 +66,42 @@ const findEvent = cache(async (code: string) => {
     .limit(1);
 
   return event ?? null;
+}
+
+/**
+ * The event behind a code, shared by every phone in the room until the room
+ * next changes (see `lib/cache/room`), and read once per request.
+ */
+const findEvent = cache(async (code: string) => {
+  const known = knownEventFor(code);
+  const event = await shared(
+    `event:${code}:${known ? roomVersion(known) : 'new'}`,
+    () => readEvent(code),
+    { keep: (found) => found !== null },
+  );
+  if (event) rememberEventCode(code, event.id);
+  return event;
 });
+
+/**
+ * Who this phone is in the event. It changes only when a player is removed,
+ * so it is kept across the room's other changes. "Not joined" is never kept:
+ * the phone is about to join.
+ */
+function findParticipant(eventId: string, sessionId: string) {
+  return shared(
+    `who:${eventId}:${rosterVersion(eventId)}:${sessionId}`,
+    async () => {
+      const [participant] = await db
+        .select({ id: participants.id, displayName: participants.displayName })
+        .from(participants)
+        .where(and(eq(participants.eventId, eventId), eq(participants.sessionId, sessionId)))
+        .limit(1);
+      return participant ?? null;
+    },
+    { lifetimeMs: IDENTITY_LIFETIME_MS, keep: (found) => found !== null },
+  );
+}
 
 export async function generateMetadata({
   params,
@@ -95,17 +134,11 @@ export default async function ParticipantEventPage({
   const sessionId = await readSessionId();
   if (!sessionId) redirect(`/join?code=${encodeURIComponent(code)}`);
 
-  // Asked together: a phone reloads this page on every change in the room, so
-  // each round trip saved here is one every player feels.
-  const [[participant], interaction] = await Promise.all([
-    db
-      .select({ id: participants.id, displayName: participants.displayName })
-      .from(participants)
-      .where(
-        and(eq(participants.eventId, event.id), eq(participants.sessionId, sessionId)),
-      )
-      .limit(1),
-    getActiveInteraction(event.id),
+  // Asked together, and both shared across the room: a phone reloads this
+  // page on every change in the room, all at once with every other phone.
+  const [participant, interaction] = await Promise.all([
+    findParticipant(event.id, sessionId),
+    shared(`active:${event.id}:${roomVersion(event.id)}`, () => getActiveInteraction(event.id)),
   ]);
 
   if (!participant) redirect(`/join?code=${encodeURIComponent(code)}`);
@@ -120,24 +153,18 @@ export default async function ParticipantEventPage({
     : {};
 
   // The board is only on screen between questions and at the end, so it is
-  // only read then: not in the lobby, and not while a question is open,
-  // which is when every phone refetches at once. Whether it will be shown is
-  // known from the interaction itself, so it is read alongside the quiz
-  // rather than after it. A phone shows the top of the board and its own
-  // place, read directly rather than found in a list that would otherwise
-  // have to hold every player.
+  // only passed to the phone then.
   const questionOpen =
     interaction?.status === 'active' &&
     (interaction.currentChildId === null || !interaction.answerRevealed);
   const boardShown = isQuiz && !questionOpen;
 
-  const [quizView, leaderboard, standing] = isQuiz
-    ? await Promise.all([
-        getParticipantQuizView(interaction.id, participant.id),
-        boardShown ? getLeaderboard(interaction.id, PHONE_BOARD_SIZE) : [],
-        boardShown ? getPlayerStanding(interaction.id, participant.id) : null,
-      ])
-    : [null, [], null];
+  const phoneQuiz = isQuiz
+    ? await getPhoneQuiz(event.id, interaction.id, participant.id, PHONE_BOARD_SIZE)
+    : null;
+  const quizView = phoneQuiz?.view ?? null;
+  const leaderboard = boardShown ? (phoneQuiz?.leaderboard ?? []) : [];
+  const standing = boardShown ? (phoneQuiz?.standing ?? null) : null;
 
   const questions = isQa
     ? await listQuestions({

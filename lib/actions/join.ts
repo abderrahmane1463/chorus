@@ -83,7 +83,7 @@ export async function joinEventAction(input: unknown): Promise<ActionResult> {
       displayName,
     });
 
-    await publish(channels.event(event.id), RealtimeEvent.ParticipantJoined, {
+    await publish(channels.host(event.id), RealtimeEvent.ParticipantJoined, {
       eventId: event.id,
     });
   }
@@ -128,7 +128,7 @@ export async function setNicknameAction(input: unknown): Promise<ActionResult> {
   if (updated.length === 0) return { ok: false, error: t('errors.notPartOfEvent') };
 
   // The lobby on the projector lists names, so it needs to hear about this one.
-  await publish(channels.event(parsed.data.eventId), RealtimeEvent.ParticipantJoined, {
+  await publish(channels.host(parsed.data.eventId), RealtimeEvent.ParticipantJoined, {
     eventId: parsed.data.eventId,
   });
 
