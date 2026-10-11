@@ -17,6 +17,7 @@
  * Options:
  *   --players N     how many players                      (default 50)
  *   --spread S      seconds over which they answer        (default 10)
+ *   --arrive S      seconds over which they join          (default 5)
  *   --url URL       the server under test                 (default http://localhost:3100)
  *   --owner EMAIL   the account the temporary event is created under
  *   --channels a,b  realtime channel suffixes a phone listens on, as
@@ -41,7 +42,7 @@ const SUFFIXES = (args.channels ?? ',qa').split(',');
 
 const CODE = 'LOADTEST';
 const WARMUP_MS = 4000;
-const ARRIVAL_MS = 5000;
+const ARRIVAL_MS = Number(args.arrive ?? 5) * 1000;
 // Long enough for every phone's refetch after the reveal to finish and be counted.
 const SETTLE_MS = 15000;
 
