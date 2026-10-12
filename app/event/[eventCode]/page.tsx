@@ -31,6 +31,8 @@ import {
   shared,
 } from '@/lib/cache/room';
 import { SurveyPanel } from '@/components/participant/survey-panel';
+import { LobbyCard } from '@/components/participant/lobby-card';
+import { inLobby } from '@/lib/interactions/lobby';
 import { getSurveyAnswers, getSurveyDetail } from '@/lib/queries/survey';
 import { ResultsView } from '@/components/interactions/results-view';
 import { LiveIndicator } from '@/components/shared/live-indicator';
@@ -143,6 +145,9 @@ export default async function ParticipantEventPage({
 
   if (!participant) redirect(`/join?code=${encodeURIComponent(code)}`);
 
+  // Live, but the host has not started it: the phone waits without the question.
+  const waiting = interaction ? inLobby(interaction) : false;
+
   const isQa = interaction?.type === 'q_and_a';
   const isQuiz = interaction?.type === 'quiz';
   const isSurvey = interaction?.type === 'survey';
@@ -175,12 +180,13 @@ export default async function ParticipantEventPage({
     : [];
 
   const mine =
-    interaction && !isQa && !isQuiz && !isSurvey
+    interaction && !waiting && !isQa && !isQuiz && !isSurvey
       ? await getParticipantResponses(interaction.id, participant.id)
       : [];
 
   const results =
     interaction &&
+    !waiting &&
     !isQa &&
     !isQuiz &&
     !isSurvey &&
@@ -280,6 +286,8 @@ export default async function ParticipantEventPage({
             title={t('noActiveTitle')}
             description={t('noActiveBody')}
           />
+        ) : waiting ? (
+          <LobbyCard displayName={participant.displayName} />
         ) : (
           <div className="space-y-5">
             <div>

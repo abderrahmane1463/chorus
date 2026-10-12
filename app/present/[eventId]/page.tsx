@@ -19,6 +19,7 @@ import { countPresentPlayers } from '@/lib/queries/presence';
 import { getSurveyDetail } from '@/lib/queries/survey';
 import { PresenterScreen } from '@/components/present/presenter-screen';
 import { serverNow } from '@/lib/utils/server-time';
+import { inLobby } from '@/lib/interactions/lobby';
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations('presenter');
@@ -67,7 +68,7 @@ export default async function PresentPage({
 
   // Names are only shown while the room is filling, so only fetched then.
   const lobby =
-    quiz && timing.phase === 'lobby'
+    (quiz && timing.phase === 'lobby') || (active && inLobby(active))
       ? await getLobbyPlayers(event.id)
       : // Outside the lobby only the number is shown: who is in the room now,
         // which is what "X of Y answered" has to be measured against.

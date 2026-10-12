@@ -15,6 +15,7 @@ import { readSessionId } from '@/lib/participant/session';
 import { take } from '@/lib/security/rate-limit';
 import { acceptsAudience } from '@/lib/utils/event-status';
 import { maxEntriesFor } from '@/lib/interactions/registry';
+import { inLobby } from '@/lib/interactions/lobby';
 import { normalizeWord } from '@/lib/interactions/normalize';
 import { submitResponseSchema } from '@/lib/validations/interaction';
 import { publish } from '@/lib/realtime/server';
@@ -45,6 +46,7 @@ export async function submitResponseAction(input: unknown): Promise<ActionResult
       parentId: interactions.parentId,
       type: interactions.type,
       status: interactions.status,
+      startedAt: interactions.startedAt,
       settings: interactions.settings,
       eventId: events.id,
       eventCode: events.eventCode,
@@ -86,6 +88,10 @@ export async function submitResponseAction(input: unknown): Promise<ActionResult
 
   if (gateStatus !== 'active') {
     return { ok: false, error: t('errors.questionClosed') };
+  }
+  // Still gathering the room: the question has not been shown yet.
+  if (!context.parentId && inLobby(context)) {
+    return { ok: false, error: t('errors.notStartedYet') };
   }
 
   const built = await buildResponseData(context, parsed.data);

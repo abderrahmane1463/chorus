@@ -20,11 +20,13 @@ import type { SurveyDetail } from '@/lib/queries/survey';
 import type { LeaderboardRow, LobbyPlayer, QuizDetail } from '@/lib/queries/quiz';
 import type { QuestionItem, QuestionSort } from '@/lib/queries/questions';
 import { getInteractionMeta } from '@/lib/interactions/registry';
+import { inLobby } from '@/lib/interactions/lobby';
 import type { InteractionDetail, InteractionResults } from '@/lib/queries/interactions';
 import {
   deleteInteractionAction,
   resetInteractionAction,
   setInteractionStatusAction,
+  startInteractionAction,
   updateInteractionAction,
 } from '@/lib/actions/interaction';
 import type { InteractionSettings } from '@/types/interactions';
@@ -81,6 +83,7 @@ export function InteractionEditor({
   const t = useTranslations('editor');
   const tTypes = useTranslations('types');
   const tStatus = useTranslations('interactionStatus');
+  const tLobby = useTranslations('lobby');
   const meta = getInteractionMeta(interaction.type);
 
   const [title, setTitle] = useState(interaction.title);
@@ -127,6 +130,17 @@ export function InteractionEditor({
       } else {
         toast.error(result.error);
       }
+    });
+  }
+
+  // Live but gathering the room: the question reaches phones on Start.
+  const gathering = inLobby(interaction);
+
+  function startQuestion() {
+    startControl(async () => {
+      const result = await startInteractionAction({ interactionId: interaction.id });
+      if (result.ok) router.refresh();
+      else toast.error(result.error);
     });
   }
 
@@ -187,6 +201,12 @@ export function InteractionEditor({
         <div className="flex flex-wrap gap-2">
           {!isQuiz && (
             <>
+              {gathering && (
+                <Button onClick={startQuestion} loading={controlling}>
+                  <Play />
+                  {tLobby('start')}
+                </Button>
+              )}
               {interaction.status === 'active' ? (
                 <Button
                   variant="secondary"
@@ -222,6 +242,12 @@ export function InteractionEditor({
           </Button>
         </div>
       </div>
+
+      {gathering && (
+        <p className="rounded-md bg-primary-subtle px-3 py-2 text-sm text-primary">
+          {tLobby('hint')}
+        </p>
+      )}
 
       {title.trim().length === 0 && (
         <p className="rounded-md bg-accent-subtle px-3 py-2 text-sm text-accent">

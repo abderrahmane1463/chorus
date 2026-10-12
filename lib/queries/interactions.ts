@@ -47,6 +47,8 @@ export type InteractionDetail = {
   currentChildId: string | null;
   /** Whether a quiz's current answer is showing. False for other types. */
   answerRevealed: boolean;
+  /** When it was started; null while one that opens in a lobby is gathering the room. */
+  startedAt: Date | null;
   options: { id: string; text: string; position: number }[];
 };
 
@@ -60,6 +62,7 @@ const INTERACTION_FIELDS = {
   settings: interactions.settings,
   currentChildId: interactions.currentChildId,
   answerRevealed: interactions.answerRevealed,
+  startedAt: interactions.startedAt,
 };
 
 /** Loads an interaction, enforcing that the requesting host owns its event. */

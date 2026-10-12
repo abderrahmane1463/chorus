@@ -308,7 +308,8 @@
     "wrongPassword": "That is not your current password",
     "noPasswordToChange": "This account signs in with Google and has no password",
     "eventEnded": "This event has ended",
-    "eventEndedHost": "This event has ended. Set it back to Live in Settings to run the quiz."
+    "eventEndedHost": "This event has ended. Set it back to Live in Settings to run the quiz.",
+    "notStartedYet": "This question has not started yet"
   },
   "validation": {
     "codeRequired": "Enter the event code",
@@ -946,5 +947,12 @@
   },
   "brand": {
     "poweredBy": "Powered by"
+  },
+  "lobby": {
+    "title": "You are in",
+    "body": "Watch the big screen. The question appears here when the host starts it.",
+    "joined": "{count, plural, =0 {Waiting for people to join…} one {# person joined} other {# people joined}}",
+    "start": "Start",
+    "hint": "The question appears on everyone’s phone when you press Start."
   }
 }

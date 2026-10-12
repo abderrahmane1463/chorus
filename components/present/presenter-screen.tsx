@@ -17,9 +17,14 @@ import { toast } from 'sonner';
 import { Logo } from '@/components/shared/logo';
 import { ResultsView } from '@/components/interactions/results-view';
 import { QuizStage } from './quiz-stage';
+import { JoinLobby } from './join-lobby';
+import { inLobby } from '@/lib/interactions/lobby';
 import { useEventSync } from '@/hooks/use-event-sync';
 import { channels } from '@/lib/realtime/events';
-import { setInteractionStatusAction } from '@/lib/actions/interaction';
+import {
+  setInteractionStatusAction,
+  startInteractionAction,
+} from '@/lib/actions/interaction';
 import { controlQuizAction } from '@/lib/actions/quiz';
 import type {
   InteractionDetail,
@@ -87,6 +92,7 @@ export function PresenterScreen({
 }) {
   const router = useRouter();
   const t = useTranslations('presenter');
+  const tLobby = useTranslations('lobby');
   const [pending, startTransition] = useTransition();
   const [fullscreen, setFullscreen] = useState(false);
 
@@ -156,7 +162,18 @@ export function PresenterScreen({
             : 'next'
           : null;
 
+  // A question gathering its room: Next starts it.
+  const gathering = active ? inLobby(active) : false;
+
   function forward() {
+    if (active && gathering) {
+      startTransition(async () => {
+        const result = await startInteractionAction({ interactionId: active.id });
+        if (result.ok) router.refresh();
+        else toast.error(result.error);
+      });
+      return;
+    }
     if (quiz && quizStep) {
       startTransition(async () => {
         const result = await controlQuizAction({ quizId: quiz.id, action: quizStep });
@@ -173,7 +190,9 @@ export function PresenterScreen({
   const canGoBack = !pending && !quizStep && currentIndex > 0;
   const canGoForward =
     !pending &&
-    (quizStep !== null || (interactions.length > 0 && currentIndex < interactions.length - 1));
+    (gathering ||
+      quizStep !== null ||
+      (interactions.length > 0 && currentIndex < interactions.length - 1));
 
   // A presentation clicker sends Page Down and Page Up; arrow keys work too.
   // Read through a ref, so the listener always acts on the current step.
@@ -212,8 +231,8 @@ export function PresenterScreen({
   const backdrop = branding?.backgroundId ? assetUrl(branding.backgroundId) : null;
 
   // The lobby shows its own large code, so the footer's copy would only
-  // repeat it a few centimetres lower.
-  const inLobby = Boolean(quiz) && quizPhase === 'lobby';
+  // repeat it a few centimetres lower, and take height the lobby needs.
+  const showsJoin = (Boolean(quiz) && quizPhase === 'lobby') || gathering;
 
   return (
     <div
@@ -289,7 +308,15 @@ export function PresenterScreen({
           </div>
         ) : (
           <div className="mx-auto w-full max-w-5xl">
-            {quiz ? (
+            {gathering ? (
+              <JoinLobby
+                interactionId={active.id}
+                players={players}
+                playerTotal={participantCount}
+                joinUrl={joinUrl}
+                eventCode={eventCode}
+              />
+            ) : quiz ? (
               <QuizStage
                 quiz={quiz}
                 phase={quizPhase}
@@ -358,7 +385,7 @@ export function PresenterScreen({
       </main>
 
       <footer className="flex flex-wrap items-center gap-x-8 gap-y-4 border-t border-border px-8 py-5">
-        <div className={inLobby ? 'invisible flex items-center gap-4' : 'flex items-center gap-4'}>
+        <div className={showsJoin ? 'hidden' : 'flex items-center gap-4'}>
           <div className="rounded-lg bg-white p-2">
             <QRCodeSVG value={joinUrl} size={84} level="M" />
           </div>
@@ -391,7 +418,7 @@ export function PresenterScreen({
             disabled={!canGoForward}
             className="flex items-center gap-2 rounded-lg bg-primary px-5 py-3 text-lg text-primary-foreground hover:bg-primary-hover disabled:opacity-40"
           >
-            {quizStep ? t(QUIZ_STEP_LABELS[quizStep]) : t('next')}
+            {gathering ? tLobby('start') : quizStep ? t(QUIZ_STEP_LABELS[quizStep]) : t('next')}
             <ChevronRight className="size-5 rtl:rotate-180" />
           </button>
         </div>

@@ -8,6 +8,7 @@ import { events, interactionOptions, interactions, responses } from '@/db/schema
 import { requireUser } from '@/lib/auth';
 import { assertEventOwner } from '@/lib/queries/events';
 import { getInteractionMeta } from '@/lib/interactions/registry';
+import { opensInLobby } from '@/lib/interactions/lobby';
 import {
   createInteractionSchema,
   interactionIdSchema,
@@ -207,9 +208,10 @@ export async function setInteractionStatusAction(
       // Clearing the quiz pointer is what makes a quiz opened this way land
       // in its lobby. Left in place, it would resume mid-question with a
       // timer that expired during its last run. Other types ignore both.
+      // A type that opens in a lobby is not started yet: the host starts it.
       .set({
         status: 'active',
-        startedAt: new Date(),
+        startedAt: opensInLobby(owned.type) ? null : new Date(),
         endedAt: null,
         currentChildId: null,
         answerRevealed: false,
@@ -244,6 +246,44 @@ export async function setInteractionStatusAction(
       : RealtimeEvent.InteractionStopped,
     { eventId: owned.eventId, interactionId: owned.id },
   );
+
+  revalidateEvent(owned.eventId);
+  return { ok: true };
+}
+
+/**
+ * Ends the lobby of a live interaction: the question reaches every phone.
+ * Does nothing if it is not live, or was already started.
+ */
+export async function startInteractionAction(input: unknown): Promise<ActionResult> {
+  const t = await getTranslations();
+
+  const user = await requireUser();
+
+  const parsed = interactionIdSchema.safeParse(input);
+  if (!parsed.success) return { ok: false, error: t('errors.invalidInteraction') };
+
+  const owned = await requireOwnedInteraction(parsed.data.interactionId, user.id);
+  if (!owned) return { ok: false, error: t('errors.interactionNotFound') };
+
+  const started = await db
+    .update(interactions)
+    .set({ startedAt: new Date() })
+    .where(
+      and(
+        eq(interactions.id, owned.id),
+        eq(interactions.status, 'active'),
+        isNull(interactions.startedAt),
+      ),
+    )
+    .returning({ id: interactions.id });
+
+  if (started.length > 0) {
+    await publish(channels.event(owned.eventId), RealtimeEvent.InteractionChanged, {
+      eventId: owned.eventId,
+      interactionId: owned.id,
+    });
+  }
 
   revalidateEvent(owned.eventId);
   return { ok: true };

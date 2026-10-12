@@ -308,7 +308,8 @@
     "wrongPassword": "Ce n’est pas votre mot de passe actuel",
     "noPasswordToChange": "Ce compte se connecte avec Google et n’a pas de mot de passe",
     "eventEnded": "Cet événement est terminé",
-    "eventEndedHost": "Cet événement est terminé. Repassez-le en direct dans les paramètres pour lancer le quiz."
+    "eventEndedHost": "Cet événement est terminé. Repassez-le en direct dans les paramètres pour lancer le quiz.",
+    "notStartedYet": "Cette question n’a pas encore commencé"
   },
   "validation": {
     "codeRequired": "Saisissez le code de l'événement",
@@ -946,5 +947,12 @@
   },
   "brand": {
     "poweredBy": "Propulsé par"
+  },
+  "lobby": {
+    "title": "Vous êtes inscrit",
+    "body": "Regardez le grand écran. La question apparaît ici quand l’animateur la lance.",
+    "joined": "{count, plural, =0 {En attente des participants…} one {# participant a rejoint} other {# participants ont rejoint}}",
+    "start": "Démarrer",
+    "hint": "La question apparaît sur tous les téléphones quand vous appuyez sur Démarrer."
   }
 }
