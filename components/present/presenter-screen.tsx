@@ -18,6 +18,7 @@ import { Logo } from '@/components/shared/logo';
 import { ResultsView } from '@/components/interactions/results-view';
 import { QuizStage } from './quiz-stage';
 import { InteractionLobby } from './join-lobby';
+import { QaBoard } from './qa-board';
 import { inLobby } from '@/lib/interactions/lobby';
 import { useEventSync } from '@/hooks/use-event-sync';
 import { channels } from '@/lib/realtime/events';
@@ -293,7 +294,13 @@ export function PresenterScreen({
         </div>
       </header>
 
-      <main className="flex flex-1 flex-col justify-center px-8 py-8 lg:px-16">
+      {/* Questions read from the top, so the list stays put as its pages turn. */}
+      <main
+        className={cn(
+          'flex flex-1 flex-col px-8 py-8 lg:px-16',
+          active?.type === 'q_and_a' && !gathering ? 'justify-start' : 'justify-center',
+        )}
+      >
         {!active ? (
           <div className="text-center">
             <p className="text-3xl text-muted-foreground">
@@ -329,30 +336,7 @@ export function PresenterScreen({
                 serverNow={serverNow}
               />
             ) : active.type === 'q_and_a' ? (
-              <>
-                <h2 className="mb-8 text-4xl font-semibold">{active.title}</h2>
-                {questions.length === 0 ? (
-                  <p className="text-2xl text-muted-foreground">
-                    {t('noQuestions')}
-                  </p>
-                ) : (
-                  <ul className="space-y-5">
-                    {questions.map((question) => (
-                      <li key={question.id} className="flex gap-6">
-                        <span className="w-16 shrink-0 text-end text-4xl font-semibold tabular-nums text-primary">
-                          {question.votes}
-                        </span>
-                        <div className="min-w-0">
-                          <p className="text-3xl leading-snug">{question.text}</p>
-                          <p className="mt-1 text-xl text-muted-foreground">
-                            {question.authorName ?? t('anonymous')}
-                          </p>
-                        </div>
-                      </li>
-                    ))}
-                  </ul>
-                )}
-              </>
+              <QaBoard title={active.title} questions={questions} />
             ) : survey ? (
               <>
                 <h2 className="mb-8 text-4xl font-semibold">{survey.title}</h2>

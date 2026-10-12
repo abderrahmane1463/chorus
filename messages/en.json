@@ -805,7 +805,9 @@
     "startNeedsPlayer": "Start unlocks when the first player joins.",
     "revealAnswer": "Reveal answer",
     "nextQuestion": "Next question",
-    "showResults": "Show results"
+    "showResults": "Show results",
+    "questionTotal": "{count, plural, one {# question} other {# questions}}",
+    "pageOf": "Page {page} of {total}"
   },
   "design": {
     "metaTitle": "Design · {title}",

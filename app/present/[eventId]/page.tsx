@@ -48,7 +48,8 @@ export default async function PresentPage({
       : null;
 
   const questions =
-    active?.type === 'q_and_a' ? await getTopQuestions(active.id) : [];
+    // Every open question: the board pages through them when they do not fit.
+    active?.type === 'q_and_a' ? await getTopQuestions(active.id, 200) : [];
 
   const quiz = active?.type === 'quiz' ? await getQuizDetail(active.id) : null;
   // After a reveal, also ask who moved on the question just answered.

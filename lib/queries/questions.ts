@@ -124,7 +124,7 @@ export async function getTopQuestions(interactionId: string, limit = 6) {
     participantId: null,
     isHost: false,
     sort: 'votes',
-    limit: 50,
+    limit: Math.max(limit, 50),
   });
 
   const highlighted = all.filter((question) => question.isHighlighted);

@@ -805,7 +805,9 @@
     "startNeedsPlayer": "Le démarrage se débloque quand le premier joueur rejoint.",
     "revealAnswer": "Révéler la réponse",
     "nextQuestion": "Question suivante",
-    "showResults": "Voir les résultats"
+    "showResults": "Voir les résultats",
+    "questionTotal": "{count, plural, one {# question} other {# questions}}",
+    "pageOf": "Page {page} sur {total}"
   },
   "design": {
     "metaTitle": "Design · {title}",

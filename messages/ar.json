@@ -805,7 +805,9 @@
     "startNeedsPlayer": "يُفتح زر البدء عند انضمام أول لاعب.",
     "revealAnswer": "إظهار الإجابة",
     "nextQuestion": "السؤال التالي",
-    "showResults": "عرض النتائج"
+    "showResults": "عرض النتائج",
+    "questionTotal": "{count, plural, zero {لا أسئلة} one {سؤال واحد} two {سؤالان} few {# أسئلة} many {# سؤالًا} other {# سؤال}}",
+    "pageOf": "الصفحة {page} من {total}"
   },
   "design": {
     "metaTitle": "التصميم · {title}",
