@@ -1,17 +1,16 @@
 'use client';
 
 import { useState, useSyncExternalStore, useTransition } from 'react';
-import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
+import { motion, useReducedMotion } from 'framer-motion';
 import { useFormatter, useTranslations } from 'next-intl';
 import Link from 'next/link';
-import { Check, LogOut, Play, RotateCcw, Users, Volume2, VolumeX } from 'lucide-react';
-import { QRCodeSVG } from 'qrcode.react';
+import { Check, LogOut, RotateCcw, Volume2, VolumeX } from 'lucide-react';
 import { toast } from 'sonner';
 import { Leaderboard } from '@/components/interactions/leaderboard';
 import { TileLetter, tileFor } from '@/components/quiz/answer-tiles';
 import { CountdownRing, useCountdown, useSecondsUntil } from '@/components/quiz/countdown';
 import { Podium } from '@/components/quiz/podium';
-import { PlayerChip } from '@/components/quiz/player-chip';
+import { JoinLobby } from './join-lobby';
 import { useQuizPacer } from '@/hooks/use-quiz-pacer';
 import { useQuizSounds } from '@/hooks/use-quiz-sounds';
 import { controlQuizAction } from '@/lib/actions/quiz';
@@ -405,10 +404,11 @@ function PicksChart({ question }: { question: QuizQuestion }) {
 }
 
 /**
- * Before the first question: how to join, and who already has.
+ * Before the first question: how to join, and who already has, laid out as
+ * every other interaction's lobby is.
  *
  * Nothing is timed here. The room fills at its own pace and the host starts
- * when it looks ready.
+ * when it looks ready; Start is locked until someone is in.
  */
 function Lobby({
   quiz,
@@ -426,10 +426,7 @@ function Lobby({
   soundToggle: React.ReactNode;
 }) {
   const t = useTranslations('presenter');
-  const reduceMotion = useReducedMotion();
   const [starting, startTransition] = useTransition();
-
-  const hidden = playerTotal - players.length;
   const empty = quiz.questions.length === 0;
 
   function start() {
@@ -440,77 +437,25 @@ function Lobby({
   }
 
   return (
-    <div className="grid items-center gap-12 lg:grid-cols-[auto_1fr]">
-      <div className="mx-auto text-center">
-        <div className="inline-block rounded-2xl bg-white p-4">
-          <QRCodeSVG value={joinUrl} size={260} level="M" />
-        </div>
-        <p className="mt-5 text-xl text-muted-foreground">{t('joinAt')}</p>
-        <p dir="ltr" className="text-2xl font-medium">
-          {joinUrl.replace(/^https?:\/\//, '').replace(/\/event\/.*$/, '')}
-        </p>
-        <p dir="ltr" className="mt-1 font-mono text-5xl font-semibold tracking-widest">
-          {eventCode}
-        </p>
-      </div>
-
-      <div className="min-w-0">
-        <div className="flex items-start justify-between gap-4">
-          <h2 className="text-5xl font-semibold leading-tight">{quiz.title}</h2>
-          {soundToggle}
-        </div>
-
-        <p className="mt-5 inline-flex items-center gap-2 text-2xl text-muted-foreground">
-          <Users className="size-6" aria-hidden />
-          {/* aria-live so a screen reader hears the room filling. */}
-          <span aria-live="polite">{t('playersJoined', { count: playerTotal })}</span>
-        </p>
-
-        <ul className="mt-6 flex max-h-72 flex-wrap gap-2.5 overflow-hidden">
-          {/* initial={false}: the names already here on load simply appear;
-              only the ones that join while the room watches pop in. */}
-          <AnimatePresence initial={false}>
-            {players.map((player) => (
-              <motion.li
-                key={player.id}
-                layout={!reduceMotion}
-                initial={reduceMotion ? false : { opacity: 0, scale: 0.6 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ type: 'spring', stiffness: 380, damping: 24 }}
-              >
-                <PlayerChip player={player} size="lg" />
-              </motion.li>
-            ))}
-          </AnimatePresence>
-          {hidden > 0 && (
-            <li className="rounded-full px-4 py-2 text-xl text-muted-foreground">
-              {t('morePlayers', { count: hidden })}
-            </li>
-          )}
-        </ul>
-
-        <div className="mt-10 flex flex-wrap items-center gap-4">
-          <button
-            type="button"
-            onClick={start}
-            // Locked until someone is in the room: the host watches the names
-            // arrive, then starts.
-            disabled={starting || empty || playerTotal === 0}
-            className="inline-flex items-center gap-3 rounded-xl bg-primary px-8 py-4 text-2xl font-semibold text-primary-foreground transition-colors hover:bg-primary-hover disabled:opacity-50"
-          >
-            <Play className="size-6" aria-hidden />
-            {t('startQuiz')}
-          </button>
-          <p className="text-lg text-muted-foreground">
-            {empty
-              ? t('noQuestionsYet')
-              : playerTotal === 0
-                ? t('startNeedsPlayer')
-                : t('startHint')}
-          </p>
-        </div>
-      </div>
-    </div>
+    <JoinLobby
+      players={players}
+      playerTotal={playerTotal}
+      joinUrl={joinUrl}
+      eventCode={eventCode}
+      title={quiz.title}
+      corner={soundToggle}
+      startLabel={t('startQuiz')}
+      hint={
+        empty
+          ? t('noQuestionsYet')
+          : playerTotal === 0
+            ? t('startNeedsPlayer')
+            : t('startHint')
+      }
+      onStart={start}
+      starting={starting}
+      disabled={empty || playerTotal === 0}
+    />
   );
 }
 

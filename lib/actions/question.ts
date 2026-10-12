@@ -17,6 +17,7 @@ import {
 import { publish } from '@/lib/realtime/server';
 import { channels, RealtimeEvent } from '@/lib/realtime/events';
 import { messageKey } from '@/lib/validations/message';
+import { inLobby } from '@/lib/interactions/lobby';
 import type { ActionResult } from './auth';
 
 /**
@@ -33,6 +34,7 @@ async function participantContext(interactionId: string) {
       interactionId: interactions.id,
       type: interactions.type,
       status: interactions.status,
+      startedAt: interactions.startedAt,
       settings: interactions.settings,
       eventId: events.id,
       eventCode: events.eventCode,
@@ -72,6 +74,10 @@ export async function askQuestionAction(input: unknown): Promise<ActionResult> {
   }
   if (context.status !== 'active') {
     return { ok: false, error: t('errors.qaClosed') };
+  }
+  // Still gathering the room: questions open when the host starts.
+  if (inLobby(context)) {
+    return { ok: false, error: t('errors.notStartedYet') };
   }
 
   // Anonymity is only honoured if the host allows it.
@@ -120,6 +126,9 @@ export async function toggleQuestionVoteAction(input: unknown): Promise<ActionRe
       status: questions.status,
       interactionId: questions.interactionId,
       settings: interactions.settings,
+      interactionType: interactions.type,
+      interactionStatus: interactions.status,
+      startedAt: interactions.startedAt,
       eventId: events.id,
       eventCode: events.eventCode,
       eventStatus: events.status,
@@ -139,6 +148,15 @@ export async function toggleQuestionVoteAction(input: unknown): Promise<ActionRe
   if (!acceptsAudience(target.eventStatus)) return { ok: false, error: t('errors.eventClosed') };
   if (!take('actionPerPlayer', target.participantId)) {
     return { ok: false, error: t('errors.slowDown') };
+  }
+  if (
+    inLobby({
+      type: target.interactionType,
+      status: target.interactionStatus,
+      startedAt: target.startedAt,
+    })
+  ) {
+    return { ok: false, error: t('errors.notStartedYet') };
   }
   if ((target.settings.allowUpvotes ?? true) === false) {
     return { ok: false, error: t('errors.upvotesOff') };

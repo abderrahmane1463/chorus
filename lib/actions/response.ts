@@ -75,22 +75,26 @@ export async function submitResponseAction(input: unknown): Promise<ActionResult
     return { ok: false, error: t('errors.eventClosed') };
   }
   // Survey questions are children and are never "active" themselves; what
-  // gates them is whether their parent survey is open.
-  const gateStatus = context.parentId
+  // gates them is whether their parent survey is open, and started.
+  const gate = context.parentId
     ? (
         await db
-          .select({ status: interactions.status })
+          .select({
+            type: interactions.type,
+            status: interactions.status,
+            startedAt: interactions.startedAt,
+          })
           .from(interactions)
           .where(eq(interactions.id, context.parentId))
           .limit(1)
-      )[0]?.status
-    : context.status;
+      )[0]
+    : context;
 
-  if (gateStatus !== 'active') {
+  if (gate?.status !== 'active') {
     return { ok: false, error: t('errors.questionClosed') };
   }
   // Still gathering the room: the question has not been shown yet.
-  if (!context.parentId && inLobby(context)) {
+  if (inLobby(gate)) {
     return { ok: false, error: t('errors.notStartedYet') };
   }
 

@@ -1,18 +1,17 @@
 /**
- * Interactions that open in a lobby.
+ * Interactions open in a lobby.
  *
- * Put live, one of these first gathers the room: the big screen shows how to
- * join and who has, and phones wait without the question. It reaches phones
- * only when the host starts it, so nobody answers before the room is in and
- * looking at the screen.
+ * Put live, an interaction first gathers the room: the big screen shows how
+ * to join and who has, and phones wait without the question. It reaches
+ * phones only when the host starts it, so nobody answers before the room is
+ * in and looking at the screen.
  *
- * Only for a standalone interaction: a survey's own questions are never live
- * by themselves, and the survey is what opens.
+ * A quiz has a lobby of its own, run by its own steps (see `lib/quiz/flow`),
+ * so it is not counted here. Only a standalone interaction goes live: a
+ * survey's own questions never do, and the survey is what opens.
  */
-export const LOBBY_TYPES = ['multiple_choice'] as const;
-
 export function opensInLobby(type: string): boolean {
-  return (LOBBY_TYPES as readonly string[]).includes(type);
+  return type !== 'quiz';
 }
 
 /** Live but not started yet: the room is gathering. */

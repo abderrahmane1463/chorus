@@ -17,7 +17,7 @@ import { toast } from 'sonner';
 import { Logo } from '@/components/shared/logo';
 import { ResultsView } from '@/components/interactions/results-view';
 import { QuizStage } from './quiz-stage';
-import { JoinLobby } from './join-lobby';
+import { InteractionLobby } from './join-lobby';
 import { inLobby } from '@/lib/interactions/lobby';
 import { useEventSync } from '@/hooks/use-event-sync';
 import { channels } from '@/lib/realtime/events';
@@ -309,7 +309,7 @@ export function PresenterScreen({
         ) : (
           <div className="mx-auto w-full max-w-5xl">
             {gathering ? (
-              <JoinLobby
+              <InteractionLobby
                 interactionId={active.id}
                 players={players}
                 playerTotal={participantCount}
