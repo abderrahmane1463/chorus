@@ -44,7 +44,11 @@ export async function publish(
 
   // Before anyone hears of the change, so no screen reloads into a room
   // read before it.
-  roomChanged(payload.eventId, { removal: event === RealtimeEvent.ParticipantRemoved });
+  // A join is also how a name change is announced, so both re-read who is who.
+  roomChanged(payload.eventId, {
+    roster:
+      event === RealtimeEvent.ParticipantRemoved || event === RealtimeEvent.ParticipantJoined,
+  });
 
   if (realtimeDriver === 'pusher') {
     try {

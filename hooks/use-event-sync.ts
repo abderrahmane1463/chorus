@@ -23,6 +23,16 @@ const REFRESH_DEBOUNCE_MS = 220;
 const MIN_REFRESH_INTERVAL_MS = 1000;
 
 /**
+ * The least time between refetches for what other people are doing: another
+ * person's vote, question or answer. A phone shows these as they come, but a
+ * few seconds late costs nothing, and at one a second every phone in a busy
+ * room re-rendering for every vote is more than the server can do. A random
+ * spread on top keeps the room's phones from asking in the same instant.
+ */
+const RELAXED_INTERVAL_MS = 5000;
+const RELAXED_SPREAD_MS = 2500;
+
+/**
  * Keeps a server-rendered page in step with an event.
  *
  * Realtime messages only say *that* something changed; this refetches the page
@@ -48,10 +58,17 @@ export function useEventSync(
      * refetching for each of them is work every player pays for every player.
      */
     ignore?: readonly RealtimeEventName[];
+    /**
+     * Messages about other people's activity: refetched for, but no more
+     * than every few seconds. See RELAXED_INTERVAL_MS.
+     */
+    relaxed?: readonly RealtimeEventName[];
   } = {},
 ): ConnectionStatus {
   const router = useRouter();
   const timer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+  /** When the pending refetch will run, so a sooner one can replace a later one. */
+  const timerDue = useRef(0);
   const lastRefresh = useRef(0);
   const onMessage = options.onMessage;
 
@@ -64,23 +81,44 @@ export function useEventSync(
     [ignoreKey],
   );
 
-  const scheduleRefresh = useCallback(() => {
-    clearTimeout(timer.current);
-    const sinceLast = Date.now() - lastRefresh.current;
-    const wait = Math.max(REFRESH_DEBOUNCE_MS, MIN_REFRESH_INTERVAL_MS - sinceLast);
+  const relaxedKey = options.relaxed?.join(',') ?? '';
+  const relaxed = useMemo(
+    () => new Set(relaxedKey ? relaxedKey.split(',') : []),
+    [relaxedKey],
+  );
 
-    timer.current = setTimeout(() => {
-      lastRefresh.current = Date.now();
-      router.refresh();
-    }, wait);
-  }, [router]);
+  const scheduleRefresh = useCallback(
+    (unhurried = false) => {
+      const now = Date.now();
+      const sinceLast = now - lastRefresh.current;
+      const wait = unhurried
+        ? Math.max(REFRESH_DEBOUNCE_MS, RELAXED_INTERVAL_MS - sinceLast) +
+          Math.random() * RELAXED_SPREAD_MS
+        : Math.max(REFRESH_DEBOUNCE_MS, MIN_REFRESH_INTERVAL_MS - sinceLast);
+
+      // A refetch already due sooner covers this one.
+      if (timer.current !== undefined && timerDue.current <= now + wait) {
+        if (unhurried) return;
+      }
+
+      clearTimeout(timer.current);
+      timerDue.current = now + wait;
+      timer.current = setTimeout(() => {
+        timer.current = undefined;
+        lastRefresh.current = Date.now();
+        router.refresh();
+      }, wait);
+    },
+    [router],
+  );
 
   const handle = useCallback(
     (message: RealtimeMessage) => {
       onMessage?.(message);
-      if (!ignored.has(message.event)) scheduleRefresh();
+      if (ignored.has(message.event)) return;
+      scheduleRefresh(relaxed.has(message.event));
     },
-    [onMessage, scheduleRefresh, ignored],
+    [onMessage, scheduleRefresh, ignored, relaxed],
   );
 
   useEffect(() => () => clearTimeout(timer.current), []);

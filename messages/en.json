@@ -214,7 +214,9 @@
     "averageFrom": "average from {responses}",
     "rankings": "{count, plural, one {# ranking} other {# rankings}}",
     "rankingHint": "lower average is higher placed",
-    "yourAnswer": "your answer"
+    "yourAnswer": "your answer",
+    "averagePlace": "avg {value}",
+    "hiddenEntry": "Hidden"
   },
   "questionCard": {
     "upvote": "Upvote this question",
@@ -237,7 +239,8 @@
     "moveUp": "Move {option} up",
     "moveDown": "Move {option} down",
     "submit": "Submit ranking",
-    "update": "Update my ranking"
+    "update": "Update my ranking",
+    "hint": "Drag to order, or use the arrows. Top is first."
   },
   "live": {
     "connecting": "Connecting",
@@ -807,7 +810,8 @@
     "nextQuestion": "Next question",
     "showResults": "Show results",
     "questionTotal": "{count, plural, one {# question} other {# questions}}",
-    "pageOf": "Page {page} of {total}"
+    "pageOf": "Page {page} of {total}",
+    "noTextYet": "No answers yet. Send yours from your phone."
   },
   "design": {
     "metaTitle": "Design · {title}",

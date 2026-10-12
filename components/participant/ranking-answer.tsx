@@ -102,16 +102,20 @@ function SortableRow({
 export function RankingAnswer({
   options,
   myOrder,
+  locked,
   pending,
   onSubmit,
 }: {
   options: Option[];
   /** A previously submitted order, if any. */
   myOrder: string[];
+  /** Sent, and the host does not allow changing it. */
+  locked: boolean;
   pending: boolean;
   onSubmit: (optionIds: string[]) => void;
 }) {
   const t = useTranslations('ranking');
+  const tAnswers = useTranslations('answers');
   const initial =
     myOrder.length === options.length
       ? myOrder
@@ -144,9 +148,7 @@ export function RankingAnswer({
 
   return (
     <div className="space-y-4">
-      <p className="text-sm text-muted-foreground">
-        Drag to order, or use the arrows. Top is first.
-      </p>
+      <p className="text-sm text-muted-foreground">{locked ? tAnswers('locked') : t('hint')}</p>
 
       <DndContext
         sensors={sensors}
@@ -165,7 +167,7 @@ export function RankingAnswer({
                 position={index + 1}
                 isFirst={index === 0}
                 isLast={index === order.length - 1}
-                disabled={pending}
+                disabled={pending || locked}
                 onMove={(direction) => move(index, direction)}
               />
             ))}
@@ -173,14 +175,16 @@ export function RankingAnswer({
         </SortableContext>
       </DndContext>
 
-      <Button
-        className="w-full"
-        size="lg"
-        loading={pending}
-        onClick={() => onSubmit(order.map((option) => option.id))}
-      >
-        {submitted ? t('update') : t('submit')}
-      </Button>
+      {!locked && (
+        <Button
+          className="w-full"
+          size="lg"
+          loading={pending}
+          onClick={() => onSubmit(order.map((option) => option.id))}
+        >
+          {submitted ? t('update') : t('submit')}
+        </Button>
+      )}
     </div>
   );
 }

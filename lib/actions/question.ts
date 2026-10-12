@@ -149,6 +149,10 @@ export async function toggleQuestionVoteAction(input: unknown): Promise<ActionRe
   if (!take('actionPerPlayer', target.participantId)) {
     return { ok: false, error: t('errors.slowDown') };
   }
+  // Votes close with the Q&A, as questions do.
+  if (target.interactionStatus !== 'active') {
+    return { ok: false, error: t('errors.qaClosed') };
+  }
   if (
     inLobby({
       type: target.interactionType,
@@ -175,11 +179,15 @@ export async function toggleQuestionVoteAction(input: unknown): Promise<ActionRe
     )
     .returning({ id: questionVotes.id });
 
+  // A second tap arriving with the first finds its vote already in.
   if (removed.length === 0) {
-    await db.insert(questionVotes).values({
-      questionId: target.questionId,
-      participantId: target.participantId,
-    });
+    await db
+      .insert(questionVotes)
+      .values({
+        questionId: target.questionId,
+        participantId: target.participantId,
+      })
+      .onConflictDoNothing();
   }
 
   await publish(channels.qa(target.eventId), RealtimeEvent.QuestionUpvoted, {

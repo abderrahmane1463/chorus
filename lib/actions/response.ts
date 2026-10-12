@@ -14,7 +14,7 @@ import {
 import { readSessionId } from '@/lib/participant/session';
 import { take } from '@/lib/security/rate-limit';
 import { acceptsAudience } from '@/lib/utils/event-status';
-import { maxEntriesFor } from '@/lib/interactions/registry';
+import { canChangeAnswer, maxEntriesFor } from '@/lib/interactions/registry';
 import { inLobby } from '@/lib/interactions/lobby';
 import { normalizeWord } from '@/lib/interactions/normalize';
 import { submitResponseSchema } from '@/lib/validations/interaction';
@@ -113,25 +113,28 @@ export async function submitResponseAction(input: unknown): Promise<ActionResult
     );
 
   if (maxEntries === 1) {
-    const allowChange = context.settings.allowChangeAnswer ?? false;
+    const allowChange = canChangeAnswer(context.type, context.settings, {
+      inSurvey: Boolean(context.parentId),
+    });
     if (existing.length > 0 && !allowChange) {
       return { ok: false, error: t('errors.alreadyAnsweredOne') };
     }
 
     // Slot 0 plus the unique constraint is what makes one-answer-per-person a
-    // database guarantee rather than a hopeful check above.
-    await db
-      .insert(responses)
-      .values({
-        interactionId: context.interactionId,
-        participantId: context.participantId,
-        slot: 0,
-        responseData: built.data,
-      })
-      .onConflictDoUpdate({
-        target: [responses.interactionId, responses.participantId, responses.slot],
-        set: { responseData: built.data, updatedAt: new Date() },
-      });
+    // database guarantee rather than a hopeful check above. Where the answer
+    // may not change, a second tap racing the first keeps the first.
+    const insert = db.insert(responses).values({
+      interactionId: context.interactionId,
+      participantId: context.participantId,
+      slot: 0,
+      responseData: built.data,
+    });
+    await (allowChange
+      ? insert.onConflictDoUpdate({
+          target: [responses.interactionId, responses.participantId, responses.slot],
+          set: { responseData: built.data, updatedAt: new Date() },
+        })
+      : insert.onConflictDoNothing());
   } else {
     if (existing.length >= maxEntries) {
       return {
@@ -144,12 +147,17 @@ export async function submitResponseAction(input: unknown): Promise<ActionResult
     let slot = 0;
     while (usedSlots.has(slot)) slot += 1;
 
-    await db.insert(responses).values({
-      interactionId: context.interactionId,
-      participantId: context.participantId,
-      slot,
-      responseData: built.data,
-    });
+    // Two quick taps can pick the same free slot; the second is dropped
+    // rather than failing.
+    await db
+      .insert(responses)
+      .values({
+        interactionId: context.interactionId,
+        participantId: context.participantId,
+        slot,
+        responseData: built.data,
+      })
+      .onConflictDoNothing();
   }
 
   await publish(channels.event(context.eventId), RealtimeEvent.ResponseCreated, {

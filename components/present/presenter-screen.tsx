@@ -18,7 +18,7 @@ import { Logo } from '@/components/shared/logo';
 import { ResultsView } from '@/components/interactions/results-view';
 import { QuizStage } from './quiz-stage';
 import { InteractionLobby } from './join-lobby';
-import { QaBoard } from './qa-board';
+import { QaBoard, TextBoard } from './qa-board';
 import { inLobby } from '@/lib/interactions/lobby';
 import { useEventSync } from '@/hooks/use-event-sync';
 import { channels } from '@/lib/realtime/events';
@@ -294,11 +294,13 @@ export function PresenterScreen({
         </div>
       </header>
 
-      {/* Questions read from the top, so the list stays put as its pages turn. */}
+      {/* Lists read from the top, so they stay put as their pages turn. */}
       <main
         className={cn(
           'flex flex-1 flex-col px-8 py-8 lg:px-16',
-          active?.type === 'q_and_a' && !gathering ? 'justify-start' : 'justify-center',
+          (active?.type === 'q_and_a' || active?.type === 'open_text') && !gathering
+            ? 'justify-start'
+            : 'justify-center',
         )}
       >
         {!active ? (
@@ -356,6 +358,8 @@ export function PresenterScreen({
                   ))}
                 </div>
               </>
+            ) : results?.kind === 'open_text' ? (
+              <TextBoard title={active.title} entries={results.entries} />
             ) : (
               <>
                 <h2 className="mb-10 text-5xl font-semibold leading-tight">

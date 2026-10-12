@@ -33,6 +33,7 @@ export function LiveIndicator({
   withQa = false,
   withHost = false,
   ignore,
+  relaxed,
   className,
 }: {
   eventId: string;
@@ -42,6 +43,8 @@ export function LiveIndicator({
   withHost?: boolean;
   /** Messages that change nothing on this page. See `useEventSync`. */
   ignore?: readonly RealtimeEventName[];
+  /** Other people's activity: shown, but not refetched for more than every few seconds. */
+  relaxed?: readonly RealtimeEventName[];
   className?: string;
 }) {
   const names = [
@@ -51,7 +54,7 @@ export function LiveIndicator({
   ];
 
   const t = useTranslations('live');
-  const status = useEventSync(eventId, { channels: names, ignore });
+  const status = useEventSync(eventId, { channels: names, ignore, relaxed });
   const view = PRESENTATION[status];
 
   return (

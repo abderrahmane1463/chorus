@@ -214,7 +214,9 @@
     "averageFrom": "المعدل من {responses}",
     "rankings": "{count, plural, zero {لا ترتيبات} one {ترتيب واحد} two {ترتيبان} few {# ترتيبات} many {# ترتيبًا} other {# ترتيب}}",
     "rankingHint": "المعدل الأقل يعني مرتبة أعلى",
-    "yourAnswer": "إجابتك"
+    "yourAnswer": "إجابتك",
+    "averagePlace": "المتوسط {value}",
+    "hiddenEntry": "مخفية"
   },
   "questionCard": {
     "upvote": "صوّت لهذا السؤال",
@@ -237,7 +239,8 @@
     "moveUp": "حرّك {option} للأعلى",
     "moveDown": "حرّك {option} للأسفل",
     "submit": "أرسل ترتيبي",
-    "update": "عدّل ترتيبي"
+    "update": "عدّل ترتيبي",
+    "hint": "اسحب للترتيب، أو استخدم الأسهم. الأول في الأعلى."
   },
   "live": {
     "connecting": "جارٍ الاتصال",
@@ -807,7 +810,8 @@
     "nextQuestion": "السؤال التالي",
     "showResults": "عرض النتائج",
     "questionTotal": "{count, plural, zero {لا أسئلة} one {سؤال واحد} two {سؤالان} few {# أسئلة} many {# سؤالًا} other {# سؤال}}",
-    "pageOf": "الصفحة {page} من {total}"
+    "pageOf": "الصفحة {page} من {total}",
+    "noTextYet": "لا توجد إجابات بعد. أرسل إجابتك من هاتفك."
   },
   "design": {
     "metaTitle": "التصميم · {title}",

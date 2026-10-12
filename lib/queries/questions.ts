@@ -1,4 +1,5 @@
 import 'server-only';
+import { roomVersion, shared } from '@/lib/cache/room';
 import { and, asc, count, desc, eq, sql } from 'drizzle-orm';
 import { db } from '@/lib/db';
 import { participants, questionVotes, questions } from '@/db/schema';
@@ -22,26 +23,30 @@ export type QuestionItem = {
 
 const DEFAULT_LIMIT = 200;
 
-/**
- * Questions for one Q&A interaction.
- *
- * Author names are resolved here and blanked for anonymous questions before
- * the data leaves the server, so an anonymous asker's name is never sent to
- * the browser at all.
- */
-export async function listQuestions({
-  interactionId,
-  participantId,
-  isHost,
-  sort = 'votes',
-  limit = DEFAULT_LIMIT,
-}: {
-  interactionId: string;
+type QuestionRow = {
+  id: string;
+  text: string;
+  status: QuestionItem['status'];
+  isAnonymous: boolean;
+  isHighlighted: boolean;
+  createdAt: Date;
   participantId: string | null;
-  isHost: boolean;
-  sort?: QuestionSort;
-  limit?: number;
-}): Promise<QuestionItem[]> {
+  authorName: string | null;
+  votes: number;
+  /** Who voted, so each viewer can be told whether they did. */
+  voters: string[];
+};
+
+/**
+ * One Q&A's questions as everyone sees them, before deciding what a given
+ * viewer may see. The same for every phone, so it can be read once and
+ * shared (see `listQuestionsShared`).
+ */
+async function readQuestionRows(
+  interactionId: string,
+  sort: QuestionSort,
+  limit: number,
+): Promise<QuestionRow[]> {
   const voteCount = count(questionVotes.questionId);
 
   const orderBy =
@@ -62,9 +67,7 @@ export async function listQuestions({
       participantId: questions.participantId,
       authorName: participants.displayName,
       votes: voteCount,
-      votedByMe: participantId
-        ? sql<boolean>`bool_or(${questionVotes.participantId} = ${participantId})`
-        : sql<boolean>`false`,
+      voters: sql<string | null>`string_agg(${questionVotes.participantId}::text, ',')`,
     })
     .from(questions)
     .leftJoin(questionVotes, eq(questionVotes.questionId, questions.id))
@@ -74,14 +77,32 @@ export async function listQuestions({
     .orderBy(...orderBy)
     .limit(limit);
 
+  return rows.map((row) => ({
+    ...row,
+    votes: Number(row.votes),
+    voters: row.voters ? row.voters.split(',') : [],
+  }));
+}
+
+/**
+ * What one viewer may see of the questions. Author names are blanked for
+ * anonymous questions here, before the data leaves the server, so an
+ * anonymous asker's name is never sent to the browser at all.
+ */
+function forViewer(
+  rows: QuestionRow[],
+  { participantId, isHost }: { participantId: string | null; isHost: boolean },
+): QuestionItem[] {
   return rows
     .filter((row) => {
       // Hosts see everything except what they archived away.
       if (isHost) return row.status !== 'archived';
       if (row.status === 'hidden' || row.status === 'archived') return false;
       // A pending question stays visible to its author so their submission
-      // does not appear to have vanished.
-      if (row.status === 'pending') return row.participantId === participantId;
+      // does not appear to have vanished; to nobody else.
+      if (row.status === 'pending') {
+        return participantId !== null && row.participantId === participantId;
+      }
       return true;
     })
     .map((row) => ({
@@ -92,10 +113,48 @@ export async function listQuestions({
       isHighlighted: row.isHighlighted,
       authorName: row.isAnonymous ? null : row.authorName,
       createdAt: row.createdAt,
-      votes: Number(row.votes),
-      votedByMe: Boolean(row.votedByMe),
+      votes: row.votes,
+      votedByMe: participantId !== null && row.voters.includes(participantId),
       isMine: row.participantId !== null && row.participantId === participantId,
     }));
+}
+
+/** Questions for one Q&A interaction, as one viewer may see them. */
+export async function listQuestions({
+  interactionId,
+  participantId,
+  isHost,
+  sort = 'votes',
+  limit = DEFAULT_LIMIT,
+}: {
+  interactionId: string;
+  participantId: string | null;
+  isHost: boolean;
+  sort?: QuestionSort;
+  limit?: number;
+}): Promise<QuestionItem[]> {
+  return forViewer(await readQuestionRows(interactionId, sort, limit), { participantId, isHost });
+}
+
+/**
+ * The same, for a phone: the list is read once per change in the room and
+ * shared by every phone, which then picks out its own votes. In a busy Q&A
+ * every vote makes every phone reload, and reading the list for each of them
+ * was most of that cost.
+ */
+export async function listQuestionsShared({
+  eventId,
+  interactionId,
+  participantId,
+}: {
+  eventId: string;
+  interactionId: string;
+  participantId: string;
+}): Promise<QuestionItem[]> {
+  const rows = await shared(`qa:${eventId}:${roomVersion(eventId)}:${interactionId}`, () =>
+    readQuestionRows(interactionId, 'votes', DEFAULT_LIMIT),
+  );
+  return forViewer(rows, { participantId, isHost: false });
 }
 
 /** Counts used by the host's moderation tabs. */

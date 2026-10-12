@@ -19,7 +19,7 @@ import { Logo } from '@/components/shared/logo';
 import { LanguageSwitcher } from '@/components/shared/language-switcher';
 import { AnswerForm } from '@/components/participant/answer-form';
 import { QaPanel } from '@/components/participant/qa-panel';
-import { listQuestions } from '@/lib/queries/questions';
+import { listQuestionsShared } from '@/lib/queries/questions';
 import { QuizPanel } from '@/components/participant/quiz-panel';
 import { getPhoneQuiz } from '@/lib/queries/quiz';
 import {
@@ -172,10 +172,10 @@ export default async function ParticipantEventPage({
   const standing = boardShown ? (phoneQuiz?.standing ?? null) : null;
 
   const questions = isQa
-    ? await listQuestions({
+    ? await listQuestionsShared({
+        eventId: event.id,
         interactionId: interaction.id,
         participantId: participant.id,
-        isHost: false,
       })
     : [];
 
@@ -191,7 +191,10 @@ export default async function ParticipantEventPage({
     !isQuiz &&
     !isSurvey &&
     (interaction.settings.showResultsToParticipants ?? false)
-      ? await getInteractionResults(interaction)
+      ? // The same for every phone: read once per change in the room, and shared.
+        await shared(`results:${event.id}:${roomVersion(event.id)}:${interaction.id}`, () =>
+          getInteractionResults(interaction),
+        )
       : null;
 
   const maxEntries = interaction
@@ -221,6 +224,16 @@ export default async function ParticipantEventPage({
         RealtimeEvent.ResponseCreated,
         RealtimeEvent.ResponseUpdated,
       ];
+  // Other people's votes, questions and answers: shown, but a few seconds
+  // late is fine, and a busy room reloading every phone for each one is not.
+  // Someone's own vote, question or answer still shows at once, from the
+  // reply to their own action.
+  const relaxed = [
+    RealtimeEvent.QuestionCreated,
+    RealtimeEvent.QuestionUpvoted,
+    RealtimeEvent.ResponseCreated,
+    RealtimeEvent.ResponseUpdated,
+  ];
 
   const mySelections = mine.flatMap((entry) =>
     entry.data.kind === 'multiple_choice' ? entry.data.optionIds : [],
@@ -265,7 +278,7 @@ export default async function ParticipantEventPage({
           </div>
           <div className="flex shrink-0 items-center gap-1">
             <div className="flex flex-col items-end gap-0.5">
-              <LiveIndicator eventId={event.id} withQa ignore={ignore} />
+              <LiveIndicator eventId={event.id} withQa ignore={ignore} relaxed={relaxed} />
               {participant.displayName && (
                 <span className="text-xs text-muted-foreground">
                   {participant.displayName}

@@ -10,6 +10,7 @@ import { cn } from '@/lib/utils/cn';
 import { submitResponseAction } from '@/lib/actions/response';
 import type { InteractionSettings } from '@/types/interactions';
 import { RankingAnswer } from './ranking-answer';
+import { canChangeAnswer } from '@/lib/interactions/registry';
 
 type Option = { id: string; text: string };
 
@@ -62,6 +63,7 @@ export function AnswerForm(props: Props) {
         <RankingAnswer
           options={props.options}
           myOrder={props.myOrder}
+          locked={props.myOrder.length > 0 && !canChangeAnswer('ranking', props.settings)}
           pending={pending}
           onSubmit={(optionIds) => submit({ optionIds })}
         />
@@ -86,7 +88,7 @@ function ChoiceAnswer({
   const t = useTranslations('answers');
   const multiple = settings.allowMultiple ?? false;
   const [selected, setSelected] = useState<string[]>(mySelections);
-  const locked = mySelections.length > 0 && !(settings.allowChangeAnswer ?? false);
+  const locked = mySelections.length > 0 && !canChangeAnswer('multiple_choice', settings);
 
   function toggle(optionId: string) {
     if (locked) return;
@@ -169,7 +171,7 @@ function RatingAnswer({ settings, myRating, pending, onSubmit }: InnerProps) {
   const min = settings.scaleMin ?? 1;
   const max = settings.scaleMax ?? 5;
   const [value, setValue] = useState<number | undefined>(myRating);
-  const locked = myRating !== undefined && !(settings.allowChangeAnswer ?? true);
+  const locked = myRating !== undefined && !canChangeAnswer('rating', settings);
 
   const scale = [];
   for (let n = min; n <= max; n++) scale.push(n);

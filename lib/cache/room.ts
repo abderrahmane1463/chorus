@@ -25,7 +25,7 @@ type Entry = { expires: number; value: Promise<unknown> };
 
 type RoomState = {
   versions: Map<string, number>;
-  /** Moves only when a player is removed: who is who changes far less often. */
+  /** Moves only when a player joins, is renamed or is removed: who is who changes far less often. */
   rosters: Map<string, number>;
   entries: Map<string, Entry>;
   /** Which event a join code belongs to, so a code's reads follow its room. */
@@ -48,10 +48,14 @@ const state: RoomState = globalRef.__roomCache ?? {
 };
 globalRef.__roomCache = state;
 
-/** Marks the room as changed, so the next read of it reads the database. */
-export function roomChanged(eventId: string, { removal = false } = {}) {
+/**
+ * Marks the room as changed, so the next read of it reads the database.
+ * With `roster`, who is who changed too: a player joined, took a name or was
+ * removed, so what each phone knows of itself is read again.
+ */
+export function roomChanged(eventId: string, { roster = false } = {}) {
   state.versions.set(eventId, (state.versions.get(eventId) ?? 0) + 1);
-  if (removal) state.rosters.set(eventId, (state.rosters.get(eventId) ?? 0) + 1);
+  if (roster) state.rosters.set(eventId, (state.rosters.get(eventId) ?? 0) + 1);
 }
 
 /** The room as it is now: reads made under it hold until it next changes. */
@@ -59,7 +63,7 @@ export function roomVersion(eventId: string) {
   return state.versions.get(eventId) ?? 0;
 }
 
-/** The room's players as they are now: moves only when one is removed. */
+/** The room's players as they are now: moves when one joins, is renamed or is removed. */
 export function rosterVersion(eventId: string) {
   return state.rosters.get(eventId) ?? 0;
 }

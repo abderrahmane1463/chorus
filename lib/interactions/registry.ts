@@ -152,3 +152,27 @@ export function maxEntriesFor(
 export const SURVEY_CHILD_TYPES = ['multiple_choice', 'rating', 'open_text'] as const;
 
 export type SurveyChildType = (typeof SURVEY_CHILD_TYPES)[number];
+
+/**
+ * Whether a participant may replace an answer they already sent.
+ *
+ * Decided here once, because the phone and the server must agree: when they
+ * did not, the phone offered "Update" and the server refused it.
+ *
+ * - In a survey, always: it is filled in at one's own pace and can be revised
+ *   until it closes.
+ * - A multiple-choice poll follows the host's setting, off unless switched on.
+ * - A rating or a ranking can be revised unless the host locks it: moving the
+ *   order or the score is how one answers them.
+ * - Anything else is sent once.
+ */
+export function canChangeAnswer(
+  type: string,
+  settings: InteractionSettings,
+  { inSurvey = false }: { inSurvey?: boolean } = {},
+): boolean {
+  if (inSurvey) return true;
+  if (type === 'multiple_choice') return settings.allowChangeAnswer ?? false;
+  if (type === 'rating' || type === 'ranking') return settings.allowChangeAnswer ?? true;
+  return settings.allowChangeAnswer ?? false;
+}

@@ -214,7 +214,9 @@
     "averageFrom": "moyenne sur {responses}",
     "rankings": "{count, plural, one {# classement} other {# classements}}",
     "rankingHint": "une moyenne plus basse place plus haut",
-    "yourAnswer": "votre réponse"
+    "yourAnswer": "votre réponse",
+    "averagePlace": "moy. {value}",
+    "hiddenEntry": "Masquée"
   },
   "questionCard": {
     "upvote": "Voter pour cette question",
@@ -237,7 +239,8 @@
     "moveUp": "Monter {option}",
     "moveDown": "Descendre {option}",
     "submit": "Valider mon classement",
-    "update": "Modifier mon classement"
+    "update": "Modifier mon classement",
+    "hint": "Faites glisser pour classer, ou utilisez les flèches. Le premier est en haut."
   },
   "live": {
     "connecting": "Connexion",
@@ -807,7 +810,8 @@
     "nextQuestion": "Question suivante",
     "showResults": "Voir les résultats",
     "questionTotal": "{count, plural, one {# question} other {# questions}}",
-    "pageOf": "Page {page} sur {total}"
+    "pageOf": "Page {page} sur {total}",
+    "noTextYet": "Aucune réponse pour l’instant. Envoyez la vôtre depuis votre téléphone."
   },
   "design": {
     "metaTitle": "Design · {title}",

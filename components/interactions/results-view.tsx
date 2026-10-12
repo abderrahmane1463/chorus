@@ -187,7 +187,7 @@ export function ResultsView({
                 </span>
                 <span className="min-w-0 flex-1">{option.text}</span>
                 <span className="shrink-0 tabular-nums text-muted-foreground">
-                  avg {option.averagePosition.toFixed(2)}
+                  {t('averagePlace', { value: option.averagePosition.toFixed(2) })}
                 </span>
               </li>
             ))}
@@ -216,7 +216,7 @@ export function ResultsView({
                 {entry.hidden && (
                   <span className="mb-1 flex items-center gap-1 text-xs text-muted-foreground">
                     <EyeOff className="size-3" />
-                    Hidden
+                    {t('hiddenEntry')}
                   </span>
                 )}
                 <span className="whitespace-pre-wrap break-words">{entry.text}</span>

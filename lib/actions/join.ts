@@ -77,16 +77,18 @@ export async function joinEventAction(input: unknown): Promise<ActionResult> {
       })
       .where(eq(participants.id, existing.id));
   } else {
-    await db.insert(participants).values({
-      eventId: event.id,
-      sessionId,
-      displayName,
-    });
-
-    await publish(channels.host(event.id), RealtimeEvent.ParticipantJoined, {
-      eventId: event.id,
-    });
+    // A second tap on Join from the same phone lands on the row the first made.
+    await db
+      .insert(participants)
+      .values({ eventId: event.id, sessionId, displayName })
+      .onConflictDoNothing();
   }
+
+  // Also on a rejoin: someone back after a while counts as in the room again,
+  // and may have given a new name, so the projector's lobby must hear of it.
+  await publish(channels.host(event.id), RealtimeEvent.ParticipantJoined, {
+    eventId: event.id,
+  });
 
   redirect(`/event/${event.code}`);
 }
