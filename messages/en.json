@@ -811,7 +811,9 @@
     "showResults": "Show results",
     "questionTotal": "{count, plural, one {# question} other {# questions}}",
     "pageOf": "Page {page} of {total}",
-    "noTextYet": "No answers yet. Send yours from your phone."
+    "noTextYet": "No answers yet. Send yours from your phone.",
+    "previousPage": "Previous page",
+    "nextPage": "Next page"
   },
   "design": {
     "metaTitle": "Design · {title}",

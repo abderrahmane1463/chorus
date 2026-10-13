@@ -811,7 +811,9 @@
     "showResults": "عرض النتائج",
     "questionTotal": "{count, plural, zero {لا أسئلة} one {سؤال واحد} two {سؤالان} few {# أسئلة} many {# سؤالًا} other {# سؤال}}",
     "pageOf": "الصفحة {page} من {total}",
-    "noTextYet": "لا توجد إجابات بعد. أرسل إجابتك من هاتفك."
+    "noTextYet": "لا توجد إجابات بعد. أرسل إجابتك من هاتفك.",
+    "previousPage": "الصفحة السابقة",
+    "nextPage": "الصفحة التالية"
   },
   "design": {
     "metaTitle": "التصميم · {title}",

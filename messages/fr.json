@@ -811,7 +811,9 @@
     "showResults": "Voir les résultats",
     "questionTotal": "{count, plural, one {# question} other {# questions}}",
     "pageOf": "Page {page} sur {total}",
-    "noTextYet": "Aucune réponse pour l’instant. Envoyez la vôtre depuis votre téléphone."
+    "noTextYet": "Aucune réponse pour l’instant. Envoyez la vôtre depuis votre téléphone.",
+    "previousPage": "Page précédente",
+    "nextPage": "Page suivante"
   },
   "design": {
     "metaTitle": "Design · {title}",
