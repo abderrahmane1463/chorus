@@ -54,7 +54,7 @@ export function QuestionCard({
       ) : (
         <div
           className="flex h-14 w-11 shrink-0 flex-col items-center justify-center rounded-md border border-border text-sm font-semibold text-muted-foreground"
-          title={`${question.votes} upvotes`}
+          title={t('upvotes', { count: question.votes })}
         >
           <ArrowBigUp className="size-4" aria-hidden />
           <span className="tabular-nums">{question.votes}</span>
@@ -68,7 +68,7 @@ export function QuestionCard({
 
         <div className="mt-2 flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
           <span>{question.authorName ?? t('anonymous')}</span>
-          {question.isMine && <span>· you</span>}
+          {question.isMine && <span>· {t('you')}</span>}
 
           {question.status === 'answered' && <Badge variant="primary">{t('answered')}</Badge>}
           {question.status === 'pending' && <Badge>{t('pending')}</Badge>}
@@ -76,7 +76,7 @@ export function QuestionCard({
           {question.isHighlighted && (
             <Badge variant="accent">
               <Star className="size-3" aria-hidden />
-              On screen
+              {t('onScreen')}
             </Badge>
           )}
         </div>

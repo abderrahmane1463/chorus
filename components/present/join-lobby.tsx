@@ -1,7 +1,6 @@
 'use client';
 
 import type { ReactNode } from 'react';
-import { useRouter } from 'next/navigation';
 import { useTransition } from 'react';
 import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
 import { QRCodeSVG } from 'qrcode.react';
@@ -140,23 +139,28 @@ export function JoinLobby({
 /** The lobby of a live interaction: Start sends its question to every phone. */
 export function InteractionLobby({
   interactionId,
+  onStart,
   ...room
 }: {
   interactionId: string;
+  /** The big screen's own Start, which shows the question at once. */
+  onStart?: () => void;
   players: LobbyPlayer[];
   playerTotal: number;
   joinUrl: string;
   eventCode: string;
 }) {
   const t = useTranslations('lobby');
-  const router = useRouter();
   const [starting, startTransition] = useTransition();
 
   function start() {
+    if (onStart) {
+      onStart();
+      return;
+    }
     startTransition(async () => {
       const result = await startInteractionAction({ interactionId });
-      if (result.ok) router.refresh();
-      else toast.error(result.error);
+      if (!result.ok) toast.error(result.error);
     });
   }
 

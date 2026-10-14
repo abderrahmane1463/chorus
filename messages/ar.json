@@ -224,7 +224,10 @@
     "anonymous": "مجهول",
     "answered": "تمت الإجابة",
     "pending": "في انتظار الموافقة",
-    "hidden": "مخفي"
+    "hidden": "مخفي",
+    "upvotes": "{count, plural, zero {لا أصوات} one {صوت واحد} two {صوتان} few {# أصوات} many {# صوتًا} other {# صوت}}",
+    "you": "أنت",
+    "onScreen": "على الشاشة"
   },
   "leaderboard": {
     "noScores": "لا توجد نتائج بعد.",

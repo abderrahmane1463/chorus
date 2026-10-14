@@ -1,7 +1,6 @@
 'use client';
 
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
 import { useEffect, useRef, useState, useTransition } from 'react';
 import {
   Check,
@@ -67,7 +66,6 @@ export function QuizEditor({
   eventCode: string;
   serverNow: number;
 }) {
-  const router = useRouter();
   const t = useTranslations('quizEditor');
   const [pending, startTransition] = useTransition();
 
@@ -85,7 +83,6 @@ export function QuizEditor({
       const result = await controlQuizAction({ quizId: quiz.id, action });
       if (result.ok) {
         toast.success(message);
-        router.refresh();
       } else {
         toast.error(result.error);
       }
@@ -113,7 +110,6 @@ export function QuizEditor({
         toast.error(result.error);
         return;
       }
-      router.refresh();
 
       // Asked for from the top of the page, the new form opens further down,
       // so bring it to the host instead of leaving them to look for it.
@@ -354,7 +350,6 @@ function QuizQuestionEditor({
   index: number;
   isCurrent: boolean;
 }) {
-  const router = useRouter();
   const t = useTranslations('quizEditor');
   const [open, setOpen] = useState(question.title.trim().length === 0);
   const [title, setTitle] = useState(question.title);
@@ -385,7 +380,6 @@ function QuizQuestionEditor({
       if (result.ok) {
         toast.success(t('saved'));
         setOpen(false);
-        router.refresh();
       } else {
         toast.error(result.error);
       }
@@ -397,7 +391,6 @@ function QuizQuestionEditor({
       const result = await deleteQuizQuestionAction({ questionId: question.id });
       if (result.ok) {
         toast.success(t('deleted'));
-        router.refresh();
       } else {
         toast.error(result.error);
       }

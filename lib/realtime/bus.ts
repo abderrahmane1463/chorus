@@ -27,6 +27,11 @@ class RealtimeBus {
     };
   }
 
+  /** Whether any page is connected and listening right now. */
+  hasSubscribers(): boolean {
+    return this.channels.size > 0;
+  }
+
   publish(channel: string, message: RealtimeMessage): void {
     const set = this.channels.get(channel);
     if (!set) return;

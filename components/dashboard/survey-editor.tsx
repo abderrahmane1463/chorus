@@ -1,6 +1,5 @@
 'use client';
 
-import { useRouter } from 'next/navigation';
 import { useState, useTransition } from 'react';
 import { Plus, Trash2, X } from 'lucide-react';
 import { useTranslations } from 'next-intl';
@@ -20,7 +19,6 @@ import {
 import type { SurveyDetail, SurveyQuestion } from '@/lib/queries/survey';
 
 export function SurveyEditor({ survey }: { survey: SurveyDetail }) {
-  const router = useRouter();
   const t = useTranslations('surveyEditor');
   const tTypes = useTranslations('types');
   const [pending, startTransition] = useTransition();
@@ -28,8 +26,7 @@ export function SurveyEditor({ survey }: { survey: SurveyDetail }) {
   function addQuestion(type: string) {
     startTransition(async () => {
       const result = await addSurveyQuestionAction({ surveyId: survey.id, type });
-      if (result.ok) router.refresh();
-      else toast.error(result.error);
+      if (!result.ok) toast.error(result.error);
     });
   }
 
@@ -127,7 +124,6 @@ function SurveyQuestionEditor({
   question: SurveyQuestion;
   index: number;
 }) {
-  const router = useRouter();
   const t = useTranslations('surveyEditor');
   const tTypes = useTranslations('types');
   const meta = getInteractionMeta(question.type);
@@ -150,7 +146,6 @@ function SurveyQuestionEditor({
       if (result.ok) {
         toast.success(t('saved'));
         setOpen(false);
-        router.refresh();
       } else {
         toast.error(result.error);
       }
@@ -162,7 +157,6 @@ function SurveyQuestionEditor({
       const result = await deleteSurveyQuestionAction({ questionId: question.id });
       if (result.ok) {
         toast.success(t('deleted'));
-        router.refresh();
       } else {
         toast.error(result.error);
       }

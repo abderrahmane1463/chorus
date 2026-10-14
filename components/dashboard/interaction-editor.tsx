@@ -1,7 +1,7 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { useState, useTransition } from 'react';
+import { useOptimistic, useState, useTransition } from 'react';
 import { Play, Plus, RotateCcw, Square, Trash2, X } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { toast } from 'sonner';
@@ -20,7 +20,7 @@ import type { SurveyDetail } from '@/lib/queries/survey';
 import type { LeaderboardRow, LobbyPlayer, QuizDetail } from '@/lib/queries/quiz';
 import type { QuestionItem, QuestionSort } from '@/lib/queries/questions';
 import { getInteractionMeta } from '@/lib/interactions/registry';
-import { inLobby } from '@/lib/interactions/lobby';
+import { inLobby, opensInLobby } from '@/lib/interactions/lobby';
 import type { InteractionDetail, InteractionResults } from '@/lib/queries/interactions';
 import {
   deleteInteractionAction,
@@ -111,22 +111,35 @@ export function InteractionEditor({
       });
       if (result.ok) {
         toast.success(t('saved'));
-        router.refresh();
       } else {
         toast.error(result.error);
       }
     });
   }
 
+  // Live, stopped or started shows the moment the host taps it; the server's
+  // page replaces this when it answers, and a refusal puts it back.
+  const [run, showRun] = useOptimistic<
+    Pick<InteractionDetail, 'status' | 'startedAt'>,
+    Partial<Pick<InteractionDetail, 'status' | 'startedAt'>>
+  >({ status: interaction.status, startedAt: interaction.startedAt }, (current, next) => ({
+    ...current,
+    ...next,
+  }));
+
   function setStatus(status: 'active' | 'closed') {
     startControl(async () => {
+      showRun({
+        status,
+        // Put live, it waits in its lobby; stopped, it keeps when it began.
+        startedAt: status === 'active' && opensInLobby(interaction.type) ? null : run.startedAt,
+      });
       const result = await setInteractionStatusAction({
         interactionId: interaction.id,
         status,
       });
       if (result.ok) {
         toast.success(status === 'active' ? t('nowLive') : t('nowClosed'));
-        router.refresh();
       } else {
         toast.error(result.error);
       }
@@ -134,13 +147,13 @@ export function InteractionEditor({
   }
 
   // Live but gathering the room: the question reaches phones on Start.
-  const gathering = inLobby(interaction);
+  const gathering = inLobby({ type: interaction.type, ...run });
 
   function startQuestion() {
     startControl(async () => {
+      showRun({ startedAt: new Date() });
       const result = await startInteractionAction({ interactionId: interaction.id });
-      if (result.ok) router.refresh();
-      else toast.error(result.error);
+      if (!result.ok) toast.error(result.error);
     });
   }
 
@@ -149,7 +162,6 @@ export function InteractionEditor({
       const result = await resetInteractionAction({ interactionId: interaction.id });
       if (result.ok) {
         toast.success(t('cleared'));
-        router.refresh();
       } else {
         toast.error(result.error);
       }
@@ -162,7 +174,6 @@ export function InteractionEditor({
       if (result.ok) {
         toast.success(t('deleted'));
         router.push(`/dashboard/events/${interaction.eventId}`);
-        router.refresh();
       } else {
         toast.error(result.error);
       }
@@ -188,8 +199,8 @@ export function InteractionEditor({
     <div className="space-y-5">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-2">
-          <Badge variant={interaction.status === 'active' ? 'success' : 'neutral'}>
-            {interaction.status === 'active' ? t('live') : tStatus(interaction.status)}
+          <Badge variant={run.status === 'active' ? 'success' : 'neutral'}>
+            {run.status === 'active' ? t('live') : tStatus(run.status)}
           </Badge>
           <span className="text-sm text-muted-foreground">
             {meta ? tTypes(`${meta.type}.name`) : interaction.type}
@@ -202,24 +213,19 @@ export function InteractionEditor({
           {!isQuiz && (
             <>
               {gathering && (
-                <Button onClick={startQuestion} loading={controlling}>
+                <Button onClick={startQuestion}>
                   <Play />
                   {tLobby('start')}
                 </Button>
               )}
-              {interaction.status === 'active' ? (
-                <Button
-                  variant="secondary"
-                  onClick={() => setStatus('closed')}
-                  loading={controlling}
-                >
+              {run.status === 'active' ? (
+                <Button variant="secondary" onClick={() => setStatus('closed')}>
                   <Square />
                   {t('stop')}
                 </Button>
               ) : (
                 <Button
                   onClick={() => setStatus('active')}
-                  loading={controlling}
                   disabled={title.trim().length === 0}
                 >
                   <Play />

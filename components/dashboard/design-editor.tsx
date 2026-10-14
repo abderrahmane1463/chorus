@@ -146,7 +146,6 @@ export function DesignEditor({
 
       toast.success(t('saved'));
       if (then === 'continue') router.push(workspace);
-      else router.refresh();
     });
   }
 

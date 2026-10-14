@@ -224,7 +224,10 @@
     "anonymous": "Anonymous",
     "answered": "Answered",
     "pending": "Awaiting approval",
-    "hidden": "Hidden"
+    "hidden": "Hidden",
+    "upvotes": "{count, plural, one {# upvote} other {# upvotes}}",
+    "you": "you",
+    "onScreen": "On screen"
   },
   "leaderboard": {
     "noScores": "No scores yet.",

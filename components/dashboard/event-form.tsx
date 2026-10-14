@@ -43,7 +43,6 @@ export function EventForm(props: Props) {
       if (result.ok) {
         toast.success(t('updated'));
         form.reset(values);
-        router.refresh();
       } else {
         toast.error(result.error);
       }

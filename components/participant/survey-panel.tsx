@@ -1,6 +1,5 @@
 'use client';
 
-import { useRouter } from 'next/navigation';
 import { useState, useTransition } from 'react';
 import { Check, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useTranslations } from 'next-intl';
@@ -21,16 +20,18 @@ export function SurveyPanel({
   survey: SurveyDetail;
   answers: Answers;
 }) {
-  const router = useRouter();
   const t = useTranslations('survey');
   // The open-text placeholder is shared with the standalone answer form.
   const tAnswers = useTranslations('answers');
-  const [pending, startTransition] = useTransition();
+  const [, startTransition] = useTransition();
   const [index, setIndex] = useState(0);
   const [drafts, setDrafts] = useState<Answers>(answers);
+  // Answers sent from this page and not yet confirmed: counted as answered
+  // the moment they are tapped, so the survey never waits on the server.
+  const [sending, setSending] = useState<ReadonlySet<string>>(new Set());
 
   const oneByOne = (survey.settings.navigationMode ?? 'all_at_once') === 'one_by_one';
-  const answeredCount = survey.questions.filter((q) => answers[q.id]).length;
+  const answeredCount = survey.questions.filter((q) => answers[q.id] || sending.has(q.id)).length;
   const complete = answeredCount === survey.questions.length;
 
   if (survey.questions.length === 0) {
@@ -42,14 +43,20 @@ export function SurveyPanel({
   }
 
   function send(questionId: string, payload: Record<string, unknown>) {
+    // Shown as answered, and on to the next question, at once.
+    setSending((current) => new Set(current).add(questionId));
+    if (oneByOne && index < survey.questions.length - 1) setIndex(index + 1);
+
     startTransition(async () => {
+      // The action's response already carries the page re-rendered with this
+      // answer, so no refresh of its own.
       const result = await submitResponseAction({ interactionId: questionId, ...payload });
-      if (result.ok) {
-        router.refresh();
-        if (oneByOne && index < survey.questions.length - 1) {
-          setIndex(index + 1);
-        }
-      } else {
+      if (!result.ok) {
+        setSending((current) => {
+          const next = new Set(current);
+          next.delete(questionId);
+          return next;
+        });
         toast.error(result.error);
       }
     });
@@ -85,7 +92,7 @@ export function SurveyPanel({
       </div>
 
       {visible.map((question) => {
-        const saved = answers[question.id];
+        const saved = answers[question.id] ?? (sending.has(question.id) ? drafts[question.id] : undefined);
         const draft = drafts[question.id] ?? { optionIds: [] };
 
         return (
@@ -107,7 +114,6 @@ export function SurveyPanel({
                     <button
                       key={option.id}
                       type="button"
-                      disabled={pending}
                       onClick={() => {
                         setDrafts({ ...drafts, [question.id]: { optionIds: [option.id] } });
                         send(question.id, { optionIds: [option.id] });
@@ -143,7 +149,6 @@ export function SurveyPanel({
                     <button
                       key={value}
                       type="button"
-                      disabled={pending}
                       onClick={() => {
                         setDrafts({ ...drafts, [question.id]: { optionIds: [], value } });
                         send(question.id, { value });
@@ -178,7 +183,6 @@ export function SurveyPanel({
                 />
                 <Button
                   size="sm"
-                  loading={pending}
                   disabled={(draft.text ?? '').trim().length === 0}
                   onClick={() => send(question.id, { text: draft.text })}
                 >

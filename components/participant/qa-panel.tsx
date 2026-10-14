@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useTransition } from 'react';
+import { useOptimistic, useState, useTransition } from 'react';
 import { MessagesSquare } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { toast } from 'sonner';
@@ -28,26 +28,28 @@ export function QaPanel({
   const t = useTranslations('qa');
   const [text, setText] = useState('');
   const [anonymous, setAnonymous] = useState(false);
-  const [pending, startTransition] = useTransition();
+  const [, startTransition] = useTransition();
 
   const allowAnonymous = settings.allowAnonymous ?? true;
   const allowUpvotes = settings.allowUpvotes ?? true;
   const moderated = settings.moderationEnabled ?? false;
 
+  // A vote or a question shows the moment it is tapped, without waiting for
+  // the server; its own page replaces this when it answers, and a refusal
+  // puts the list back as it was and says why.
+  const [shown, change] = useOptimistic<QuestionItem[], Change>(questions, applyChange);
+
   function ask() {
+    const sent = text;
+    const isAnonymous = allowAnonymous ? anonymous : false;
+    setText('');
+    toast.success(moderated ? t('sentForReview') : t('sent'));
     startTransition(async () => {
-      const result = await askQuestionAction({
-        interactionId,
-        text,
-        isAnonymous: allowAnonymous ? anonymous : false,
-      });
-      if (result.ok) {
-        setText('');
-        // No refresh: the action's response already carries the updated page.
-        toast.success(
-          moderated ? t('sentForReview') : t('sent'),
-        );
-      } else {
+      change({ kind: 'ask', text: sent, moderated });
+      const result = await askQuestionAction({ interactionId, text: sent, isAnonymous });
+      if (!result.ok) {
+        // Given back, so nothing typed is lost.
+        setText(sent);
         toast.error(result.error);
       }
     });
@@ -55,8 +57,8 @@ export function QaPanel({
 
   function upvote(questionId: string) {
     startTransition(async () => {
+      change({ kind: 'vote', questionId });
       const result = await toggleQuestionVoteAction({ questionId });
-      // On success the action's response already carries the new count.
       if (!result.ok) toast.error(result.error);
     });
   }
@@ -89,7 +91,7 @@ export function QaPanel({
             <span className="text-xs tabular-nums text-muted-foreground">
               {text.length}/{MAX_LENGTH}
             </span>
-            <Button onClick={ask} loading={pending} disabled={text.trim().length < 3}>
+            <Button onClick={ask} disabled={text.trim().length < 3}>
               {t('send')}
             </Button>
           </div>
@@ -102,7 +104,7 @@ export function QaPanel({
         )}
       </Card>
 
-      {questions.length === 0 ? (
+      {shown.length === 0 ? (
         <EmptyState
           icon={MessagesSquare}
           title={t('emptyTitle')}
@@ -110,16 +112,50 @@ export function QaPanel({
         />
       ) : (
         <ul className="space-y-2">
-          {questions.map((question) => (
+          {shown.map((question) => (
             <QuestionCard
               key={question.id}
               question={question}
               onUpvote={allowUpvotes ? upvote : undefined}
-              upvoteDisabled={pending || question.status === 'pending'}
+              upvoteDisabled={question.status === 'pending'}
             />
           ))}
         </ul>
       )}
     </div>
   );
+}
+
+type Change =
+  | { kind: 'vote'; questionId: string }
+  | { kind: 'ask'; text: string; moderated: boolean };
+
+/** The list as it will be once the server has taken this vote or question. */
+function applyChange(list: QuestionItem[], change: Change): QuestionItem[] {
+  if (change.kind === 'vote') {
+    return list.map((question) =>
+      question.id === change.questionId
+        ? {
+            ...question,
+            votedByMe: !question.votedByMe,
+            votes: question.votes + (question.votedByMe ? -1 : 1),
+          }
+        : question,
+    );
+  }
+
+  const mine: QuestionItem = {
+    id: `sending-${list.length}-${change.text.length}`,
+    text: change.text,
+    // Shown as waiting until the server has it, so it cannot be voted on yet.
+    status: 'pending',
+    isAnonymous: false,
+    isHighlighted: false,
+    authorName: null,
+    createdAt: new Date(),
+    votes: 0,
+    votedByMe: false,
+    isMine: true,
+  };
+  return [...list, mine];
 }

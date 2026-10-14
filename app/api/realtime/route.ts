@@ -1,5 +1,6 @@
 import type { NextRequest } from 'next/server';
 import { bus } from '@/lib/realtime/bus';
+import { keepDatabaseWarm } from '@/lib/db/keep-warm';
 import type { RealtimeMessage } from '@/lib/realtime/events';
 
 // Must run on the Node runtime and stay dynamic: the stream is long-lived and
@@ -21,6 +22,9 @@ export async function GET(request: NextRequest) {
   if (channels.length === 0) {
     return new Response('channels query parameter is required', { status: 400 });
   }
+
+  // Someone is watching live: keep the database awake while anyone is.
+  keepDatabaseWarm();
 
   const encoder = new TextEncoder();
   let unsubscribes: Array<() => void> = [];

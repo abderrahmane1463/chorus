@@ -41,7 +41,6 @@ export function InteractionTypePicker({
         setOpen(false);
         // Open the new interaction straight into its editor.
         router.push(`/dashboard/events/${eventId}?i=${result.interactionId}`);
-        router.refresh();
       } else if (!result.ok) {
         toast.error(result.error);
       }

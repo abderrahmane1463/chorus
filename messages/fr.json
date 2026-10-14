@@ -224,7 +224,10 @@
     "anonymous": "Anonyme",
     "answered": "Répondue",
     "pending": "En attente de validation",
-    "hidden": "Masquée"
+    "hidden": "Masquée",
+    "upvotes": "{count, plural, one {# vote} other {# votes}}",
+    "you": "vous",
+    "onScreen": "À l’écran"
   },
   "leaderboard": {
     "noScores": "Aucun score pour l'instant.",

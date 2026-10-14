@@ -74,11 +74,14 @@ export async function submitResponseAction(input: unknown): Promise<ActionResult
   if (!acceptsAudience(context.eventStatus)) {
     return { ok: false, error: t('errors.eventClosed') };
   }
-  // Survey questions are children and are never "active" themselves; what
-  // gates them is whether their parent survey is open, and started.
-  const gate = context.parentId
-    ? (
-        await db
+  // Asked together: each is a round trip to the database, and none needs
+  // another's answer. One after the other, they were most of the time a
+  // participant waited for their answer to land.
+  const [gate, built, existing] = await Promise.all([
+    // Survey questions are children and are never "active" themselves; what
+    // gates them is whether their parent survey is open, and started.
+    context.parentId
+      ? db
           .select({
             type: interactions.type,
             status: interactions.status,
@@ -87,8 +90,19 @@ export async function submitResponseAction(input: unknown): Promise<ActionResult
           .from(interactions)
           .where(eq(interactions.id, context.parentId))
           .limit(1)
-      )[0]
-    : context;
+          .then((rows) => rows[0])
+      : context,
+    buildResponseData(context, parsed.data),
+    db
+      .select({ id: responses.id, slot: responses.slot })
+      .from(responses)
+      .where(
+        and(
+          eq(responses.interactionId, context.interactionId),
+          eq(responses.participantId, context.participantId),
+        ),
+      ),
+  ]);
 
   if (gate?.status !== 'active') {
     return { ok: false, error: t('errors.questionClosed') };
@@ -97,20 +111,9 @@ export async function submitResponseAction(input: unknown): Promise<ActionResult
   if (inLobby(gate)) {
     return { ok: false, error: t('errors.notStartedYet') };
   }
-
-  const built = await buildResponseData(context, parsed.data);
   if ('error' in built) return { ok: false, error: built.error };
 
   const maxEntries = maxEntriesFor(context.type, context.settings);
-  const existing = await db
-    .select({ id: responses.id, slot: responses.slot })
-    .from(responses)
-    .where(
-      and(
-        eq(responses.interactionId, context.interactionId),
-        eq(responses.participantId, context.participantId),
-      ),
-    );
 
   if (maxEntries === 1) {
     const allowChange = canChangeAnswer(context.type, context.settings, {

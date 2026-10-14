@@ -1,6 +1,5 @@
 'use client';
 
-import { useRouter } from 'next/navigation';
 import { useState, useTransition } from 'react';
 import { MessagesSquare } from 'lucide-react';
 import { useTranslations } from 'next-intl';
@@ -35,7 +34,6 @@ export function QaModeration({
   sort: QuestionSort;
   onSortChange: (sort: QuestionSort) => void;
 }) {
-  const router = useRouter();
   const t = useTranslations('moderation');
   const [filter, setFilter] = useState<Filter>('all');
   const [pending, startTransition] = useTransition();
@@ -45,7 +43,6 @@ export function QaModeration({
       const result = await moderateQuestionAction({ questionId, action });
       if (result.ok) {
         toast.success(message);
-        router.refresh();
       } else {
         toast.error(result.error);
       }

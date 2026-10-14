@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useTransition } from 'react';
+import { useOptimistic, useState, useTransition } from 'react';
 import { useFormatter, useTranslations } from 'next-intl';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
@@ -27,43 +27,87 @@ type Props = {
   entriesLeft: number;
 };
 
+/** What this participant has sent, as the form shows it. */
+type Mine = Pick<Props, 'mySelections' | 'myRating' | 'myTexts' | 'myOrder' | 'entriesLeft'>;
+type Payload = { optionIds?: string[]; value?: number; text?: string };
+
+/** The form's state as it will be once the server has taken this answer. */
+function withAnswer(mine: Mine, type: string, payload: Payload): Mine {
+  switch (type) {
+    case 'multiple_choice':
+      return { ...mine, mySelections: payload.optionIds ?? [] };
+    case 'rating':
+      return { ...mine, myRating: payload.value };
+    case 'ranking':
+      return { ...mine, myOrder: payload.optionIds ?? [] };
+    case 'word_cloud':
+    case 'open_text':
+      return {
+        ...mine,
+        myTexts: [...mine.myTexts, payload.text ?? ''],
+        entriesLeft: Math.max(mine.entriesLeft - 1, 0),
+      };
+    default:
+      return mine;
+  }
+}
+
 export function AnswerForm(props: Props) {
   const t = useTranslations('answers');
-  const [pending, startTransition] = useTransition();
+  const [, startTransition] = useTransition();
 
-  function submit(payload: Record<string, unknown>, onDone?: () => void) {
+  // The answer shows as sent the moment it is tapped, without waiting for
+  // the server: on a phone far from the database a round trip is the better
+  // part of a second, and the room should never watch a spinner to vote.
+  // The server's own page replaces this when it answers; if it refuses, the
+  // form goes back to how it was and says why.
+  const [mine, showSent] = useOptimistic<Mine, Payload>(
+    {
+      mySelections: props.mySelections,
+      myRating: props.myRating,
+      myTexts: props.myTexts,
+      myOrder: props.myOrder,
+      entriesLeft: props.entriesLeft,
+    },
+    (current, payload) => withAnswer(current, props.type, payload),
+  );
+
+  function submit(payload: Payload, onDone?: () => void) {
+    // Cleared at once, with the answer shown as sent above it.
+    onDone?.();
+    toast.success(t('sent'));
     startTransition(async () => {
+      showSent(payload);
       const result = await submitResponseAction({
         interactionId: props.interactionId,
         ...payload,
       });
-      if (result.ok) {
-        // The action's response already carries the page re-rendered with this
-        // change (it revalidates the page), so a refresh here would render it
-        // a second time for nothing, once per tap, for every player.
-        toast.success(t('sent'));
-        onDone?.();
-      } else {
-        toast.error(result.error);
-      }
+      // The action's response already carries the page re-rendered with this
+      // change (it revalidates the page), so a refresh here would render it
+      // a second time for nothing, once per tap, for every player.
+      if (!result.ok) toast.error(result.error);
     });
   }
 
+  const shown = { ...props, ...mine };
+  // Nothing to wait for: the answer is already on screen as sent.
+  const pending = false;
+
   switch (props.type) {
     case 'multiple_choice':
-      return <ChoiceAnswer {...props} pending={pending} onSubmit={submit} />;
+      return <ChoiceAnswer {...shown} pending={pending} onSubmit={submit} />;
     case 'rating':
-      return <RatingAnswer {...props} pending={pending} onSubmit={submit} />;
+      return <RatingAnswer {...shown} pending={pending} onSubmit={submit} />;
     case 'word_cloud':
-      return <WordAnswer {...props} pending={pending} onSubmit={submit} />;
+      return <WordAnswer {...shown} pending={pending} onSubmit={submit} />;
     case 'open_text':
-      return <TextAnswer {...props} pending={pending} onSubmit={submit} />;
+      return <TextAnswer {...shown} pending={pending} onSubmit={submit} />;
     case 'ranking':
       return (
         <RankingAnswer
-          options={props.options}
-          myOrder={props.myOrder}
-          locked={props.myOrder.length > 0 && !canChangeAnswer('ranking', props.settings)}
+          options={shown.options}
+          myOrder={shown.myOrder}
+          locked={shown.myOrder.length > 0 && !canChangeAnswer('ranking', shown.settings)}
           pending={pending}
           onSubmit={(optionIds) => submit({ optionIds })}
         />
@@ -75,7 +119,7 @@ export function AnswerForm(props: Props) {
 
 type InnerProps = Props & {
   pending: boolean;
-  onSubmit: (payload: Record<string, unknown>, onDone?: () => void) => void;
+  onSubmit: (payload: Payload, onDone?: () => void) => void;
 };
 
 function ChoiceAnswer({

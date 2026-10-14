@@ -1,8 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
-import { useEffect, useRef, useState, useTransition } from 'react';
+import { useEffect, useOptimistic, useRef, useState, useTransition } from 'react';
 import { QRCodeSVG } from 'qrcode.react';
 import {
   ChevronLeft,
@@ -91,7 +90,6 @@ export function PresenterScreen({
   leaderboard: LeaderboardRow[];
   survey: SurveyDetail | null;
 }) {
-  const router = useRouter();
   const t = useTranslations('presenter');
   const tLobby = useTranslations('lobby');
   const [pending, startTransition] = useTransition();
@@ -140,8 +138,7 @@ export function PresenterScreen({
         interactionId: target.id,
         status: 'active',
       });
-      if (result.ok) router.refresh();
-      else toast.error(result.error);
+      if (!result.ok) toast.error(result.error);
     });
   }
 
@@ -163,23 +160,31 @@ export function PresenterScreen({
             : 'next'
           : null;
 
+  // Started the moment the host taps Start: the question replaces the lobby
+  // at once, and the server's page takes over when it answers.
+  const [startedNow, showStarted] = useOptimistic(false, () => true);
+
   // A question gathering its room: Next starts it.
-  const gathering = active ? inLobby(active) : false;
+  const gathering = active && !startedNow ? inLobby(active) : false;
+
+  function startQuestion() {
+    if (!active) return;
+    startTransition(async () => {
+      showStarted(null);
+      const result = await startInteractionAction({ interactionId: active.id });
+      if (!result.ok) toast.error(result.error);
+    });
+  }
 
   function forward() {
     if (active && gathering) {
-      startTransition(async () => {
-        const result = await startInteractionAction({ interactionId: active.id });
-        if (result.ok) router.refresh();
-        else toast.error(result.error);
-      });
+      startQuestion();
       return;
     }
     if (quiz && quizStep) {
       startTransition(async () => {
         const result = await controlQuizAction({ quizId: quiz.id, action: quizStep });
-        if (result.ok) router.refresh();
-        else toast.error(result.error);
+        if (!result.ok) toast.error(result.error);
       });
       return;
     }
@@ -319,6 +324,7 @@ export function PresenterScreen({
           <div className="mx-auto w-full max-w-5xl">
             {gathering ? (
               <InteractionLobby
+                onStart={startQuestion}
                 interactionId={active.id}
                 players={players}
                 playerTotal={participantCount}
