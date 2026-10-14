@@ -1,4 +1,5 @@
 import 'server-only';
+import { cache } from 'react';
 import { and, count, eq, isNull } from 'drizzle-orm';
 import { db } from '@/lib/db';
 import { events, interactions, participants, questions, responses } from '@/db/schema';
@@ -25,32 +26,33 @@ export type EventDetail = {
  * Loads one event, but only if the given user owns it.
  *
  * Ownership is part of the WHERE clause rather than a check afterwards, so a
- * host cannot read another host's event by guessing its id.
+ * host cannot read another host's event by guessing its id. The counts are
+ * asked for alongside it rather than after, one round trip instead of two,
+ * and dropped unread if the event is not this host's.
+ *
+ * Read once per request: a page's title and its body both ask for it.
  */
-export async function getEventForOwner(
+export const getEventForOwner = cache(async function getEventForOwner(
   eventId: string,
   userId: string,
 ): Promise<EventDetail | null> {
-  const [event] = await db
-    .select({
-      id: events.id,
-      title: events.title,
-      description: events.description,
-      eventCode: events.eventCode,
-      status: events.status,
-      activeInteractionId: events.activeInteractionId,
-      createdAt: events.createdAt,
-      branding: events.branding,
-    })
-    .from(events)
-    .where(and(eq(events.id, eventId), eq(events.ownerId, userId)))
-    .limit(1);
-
-  if (!event) return null;
-
   // Counted separately: a single grouped query would multiply rows across joins.
-  const [participantRows, interactionRows, responseRows, questionRows] =
+  const [[event], participantRows, interactionRows, responseRows, questionRows] =
     await Promise.all([
+      db
+        .select({
+          id: events.id,
+          title: events.title,
+          description: events.description,
+          eventCode: events.eventCode,
+          status: events.status,
+          activeInteractionId: events.activeInteractionId,
+          createdAt: events.createdAt,
+          branding: events.branding,
+        })
+        .from(events)
+        .where(and(eq(events.id, eventId), eq(events.ownerId, userId)))
+        .limit(1),
       db
         .select({ total: count() })
         .from(participants)
@@ -70,6 +72,8 @@ export async function getEventForOwner(
         .where(eq(questions.eventId, eventId)),
     ]);
 
+  if (!event) return null;
+
   return {
     ...event,
     branding: readBranding(event.branding),
@@ -78,7 +82,7 @@ export async function getEventForOwner(
     responseCount: responseRows[0]?.total ?? 0,
     questionCount: questionRows[0]?.total ?? 0,
   };
-}
+});
 
 /** Confirms ownership without loading the whole row. */
 export async function assertEventOwner(

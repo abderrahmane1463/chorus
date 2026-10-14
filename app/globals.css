@@ -201,3 +201,14 @@
     }
   }
 }
+
+/* The page-change bar: quick at first, then slowing as it nears the end, so
+   a long wait still looks like progress rather than a stall. */
+@keyframes navigation-progress {
+  from {
+    transform: scaleX(0.04);
+  }
+  to {
+    transform: scaleX(0.92);
+  }
+}

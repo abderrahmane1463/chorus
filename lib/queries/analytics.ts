@@ -122,17 +122,23 @@ export async function getEventAnalytics(eventId: string): Promise<EventAnalytics
       .orderBy(asc(interactions.position), asc(interactions.createdAt)),
   ]);
 
-  const perInteraction: EventAnalytics['perInteraction'] = [];
-  const quizzes: EventAnalytics['quizzes'] = [];
+  type PerInteraction = EventAnalytics['perInteraction'][number];
+  type QuizEntry = EventAnalytics['quizzes'][number];
 
-  for (const interaction of topLevel) {
+  // Every interaction is read at the same time rather than one after another:
+  // each costs a few round trips to the database, and in sequence the page
+  // waited on all of them added up, longer with every interaction an event has.
+  const analyse = async (
+    interaction: (typeof topLevel)[number],
+  ): Promise<{ quiz: QuizEntry } | { item: PerInteraction }> => {
     if (interaction.type === 'quiz') {
-      quizzes.push({
-        id: interaction.id,
-        title: interaction.title,
-        leaderboard: await getLeaderboard(interaction.id),
-      });
-      continue;
+      return {
+        quiz: {
+          id: interaction.id,
+          title: interaction.title,
+          leaderboard: await getLeaderboard(interaction.id),
+        },
+      };
     }
 
     if (interaction.type === 'q_and_a') {
@@ -146,16 +152,17 @@ export async function getEventAnalytics(eventId: string): Promise<EventAnalytics
         .from(questions)
         .where(eq(questions.interactionId, interaction.id));
 
-      perInteraction.push({
-        id: interaction.id,
-        type: interaction.type,
-        title: interaction.title,
-        responseCount: asked?.total ?? 0,
-        participantCount: asked?.people ?? 0,
-        questionCount: asked?.total ?? 0,
-        results: { kind: 'none', total: asked?.total ?? 0 },
-      });
-      continue;
+      return {
+        item: {
+          id: interaction.id,
+          type: interaction.type,
+          title: interaction.title,
+          responseCount: asked?.total ?? 0,
+          participantCount: asked?.people ?? 0,
+          questionCount: asked?.total ?? 0,
+          results: { kind: 'none', total: asked?.total ?? 0 },
+        },
+      };
     }
 
     if (interaction.type === 'survey') {
@@ -171,68 +178,84 @@ export async function getEventAnalytics(eventId: string): Promise<EventAnalytics
         .where(eq(interactions.parentId, interaction.id))
         .orderBy(asc(interactions.position));
 
-      const childResults: NonNullable<
-        EventAnalytics['perInteraction'][number]['children']
-      > = [];
-      let totalResponses = 0;
+      const read = await Promise.all(
+        children.map(async (child) => {
+          const [childOptions, rows] = await Promise.all([
+            db
+              .select({ id: interactionOptions.id, text: interactionOptions.text })
+              .from(interactionOptions)
+              .where(eq(interactionOptions.interactionId, child.id))
+              .orderBy(asc(interactionOptions.position)),
+            db
+              .select({ participantId: responses.participantId })
+              .from(responses)
+              .where(eq(responses.interactionId, child.id)),
+          ]);
+          return {
+            rows,
+            result: {
+              id: child.id,
+              title: child.title,
+              results: await getInteractionResults({ ...child, options: childOptions }),
+            },
+          };
+        }),
+      );
+
       const people = new Set<string>();
-
-      for (const child of children) {
-        const childOptions = await db
-          .select({ id: interactionOptions.id, text: interactionOptions.text })
-          .from(interactionOptions)
-          .where(eq(interactionOptions.interactionId, child.id))
-          .orderBy(asc(interactionOptions.position));
-
-        const rows = await db
-          .select({ participantId: responses.participantId })
-          .from(responses)
-          .where(eq(responses.interactionId, child.id));
-
+      let totalResponses = 0;
+      for (const { rows } of read) {
         totalResponses += rows.length;
         rows.forEach((row) => people.add(row.participantId));
-
-        childResults.push({
-          id: child.id,
-          title: child.title,
-          results: await getInteractionResults({ ...child, options: childOptions }),
-        });
       }
 
-      perInteraction.push({
+      return {
+        item: {
+          id: interaction.id,
+          type: interaction.type,
+          title: interaction.title,
+          responseCount: totalResponses,
+          participantCount: people.size,
+          results: { kind: 'none', total: totalResponses },
+          children: read.map(({ result }) => result),
+        },
+      };
+    }
+
+    const [options, [counts]] = await Promise.all([
+      db
+        .select({ id: interactionOptions.id, text: interactionOptions.text })
+        .from(interactionOptions)
+        .where(eq(interactionOptions.interactionId, interaction.id))
+        .orderBy(asc(interactionOptions.position)),
+      db
+        .select({
+          total: count(),
+          people: countDistinct(responses.participantId),
+        })
+        .from(responses)
+        .where(eq(responses.interactionId, interaction.id)),
+    ]);
+
+    return {
+      item: {
         id: interaction.id,
         type: interaction.type,
         title: interaction.title,
-        responseCount: totalResponses,
-        participantCount: people.size,
-        results: { kind: 'none', total: totalResponses },
-        children: childResults,
-      });
-      continue;
-    }
+        responseCount: counts?.total ?? 0,
+        participantCount: counts?.people ?? 0,
+        results: await getInteractionResults({ ...interaction, options }),
+      },
+    };
+  };
 
-    const options = await db
-      .select({ id: interactionOptions.id, text: interactionOptions.text })
-      .from(interactionOptions)
-      .where(eq(interactionOptions.interactionId, interaction.id))
-      .orderBy(asc(interactionOptions.position));
-
-    const [counts] = await db
-      .select({
-        total: count(),
-        people: countDistinct(responses.participantId),
-      })
-      .from(responses)
-      .where(eq(responses.interactionId, interaction.id));
-
-    perInteraction.push({
-      id: interaction.id,
-      type: interaction.type,
-      title: interaction.title,
-      responseCount: counts?.total ?? 0,
-      participantCount: counts?.people ?? 0,
-      results: await getInteractionResults({ ...interaction, options }),
-    });
+  // In the event's order, as they were read one by one before.
+  const analysed = await Promise.all(topLevel.map(analyse));
+  const perInteraction: PerInteraction[] = [];
+  const quizzes: QuizEntry[] = [];
+  for (const entry of analysed) {
+    if ('quiz' in entry) quizzes.push(entry.quiz);
+    else perInteraction.push(entry.item);
   }
 
   const topQuestions = await db

@@ -6,6 +6,7 @@ import { NextIntlClientProvider } from 'next-intl';
 import { Toaster } from 'sonner';
 import { ThemeScript } from '@/components/shared/theme-script';
 import { localeDirection, type Locale } from '@/i18n/config';
+import { NavigationProgress } from '@/components/shared/navigation-progress';
 import './globals.css';
 
 const geistSans = Geist({ variable: '--font-geist-sans', subsets: ['latin'] });
@@ -38,6 +39,7 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
       </head>
       <body className="min-h-dvh bg-background">
         <NextIntlClientProvider>{children}</NextIntlClientProvider>
+        <NavigationProgress />
         <Toaster position="top-center" richColors closeButton />
       </body>
     </html>

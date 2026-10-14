@@ -62,13 +62,18 @@ export default async function EventWorkspacePage({
   const { eventId } = await params;
   const { i: requestedId, qs } = await searchParams;
 
-  const event = await getEventForOwner(eventId, user.id);
+  // Asked together, in two rounds rather than one after another: each is a
+  // round trip to the database, and the page waited on the sum of them.
+  // The interaction asked for is read with its owner checked in the query,
+  // so it can be read before the event is known to be this host's.
+  const [event, interactions, requested, t, tStatus] = await Promise.all([
+    getEventForOwner(eventId, user.id),
+    listInteractions(eventId),
+    requestedId ? getInteractionForOwner(requestedId, user.id) : null,
+    getTranslations('workspace'),
+    getTranslations('status'),
+  ]);
   if (!event) notFound();
-
-  const t = await getTranslations('workspace');
-  const tStatus = await getTranslations('status');
-
-  const interactions = await listInteractions(event.id);
 
   // Fall back to the first interaction so the editor is never blank when the
   // event has content.
@@ -77,40 +82,50 @@ export default async function EventWorkspacePage({
       ? requestedId
       : interactions[0]?.id;
 
-  const selected = selectedId
-    ? await getInteractionForOwner(selectedId, user.id)
-    : null;
-
-  const results = selected ? await getInteractionResults(selected) : null;
+  const selected =
+    requested && requested.id === selectedId
+      ? requested
+      : selectedId
+        ? await getInteractionForOwner(selectedId, user.id)
+        : null;
 
   // Q&A stores questions rather than responses, so it loads its own data.
   const questionSort: QuestionSort = QUESTION_SORTS.includes(qs as QuestionSort)
     ? (qs as QuestionSort)
     : 'votes';
 
-  const questions =
-    selected?.type === 'q_and_a'
-      ? await listQuestions({
-          interactionId: selected.id,
-          participantId: null,
-          isHost: true,
-          sort: questionSort,
-        })
-      : undefined;
+  const isQuiz = selected?.type === 'quiz';
 
-  // Quizzes carry child questions and standings of their own.
-  const quiz = selected?.type === 'quiz' ? await getQuizDetail(selected.id) : null;
-  const leaderboard = quiz ? await getLeaderboard(quiz.id) : [];
+  // Everything the selected interaction needs, together. A quiz's standings
+  // and its lobby are asked for alongside it; which of them is shown is
+  // decided once its phase is known.
+  const [results, questions, quiz, leaderboard, lobbyPlayers, presentCount, survey] =
+    await Promise.all([
+      selected ? getInteractionResults(selected) : null,
+      selected?.type === 'q_and_a'
+        ? listQuestions({
+            interactionId: selected.id,
+            participantId: null,
+            isHost: true,
+            sort: questionSort,
+          })
+        : undefined,
+      isQuiz ? getQuizDetail(selected.id) : null,
+      isQuiz ? getLeaderboard(selected.id) : [],
+      isQuiz ? getLobbyPlayers(event.id) : null,
+      countPresentPlayers(event.id),
+      selected?.type === 'survey' ? getSurveyDetail(selected.id) : null,
+    ]);
 
   const timing = quiz ? quizTiming(quiz, leaderboard.length > 0) : null;
 
-  // Names are only shown while the room is filling, so only fetched then.
+  // Names are only shown while the room is filling. Outside the lobby only
+  // the number is shown: who is in the room now, which is what "X of Y
+  // answered" has to be measured against.
   const lobby =
-    timing?.phase === 'lobby'
-      ? await getLobbyPlayers(event.id)
-      : // Outside the lobby only the number is shown: who is in the room now,
-        // which is what "X of Y answered" has to be measured against.
-        { players: [], total: await countPresentPlayers(event.id) };
+    timing?.phase === 'lobby' && lobbyPlayers
+      ? lobbyPlayers
+      : { players: [], total: presentCount };
 
   const quizRun = timing
     ? {
@@ -121,9 +136,6 @@ export default async function EventWorkspacePage({
         serverNow: serverNow(),
       }
     : undefined;
-
-  const survey =
-    selected?.type === 'survey' ? await getSurveyDetail(selected.id) : null;
 
   return (
     <div className="flex min-h-dvh flex-col">

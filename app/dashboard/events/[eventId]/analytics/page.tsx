@@ -66,14 +66,17 @@ export default async function EventAnalyticsPage({
   const user = await requireUser();
   const { eventId } = await params;
 
-  const event = await getEventForOwner(eventId, user.id);
+  // Asked together: the numbers are read alongside the event rather than
+  // after it, and are only shown once the event is known to be this host's.
+  const [event, analytics, t, tTypes, tQuestionStatus] = await Promise.all([
+    getEventForOwner(eventId, user.id),
+    getEventAnalytics(eventId),
+    getTranslations('eventAnalytics'),
+    getTranslations('types'),
+    getTranslations('questionStatus'),
+  ]);
   if (!event) notFound();
 
-  const t = await getTranslations('eventAnalytics');
-  const tTypes = await getTranslations('types');
-  const tQuestionStatus = await getTranslations('questionStatus');
-
-  const analytics = await getEventAnalytics(event.id);
   const range = await formatRange(analytics.firstResponseAt, analytics.lastResponseAt);
 
   return (
