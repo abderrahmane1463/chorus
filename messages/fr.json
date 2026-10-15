@@ -315,7 +315,8 @@
     "noPasswordToChange": "Ce compte se connecte avec Google et n’a pas de mot de passe",
     "eventEnded": "Cet événement est terminé",
     "eventEndedHost": "Cet événement est terminé. Repassez-le en direct dans les paramètres pour lancer le quiz.",
-    "notStartedYet": "Cette question n’a pas encore commencé"
+    "notStartedYet": "Cette question n’a pas encore commencé",
+    "pickSection": "Choisissez au moins une section à partager."
   },
   "validation": {
     "codeRequired": "Saisissez le code de l'événement",
@@ -746,7 +747,35 @@
     "fromParticipants": "{count} de {participants}",
     "questionsBelow": "Les questions et leurs votes sont listés ci-dessous.",
     "quizzes": "Quiz",
-    "topQuestions": "Questions les plus votées"
+    "topQuestions": "Questions les plus votées",
+    "engagementTitle": "Participation",
+    "engagedTitle": "Participants engagés",
+    "engagedBody": "{count} sur {total} participants ont répondu, posé une question ou voté.",
+    "pollVoters": "Ont répondu à un sondage ou un quiz",
+    "qaEngagedLabel": "Ont participé aux questions-réponses",
+    "pollEngagementTitle": "Participation aux sondages et quiz",
+    "pollEngagementBody": "{count} sur {total} participants ont répondu à un sondage ou un quiz.",
+    "pollVotes": "Réponses au total",
+    "pollsAnswered": "Questions avec réponses",
+    "averageVotes": "Réponses moyennes par question",
+    "qaEngagementTitle": "Participation aux questions-réponses",
+    "qaEngagementBody": "{count} sur {total} participants ont posé une question ou voté.",
+    "qaAskers": "Ont posé une question",
+    "qaVoters": "Ont voté pour une question",
+    "upvotesLabel": "Votes",
+    "qaTitle": "Questions-réponses",
+    "totalQuestions": "Questions posées",
+    "anonymousRate": "Posées anonymement",
+    "namedAuthors": "Auteurs nommés",
+    "answeredOpen": "Répondues / ouvertes",
+    "quizQuestion": "Question {number}",
+    "answerCount": "{count, plural, one {# réponse} other {# réponses}}",
+    "correctRate": "{percent} % de bonnes réponses",
+    "correctAnswer": "Bonne réponse",
+    "optionShare": "{picks} · {percent} %",
+    "leaderboardTitle": "Classement final",
+    "notEnoughActivity": "Pas encore assez d’activité pour tracer une tendance.",
+    "nothingToCompare": "Aucune interaction à comparer pour l’instant."
   },
   "questionStatus": {
     "pending": "En attente de validation",
@@ -965,5 +994,29 @@
     "joined": "{count, plural, =0 {En attente des participants…} one {# participant a rejoint} other {# participants ont rejoint}}",
     "start": "Démarrer",
     "hint": "La question apparaît sur tous les téléphones quand vous appuyez sur Démarrer."
+  },
+  "share": {
+    "button": "Partager le rapport",
+    "title": "Partager le rapport",
+    "body": "Toute personne ayant le lien peut lire les sections choisies, sans compte, jusqu’à son expiration. Aucun export n’est inclus.",
+    "sectionsLabel": "Sections à partager",
+    "sections": {
+      "engagement": "Participation",
+      "qa": "Questions-réponses",
+      "polls": "Résultats des sondages",
+      "quizzes": "Quiz"
+    },
+    "expiresLabel": "Le lien expire dans",
+    "days": "{count, plural, one {# jour} other {# jours}}",
+    "create": "Créer le lien",
+    "created": "Lien créé",
+    "expiresOn": "Ce lien expire le {date}.",
+    "active": "{count, plural, =0 {Aucun lien actif} one {# lien actif} other {# liens actifs}}",
+    "disableAll": "Désactiver tous les liens",
+    "disabled": "Tous les liens sont désactivés",
+    "eyebrow": "Rapport d’événement",
+    "pageTitle": "Rapport · {title}",
+    "goneTitle": "Ce lien ne fonctionne plus",
+    "goneBody": "Il a expiré ou l’organisateur l’a désactivé. Demandez-lui un nouveau lien."
   }
 }

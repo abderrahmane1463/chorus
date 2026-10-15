@@ -22,3 +22,26 @@ export const analyticsEvents = pgTable(
     index('analytics_type_idx').on(table.eventId, table.eventType),
   ],
 );
+
+/**
+ * Public links to an event's report.
+ *
+ * Anyone holding the token can read the sections it names until it expires
+ * or the host switches it off. The token is long and random, so links cannot
+ * be guessed; nothing else about the event is reachable through one.
+ */
+export const analyticsShares = pgTable(
+  'analytics_shares',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    eventId: uuid('event_id')
+      .notNull()
+      .references(() => events.id, { onDelete: 'cascade' }),
+    token: text('token').notNull().unique(),
+    sections: jsonb('sections').$type<string[]>().notNull(),
+    expiresAt: timestamp('expires_at', { withTimezone: true }).notNull(),
+    revokedAt: timestamp('revoked_at', { withTimezone: true }),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [index('analytics_shares_event_idx').on(table.eventId)],
+);

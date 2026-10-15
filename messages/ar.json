@@ -315,7 +315,8 @@
     "noPasswordToChange": "هذا الحساب يسجّل الدخول عبر Google وليس له كلمة مرور",
     "eventEnded": "انتهت هذه الفعالية",
     "eventEndedHost": "انتهت هذه الفعالية. أعدها إلى «مباشر» من الإعدادات لتشغيل المسابقة.",
-    "notStartedYet": "لم يبدأ هذا السؤال بعد"
+    "notStartedYet": "لم يبدأ هذا السؤال بعد",
+    "pickSection": "اختر قسمًا واحدًا على الأقل للمشاركة."
   },
   "validation": {
     "codeRequired": "أدخل رمز الفعالية",
@@ -746,7 +747,35 @@
     "fromParticipants": "{count} من {participants}",
     "questionsBelow": "الأسئلة وأصواتها مذكورة أدناه.",
     "quizzes": "المسابقات",
-    "topQuestions": "الأسئلة الأكثر تصويتًا"
+    "topQuestions": "الأسئلة الأكثر تصويتًا",
+    "engagementTitle": "المشاركة",
+    "engagedTitle": "المشاركون المتفاعلون",
+    "engagedBody": "{count} من أصل {total} مشاركًا أجابوا أو طرحوا سؤالًا أو صوّتوا.",
+    "pollVoters": "أجابوا على استطلاع أو مسابقة",
+    "qaEngagedLabel": "شاركوا في الأسئلة والأجوبة",
+    "pollEngagementTitle": "المشاركة في الاستطلاعات والمسابقات",
+    "pollEngagementBody": "{count} من أصل {total} مشاركًا أجابوا على استطلاع أو مسابقة.",
+    "pollVotes": "مجموع الإجابات",
+    "pollsAnswered": "أسئلة تلقّت إجابات",
+    "averageVotes": "متوسط الإجابات لكل سؤال",
+    "qaEngagementTitle": "المشاركة في الأسئلة والأجوبة",
+    "qaEngagementBody": "{count} من أصل {total} مشاركًا طرحوا سؤالًا أو صوّتوا.",
+    "qaAskers": "طرحوا سؤالًا",
+    "qaVoters": "صوّتوا لسؤال",
+    "upvotesLabel": "الأصوات",
+    "qaTitle": "الأسئلة والأجوبة",
+    "totalQuestions": "الأسئلة المطروحة",
+    "anonymousRate": "طُرحت دون اسم",
+    "namedAuthors": "أصحاب أسئلة بأسمائهم",
+    "answeredOpen": "مُجابة / مفتوحة",
+    "quizQuestion": "السؤال {number}",
+    "answerCount": "{count, plural, zero {لا إجابات} one {إجابة واحدة} two {إجابتان} few {# إجابات} many {# إجابة} other {# إجابة}}",
+    "correctRate": "{percent}% إجابات صحيحة",
+    "correctAnswer": "الإجابة الصحيحة",
+    "optionShare": "{picks} · {percent}%",
+    "leaderboardTitle": "الترتيب النهائي",
+    "notEnoughActivity": "لا يوجد نشاط كافٍ بعد لرسم اتجاه.",
+    "nothingToCompare": "لا توجد تفاعلات للمقارنة بعد."
   },
   "questionStatus": {
     "pending": "في انتظار الموافقة",
@@ -965,5 +994,29 @@
     "joined": "{count, plural, =0 {في انتظار انضمام المشاركين…} one {انضم مشارك واحد} two {انضم مشاركان} few {انضم # مشاركين} many {انضم # مشاركًا} other {انضم # مشارك}}",
     "start": "ابدأ",
     "hint": "يظهر السؤال على جميع الهواتف عندما تضغط على ابدأ."
+  },
+  "share": {
+    "button": "مشاركة التقرير",
+    "title": "مشاركة التقرير",
+    "body": "يمكن لأي شخص لديه الرابط قراءة الأقسام التي تختارها، دون حساب، حتى انتهاء صلاحيته. لا يتضمن أي تصدير.",
+    "sectionsLabel": "الأقسام المراد مشاركتها",
+    "sections": {
+      "engagement": "المشاركة",
+      "qa": "الأسئلة والأجوبة",
+      "polls": "نتائج الاستطلاعات",
+      "quizzes": "المسابقات"
+    },
+    "expiresLabel": "تنتهي صلاحية الرابط بعد",
+    "days": "{count, plural, zero {# يوم} one {يوم واحد} two {يومين} few {# أيام} many {# يومًا} other {# يوم}}",
+    "create": "إنشاء الرابط",
+    "created": "تم إنشاء الرابط",
+    "expiresOn": "تنتهي صلاحية هذا الرابط في {date}.",
+    "active": "{count, plural, =0 {لا روابط نشطة} one {رابط نشط واحد} two {رابطان نشطان} few {# روابط نشطة} many {# رابطًا نشطًا} other {# رابط نشط}}",
+    "disableAll": "تعطيل كل الروابط",
+    "disabled": "تم تعطيل كل الروابط",
+    "eyebrow": "تقرير الفعالية",
+    "pageTitle": "التقرير · {title}",
+    "goneTitle": "هذا الرابط لم يعد يعمل",
+    "goneBody": "انتهت صلاحيته أو عطّله المنظّم. اطلب منه رابطًا جديدًا."
   }
 }

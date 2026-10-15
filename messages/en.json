@@ -315,7 +315,8 @@
     "noPasswordToChange": "This account signs in with Google and has no password",
     "eventEnded": "This event has ended",
     "eventEndedHost": "This event has ended. Set it back to Live in Settings to run the quiz.",
-    "notStartedYet": "This question has not started yet"
+    "notStartedYet": "This question has not started yet",
+    "pickSection": "Choose at least one section to share."
   },
   "validation": {
     "codeRequired": "Enter the event code",
@@ -746,7 +747,35 @@
     "fromParticipants": "{count} from {participants}",
     "questionsBelow": "Questions and upvotes are listed below.",
     "quizzes": "Quizzes",
-    "topQuestions": "Most upvoted questions"
+    "topQuestions": "Most upvoted questions",
+    "engagementTitle": "Engagement",
+    "engagedTitle": "Engaged participants",
+    "engagedBody": "{count} of {total} participants answered, asked or voted.",
+    "pollVoters": "Answered a poll or quiz",
+    "qaEngagedLabel": "Took part in Q&A",
+    "pollEngagementTitle": "Poll and quiz engagement",
+    "pollEngagementBody": "{count} of {total} participants answered a poll or quiz.",
+    "pollVotes": "Total answers",
+    "pollsAnswered": "Questions with answers",
+    "averageVotes": "Average answers per question",
+    "qaEngagementTitle": "Q&A engagement",
+    "qaEngagementBody": "{count} of {total} participants asked or voted on a question.",
+    "qaAskers": "Asked a question",
+    "qaVoters": "Voted on a question",
+    "upvotesLabel": "Upvotes",
+    "qaTitle": "Q&A",
+    "totalQuestions": "Questions asked",
+    "anonymousRate": "Asked anonymously",
+    "namedAuthors": "Named askers",
+    "answeredOpen": "Answered / open",
+    "quizQuestion": "Question {number}",
+    "answerCount": "{count, plural, one {# answer} other {# answers}}",
+    "correctRate": "{percent}% correct",
+    "correctAnswer": "Correct answer",
+    "optionShare": "{picks} · {percent}%",
+    "leaderboardTitle": "Final standings",
+    "notEnoughActivity": "Not enough activity yet to draw a trend.",
+    "nothingToCompare": "No interactions to compare yet."
   },
   "questionStatus": {
     "pending": "Awaiting approval",
@@ -965,5 +994,29 @@
     "joined": "{count, plural, =0 {Waiting for people to join…} one {# person joined} other {# people joined}}",
     "start": "Start",
     "hint": "The question appears on everyone’s phone when you press Start."
+  },
+  "share": {
+    "button": "Share report",
+    "title": "Share the report",
+    "body": "Anyone with the link can read the sections you choose, without an account, until it expires. No exports are included.",
+    "sectionsLabel": "Sections to share",
+    "sections": {
+      "engagement": "Engagement",
+      "qa": "Q&A",
+      "polls": "Poll results",
+      "quizzes": "Quizzes"
+    },
+    "expiresLabel": "Link expires in",
+    "days": "{count, plural, one {# day} other {# days}}",
+    "create": "Create link",
+    "created": "Link created",
+    "expiresOn": "This link expires on {date}.",
+    "active": "{count, plural, =0 {No active links} one {# active link} other {# active links}}",
+    "disableAll": "Disable all links",
+    "disabled": "All links disabled",
+    "eyebrow": "Event report",
+    "pageTitle": "Report · {title}",
+    "goneTitle": "This link no longer works",
+    "goneBody": "It has expired or the organizer switched it off. Ask them for a new one."
   }
 }

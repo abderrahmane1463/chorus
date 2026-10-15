@@ -32,6 +32,8 @@ export type QuizQuestion = {
     picks: number;
   }[];
   answerCount: number;
+  /** How many of those answers were right. Host screens and reports only. */
+  correctCount: number;
 };
 
 export type QuizDetail = {
@@ -104,9 +106,13 @@ export async function getQuizDetail(quizId: string): Promise<QuizDetail | null> 
 
   const picks = new Map<string, number>();
   const answerCounts = new Map<string, number>();
+  const correctCounts = new Map<string, number>();
   for (const answer of answers) {
     answerCounts.set(answer.questionId, (answerCounts.get(answer.questionId) ?? 0) + 1);
     if (answer.data.kind !== 'quiz') continue;
+    if (answer.data.correct) {
+      correctCounts.set(answer.questionId, (correctCounts.get(answer.questionId) ?? 0) + 1);
+    }
     for (const optionId of answer.data.optionIds) {
       picks.set(optionId, (picks.get(optionId) ?? 0) + 1);
     }
@@ -124,6 +130,7 @@ export async function getQuizDetail(quizId: string): Promise<QuizDetail | null> 
         picks: picks.get(option.id) ?? 0,
       })),
     answerCount: answerCounts.get(child.id) ?? 0,
+    correctCount: correctCounts.get(child.id) ?? 0,
   }));
 
   return {
@@ -372,6 +379,7 @@ async function getQuizForPlayer(quizId: string): Promise<QuizDetail | null> {
           picks: 0,
         })),
       answerCount: 0,
+      correctCount: 0,
     })),
   };
 }

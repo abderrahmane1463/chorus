@@ -1,5 +1,6 @@
 'use client';
 
+import { useTranslations } from 'next-intl';
 import {
   Bar,
   BarChart,
@@ -35,11 +36,10 @@ export function ResponsesOverTime({
 }: {
   data: { minute: string; responses: number }[];
 }) {
+  const t = useTranslations('eventAnalytics');
   if (data.length < 2) {
     return (
-      <p className="py-8 text-center text-sm text-muted-foreground">
-        Not enough activity yet to draw a trend.
-      </p>
+      <p className="py-8 text-center text-sm text-muted-foreground">{t('notEnoughActivity')}</p>
     );
   }
 
@@ -76,11 +76,10 @@ export function ResponsesByInteraction({
 }: {
   data: { title: string; responses: number }[];
 }) {
+  const t = useTranslations('eventAnalytics');
   if (data.length === 0) {
     return (
-      <p className="py-8 text-center text-sm text-muted-foreground">
-        No interactions to compare yet.
-      </p>
+      <p className="py-8 text-center text-sm text-muted-foreground">{t('nothingToCompare')}</p>
     );
   }
 
