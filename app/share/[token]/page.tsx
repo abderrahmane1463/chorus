@@ -6,6 +6,7 @@ import { getEventAnalytics } from '@/lib/queries/analytics';
 import { AnalyticsReport } from '@/components/analytics/report';
 import { EmptyState } from '@/components/shared/empty-state';
 import { Logo } from '@/components/shared/logo';
+import { PoweredBy } from '@/components/shared/powered-by';
 import { LanguageSwitcher } from '@/components/shared/language-switcher';
 
 // Always read fresh: a link can be switched off at any moment.
@@ -50,6 +51,10 @@ export default async function SharedReportPage({ params }: { params: Promise<{ t
           <EmptyState icon={Link2Off} title={t('goneTitle')} description={t('goneBody')} />
         )}
       </main>
+
+      <footer className="flex justify-center px-5 pb-10 pt-4">
+        <PoweredBy />
+      </footer>
     </div>
   );
 }

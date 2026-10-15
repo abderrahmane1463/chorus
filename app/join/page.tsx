@@ -10,6 +10,7 @@ import { JoinForm } from '@/components/participant/join-form';
 import { BrandLogo, BrandStyle } from '@/components/branding/brand';
 import { readBranding } from '@/lib/branding/templates';
 import { normalizeEventCode } from '@/lib/utils/event-code';
+import { PoweredBy } from '@/components/shared/powered-by';
 import { cn } from '@/lib/utils/cn';
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -72,6 +73,7 @@ export default async function JoinPage({
         <p className="mb-6 mt-1 text-sm text-muted-foreground">{t('subtitle')}</p>
         <JoinForm defaultCode={code ?? ''} />
       </div>
+      <PoweredBy className="mt-10" />
     </div>
   );
 }

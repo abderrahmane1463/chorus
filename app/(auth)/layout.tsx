@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { getTranslations } from 'next-intl/server';
 import type { ReactNode } from 'react';
 import { Logo } from '@/components/shared/logo';
+import { PoweredBy } from '@/components/shared/powered-by';
 import { LanguageSwitcher } from '@/components/shared/language-switcher';
 
 export default async function AuthLayout({ children }: { children: ReactNode }) {
@@ -16,6 +17,7 @@ export default async function AuthLayout({ children }: { children: ReactNode }) 
         <Logo />
       </Link>
       <div className="w-full max-w-sm">{children}</div>
+      <PoweredBy className="mt-10" />
     </div>
   );
 }

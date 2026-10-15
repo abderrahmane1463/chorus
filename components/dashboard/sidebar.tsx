@@ -7,6 +7,7 @@ import { useState } from 'react';
 import { BarChart3, CalendarDays, LayoutDashboard, Menu, Settings, X } from 'lucide-react';
 import { Logo } from '@/components/shared/logo';
 import { cn } from '@/lib/utils/cn';
+import { PoweredBy } from '@/components/shared/powered-by';
 import { UserMenu } from './user-menu';
 
 const navigation = [
@@ -95,6 +96,7 @@ export function DashboardSidebar({ user }: { user: User }) {
               </button>
             </div>
             <NavLinks onNavigate={() => setOpen(false)} />
+            <PoweredBy className="mt-auto ps-1" />
           </div>
         </div>
       )}
@@ -104,8 +106,9 @@ export function DashboardSidebar({ user }: { user: User }) {
           <Logo />
         </Link>
         <NavLinks />
-        <div className="mt-auto">
+        <div className="mt-auto space-y-4">
           <UserMenu user={user} />
+          <PoweredBy className="ps-1" />
         </div>
       </aside>
     </>

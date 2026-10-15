@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { getTranslations } from 'next-intl/server';
+import { PoweredBy } from '@/components/shared/powered-by';
 import { Logo } from '@/components/shared/logo';
 
 export async function SiteFooter() {
@@ -33,10 +34,13 @@ export async function SiteFooter() {
         </nav>
       </div>
       <div className="border-t border-border px-5 py-4">
-        <p className="mx-auto max-w-6xl text-xs text-muted-foreground">
-          {/* A string, not a number: a year must not be grouped as "2,026". */}
-          {tFooter('copyright', { year: String(new Date().getFullYear()) })}
-        </p>
+        <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-3">
+          <p className="text-xs text-muted-foreground">
+            {/* A string, not a number: a year must not be grouped as "2,026". */}
+            {tFooter('copyright', { year: String(new Date().getFullYear()) })}
+          </p>
+          <PoweredBy />
+        </div>
       </div>
     </footer>
   );

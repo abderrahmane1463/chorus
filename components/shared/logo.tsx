@@ -1,5 +1,4 @@
 import { cn } from '@/lib/utils/cn';
-import { PoweredBy } from './powered-by';
 
 /**
  * The Chorus mark: four rising bars, like several voices answering at once.
@@ -28,26 +27,16 @@ export function Logo({
   className?: string;
   showWordmark?: boolean;
 }) {
-  const lockup = (
+  return (
     // dir="ltr" so the brand lockup keeps its mark-then-wordmark order in
     // Arabic. The name is Latin; mirroring it reads as a layout bug.
-    <span dir="ltr" className={cn('inline-flex items-center gap-2 text-primary', !showWordmark && className)}>
+    <span dir="ltr" className={cn('inline-flex items-center gap-2 text-primary', className)}>
       <LogoMark />
       {showWordmark && (
         <span className="text-lg font-semibold tracking-tight text-foreground">
           Chorus
         </span>
       )}
-    </span>
-  );
-
-  if (!showWordmark) return lockup;
-
-  // Wherever Chorus is named, Sense Conseil is named under it.
-  return (
-    <span dir="ltr" className={cn('inline-flex shrink-0 flex-col items-start gap-1', className)}>
-      {lockup}
-      <PoweredBy className="ps-0.5" />
     </span>
   );
 }

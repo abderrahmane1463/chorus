@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { Logo } from '@/components/shared/logo';
+import { PoweredBy } from '@/components/shared/powered-by';
 import { Button } from '@/components/ui/button';
 
 export default function NotFound() {
@@ -18,6 +19,7 @@ export default function NotFound() {
           <Link href="/">Go home</Link>
         </Button>
       </div>
+      <PoweredBy className="mt-12" />
     </div>
   );
 }

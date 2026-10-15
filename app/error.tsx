@@ -2,6 +2,7 @@
 
 import { useEffect } from 'react';
 import { Logo } from '@/components/shared/logo';
+import { PoweredBy } from '@/components/shared/powered-by';
 import { Button } from '@/components/ui/button';
 
 /**
@@ -35,6 +36,7 @@ export default function GlobalError({
       <Button className="mt-6" onClick={reset}>
         Try again
       </Button>
+      <PoweredBy className="mt-12" />
     </div>
   );
 }
