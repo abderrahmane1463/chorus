@@ -12,10 +12,13 @@ import { Button } from '@/components/ui/button';
 import { ExplainerSection } from '@/components/marketing/explainer/explainer-section';
 
 // Keys, not copy: the icon and the order live here, the words in messages/.
-const features = [
+// The three interactions people come for lead; the rest support them.
+const mainFeatures = [
   { key: 'polls', icon: BarChart3 },
   { key: 'qa', icon: MessageSquare },
   { key: 'quizzes', icon: Trophy },
+] as const;
+const moreFeatures = [
   { key: 'wordClouds', icon: Cloud },
   { key: 'ratings', icon: Star },
   { key: 'analytics', icon: LineChart },
@@ -67,22 +70,49 @@ export default async function LandingPage() {
         </div>
       </section>
 
-      <section id="product" className="mx-auto max-w-[1600px] scroll-mt-20 px-5 sm:px-8 lg:px-12 py-20">
-        <h2 className="max-w-lg text-3xl font-semibold sm:text-4xl">
-          {t('product.title')}
-        </h2>
-        <p className="mt-3 max-w-xl text-muted-foreground">{t('product.body')}</p>
+      <section
+        id="product"
+        className="mx-auto grid max-w-[1600px] scroll-mt-20 gap-10 px-5 py-20 sm:px-8 lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)] lg:gap-16 lg:px-12 lg:py-28"
+      >
+        <div className="lg:sticky lg:top-24 lg:self-start">
+          <h2 className="max-w-lg text-3xl font-semibold text-balance sm:text-4xl">
+            {t('product.title')}
+          </h2>
+          <p className="mt-3 max-w-md text-muted-foreground">{t('product.body')}</p>
+        </div>
 
-        <div className="mt-10 grid gap-px overflow-hidden rounded-xl border border-border bg-border sm:grid-cols-2 lg:grid-cols-3">
-          {features.map((feature) => (
-            <div key={feature.key} className="bg-card p-6">
-              <feature.icon className="size-5 text-primary" aria-hidden />
-              <h3 className="mt-3 font-semibold">{t(`features.${feature.key}.title`)}</h3>
-              <p className="mt-1.5 text-sm leading-relaxed text-muted-foreground">
-                {t(`features.${feature.key}.body`)}
-              </p>
-            </div>
-          ))}
+        <div>
+          <ul className="divide-y divide-border border-y border-border">
+            {mainFeatures.map((feature) => (
+              <li key={feature.key} className="flex gap-5 py-7 sm:gap-6">
+                <span className="flex size-11 shrink-0 items-center justify-center rounded-lg bg-primary-subtle text-primary">
+                  <feature.icon className="size-5" aria-hidden />
+                </span>
+                <div>
+                  <h3 className="text-lg font-semibold sm:text-xl">
+                    {t(`features.${feature.key}.title`)}
+                  </h3>
+                  <p className="mt-1.5 max-w-prose leading-relaxed text-muted-foreground">
+                    {t(`features.${feature.key}.body`)}
+                  </p>
+                </div>
+              </li>
+            ))}
+          </ul>
+
+          <ul className="mt-8 grid gap-6 sm:grid-cols-3">
+            {moreFeatures.map((feature) => (
+              <li key={feature.key}>
+                <h3 className="flex items-center gap-2 text-sm font-semibold">
+                  <feature.icon className="size-4 text-primary" aria-hidden />
+                  {t(`features.${feature.key}.title`)}
+                </h3>
+                <p className="mt-1 text-sm leading-relaxed text-muted-foreground">
+                  {t(`features.${feature.key}.body`)}
+                </p>
+              </li>
+            ))}
+          </ul>
         </div>
       </section>
 
@@ -92,7 +122,7 @@ export default async function LandingPage() {
           <ol className="mt-10 grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
             {steps.map((key, index) => (
               <li key={key}>
-                <span className="font-mono text-sm text-accent">
+                <span className="font-mono text-sm text-accent-ink">
                   {String(index + 1).padStart(2, '0')}
                 </span>
                 <h3 className="mt-2 font-semibold">{t(`steps.${key}.title`)}</h3>

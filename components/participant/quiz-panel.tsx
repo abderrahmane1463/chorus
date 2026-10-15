@@ -137,7 +137,7 @@ export function QuizPanel({
     return (
       <div className="space-y-5 text-center">
         <p className="text-sm text-muted-foreground">{position}</p>
-        <h1 className="text-xl font-semibold leading-snug"><bdi>{question.title}</bdi></h1>
+        <h2 className="text-xl font-semibold leading-snug"><bdi>{question.title}</bdi></h2>
         <Card className="p-6">
           <p className="text-muted-foreground">{t('getReady')}</p>
           <p className="mt-1 text-6xl font-semibold tabular-nums text-primary" role="timer">
@@ -327,7 +327,7 @@ export function QuizPanel({
         />
       )}
 
-      <h1 className="text-lg font-semibold leading-snug"><bdi>{question.title}</bdi></h1>
+      <h2 className="text-lg font-semibold leading-snug"><bdi>{question.title}</bdi></h2>
 
       {question.multiple && (
         <p className="text-sm text-muted-foreground">{t('pickSeveral')}</p>

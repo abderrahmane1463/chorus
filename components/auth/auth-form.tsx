@@ -19,10 +19,14 @@ import {
 } from '@/lib/validations/auth';
 
 /** Validation messages arrive as keys from the schema, so `t` is unscoped. */
-function FieldError({ message }: { message?: string }) {
+function FieldError({ id, message }: { id: string; message?: string }) {
   const t = useTranslations();
   if (!message) return null;
-  return <p className="text-sm text-destructive">{t(message)}</p>;
+  return (
+    <p id={id} role="alert" className="text-sm text-destructive">
+      {t(message)}
+    </p>
+  );
 }
 
 export function SignInForm() {
@@ -70,9 +74,10 @@ export function SignInForm() {
           placeholder={t('emailPlaceholder')}
           dir="ltr"
           aria-invalid={Boolean(form.formState.errors.email)}
+          aria-describedby={form.formState.errors.email ? 'email-error' : undefined}
           {...form.register('email')}
         />
-        <FieldError message={form.formState.errors.email?.message} />
+        <FieldError id="email-error" message={form.formState.errors.email?.message} />
       </div>
 
       <div className="space-y-1.5">
@@ -83,13 +88,14 @@ export function SignInForm() {
           autoComplete="current-password"
           dir="ltr"
           aria-invalid={Boolean(form.formState.errors.password)}
+          aria-describedby={form.formState.errors.password ? 'password-error' : undefined}
           {...form.register('password')}
         />
-        <FieldError message={form.formState.errors.password?.message} />
+        <FieldError id="password-error" message={form.formState.errors.password?.message} />
       </div>
 
       {formError && (
-        <p className="rounded-md bg-destructive-subtle px-3 py-2 text-sm text-destructive">
+        <p role="alert" className="rounded-md bg-destructive-subtle px-3 py-2 text-sm text-destructive">
           {formError}
         </p>
       )}
@@ -147,9 +153,10 @@ export function SignUpForm() {
           autoComplete="name"
           placeholder={t('namePlaceholder')}
           aria-invalid={Boolean(form.formState.errors.name)}
+          aria-describedby={form.formState.errors.name ? 'name-error' : undefined}
           {...form.register('name')}
         />
-        <FieldError message={form.formState.errors.name?.message} />
+        <FieldError id="name-error" message={form.formState.errors.name?.message} />
       </div>
 
       <div className="space-y-1.5">
@@ -163,9 +170,10 @@ export function SignUpForm() {
           placeholder={t('emailPlaceholder')}
           dir="ltr"
           aria-invalid={Boolean(form.formState.errors.email)}
+          aria-describedby={form.formState.errors.email ? 'email-error' : undefined}
           {...form.register('email')}
         />
-        <FieldError message={form.formState.errors.email?.message} />
+        <FieldError id="email-error" message={form.formState.errors.email?.message} />
       </div>
 
       <div className="space-y-1.5">
@@ -177,13 +185,14 @@ export function SignUpForm() {
           placeholder={t('passwordPlaceholder')}
           dir="ltr"
           aria-invalid={Boolean(form.formState.errors.password)}
+          aria-describedby={form.formState.errors.password ? 'password-error' : undefined}
           {...form.register('password')}
         />
-        <FieldError message={form.formState.errors.password?.message} />
+        <FieldError id="password-error" message={form.formState.errors.password?.message} />
       </div>
 
       {formError && (
-        <p className="rounded-md bg-destructive-subtle px-3 py-2 text-sm text-destructive">
+        <p role="alert" className="rounded-md bg-destructive-subtle px-3 py-2 text-sm text-destructive">
           {formError}
         </p>
       )}

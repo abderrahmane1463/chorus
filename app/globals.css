@@ -16,7 +16,8 @@
 
   --subtle: #fafbfb;
   --border: #e3e7e9;
-  --input: #dfe4e6;
+  /* Field borders and switch tracks: at least 3:1 against the page, so a field reads as a field. */
+  --input: #7f8d94;
 
   --primary: #0f7a6c;
   --primary-hover: #0c6357;
@@ -26,6 +27,8 @@
   --accent: #d97316;
   --accent-foreground: #ffffff;
   --accent-subtle: #fdf3e7;
+  /* The accent as text: the fill orange is too light to read on white. */
+  --accent-ink: #a8520e;
 
   --success: #157f52;
   --success-subtle: #e9f6ef;
@@ -48,7 +51,7 @@
 
   --subtle: #0d181c;
   --border: #1d2f36;
-  --input: #24393f;
+  --input: #567078;
 
   --primary: #16a394;
   --primary-hover: #1cb8a7;
@@ -58,6 +61,7 @@
   --accent: #e8912f;
   --accent-foreground: #241604;
   --accent-subtle: #2b1f0f;
+  --accent-ink: #e8912f;
 
   --success: #2ea36e;
   --success-subtle: #10281e;
@@ -84,6 +88,7 @@
   --color-accent: var(--accent);
   --color-accent-foreground: var(--accent-foreground);
   --color-accent-subtle: var(--accent-subtle);
+  --color-accent-ink: var(--accent-ink);
   --color-success: var(--success);
   --color-success-subtle: var(--success-subtle);
   --color-destructive: var(--destructive);

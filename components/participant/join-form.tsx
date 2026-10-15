@@ -52,10 +52,11 @@ export function JoinForm({ defaultCode = '' }: { defaultCode?: string }) {
           placeholder="BRAVO-42"
           className="h-12 text-center text-lg font-medium uppercase tracking-[0.15em]"
           aria-invalid={Boolean(form.formState.errors.code)}
+          aria-describedby={form.formState.errors.code ? 'code-error' : undefined}
           {...form.register('code')}
         />
         {form.formState.errors.code && (
-          <p className="text-sm text-destructive">
+          <p id="code-error" role="alert" className="text-sm text-destructive">
             {t(form.formState.errors.code.message ?? 'validation.codeRequired')}
           </p>
         )}
@@ -72,7 +73,7 @@ export function JoinForm({ defaultCode = '' }: { defaultCode?: string }) {
       </div>
 
       {formError && (
-        <p className="rounded-md bg-destructive-subtle px-3 py-2 text-sm text-destructive">
+        <p role="alert" className="rounded-md bg-destructive-subtle px-3 py-2 text-sm text-destructive">
           {formError}
         </p>
       )}

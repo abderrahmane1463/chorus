@@ -151,7 +151,7 @@ export function QaModeration({
                         type="button"
                         disabled={pending}
                         onClick={() => moderate(question.id, 'unhighlight', t('removedFromScreen'))}
-                        className="font-medium text-accent hover:underline"
+                        className="font-medium text-accent-ink hover:underline"
                       >
                         {t('removeFromScreen')}
                       </button>
@@ -160,7 +160,7 @@ export function QaModeration({
                         type="button"
                         disabled={pending}
                         onClick={() => moderate(question.id, 'highlight', t('showingOnScreen'))}
-                        className="font-medium text-accent hover:underline"
+                        className="font-medium text-accent-ink hover:underline"
                       >
                         {t('showOnScreen')}
                       </button>

@@ -19,7 +19,7 @@ const PRESENTATION: Record<
   reconnecting: {
     labelKey: 'reconnecting',
     dot: 'bg-accent animate-pulse',
-    text: 'text-accent',
+    text: 'text-accent-ink',
   },
   offline: { labelKey: 'offline', dot: 'bg-destructive', text: 'text-destructive' },
 };

@@ -37,7 +37,7 @@ export function LanguageSwitcher({ className }: { className?: string }) {
         <Button
           variant="ghost"
           size="sm"
-          className={cn('gap-2', className)}
+          className={cn('gap-2 pointer-coarse:h-11 pointer-coarse:px-3', className)}
           aria-label={t('change')}
           loading={pending}
         >

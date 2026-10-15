@@ -1018,5 +1018,66 @@
     "pageTitle": "Report · {title}",
     "goneTitle": "This link no longer works",
     "goneBody": "It has expired or the organizer switched it off. Ask them for a new one."
+  },
+  "privacy": {
+    "metaTitle": "Privacy policy",
+    "metaDescription": "What Chorus stores about hosts and participants, and why.",
+    "title": "Privacy policy",
+    "updated": "Last updated {date}",
+    "intro": "Chorus runs live polls, Q&A and quizzes. This page explains what it stores about the people who host events and the people who take part, and what it does not.",
+    "hostTitle": "If you host events",
+    "hostStores": "To give you an account, Chorus stores your <b>name</b> and <b>email address</b>.",
+    "hostList": [
+      "If you sign up with a password, it is stored only as a one-way hash. Nobody, including us, can read your password.",
+      "If you sign in with Google, Google shares your name, email address and profile picture link with Chorus, along with the sign-in tokens it issues. Chorus does not ask for access to your Gmail, contacts, calendar or files."
+    ],
+    "hostContent": "Chorus also stores what you create: your events, their questions and settings, and the responses they collect.",
+    "joinTitle": "If you join an event",
+    "joinId": "You do not need an account. When you join, Chorus gives your browser a random, anonymous identifier so it can tell your answers apart from everyone else’s and stop duplicate votes. It is not linked to your name, email or device.",
+    "joinStores": "Chorus stores:",
+    "joinList": [
+      "a display name, only if you choose to enter one",
+      "your answers to polls, ratings, rankings, word clouds and surveys",
+      "questions you ask and questions you upvote",
+      "your quiz answers and score"
+    ],
+    "joinHost": "The host of the event can see all of this, and can export it. If you ask a question anonymously, your name is hidden from the host and everyone else.",
+    "cookiesTitle": "Cookies",
+    "cookiesIntro": "Chorus sets only the cookies it needs to work:",
+    "cookiesList": [
+      "a sign-in cookie that keeps hosts logged in",
+      "a participant cookie holding your anonymous identifier, which lasts 30 days"
+    ],
+    "cookiesNone": "There are no advertising cookies, no third-party analytics and no tracking across other websites.",
+    "notTitle": "What Chorus does not do",
+    "notList": [
+      "It does not sell or rent your data.",
+      "It does not show advertising.",
+      "It does not store your IP address in its database."
+    ],
+    "whereTitle": "Where your data is kept",
+    "whereBody": "The database is hosted by Neon, in the European Union (Frankfurt, Germany). The application runs on our own web hosting. Like almost every web server, it may keep short-lived technical logs of requests, such as IP address and browser type, to keep the service running and secure.",
+    "whereShare": "We share data only with these providers, and with Google when you choose to sign in with it, and only as needed to run Chorus.",
+    "keepTitle": "How long it is kept",
+    "keepBody": "Event data stays until the host deletes the event. Deleting an event permanently removes its participants, answers and questions. Account data stays until the account is deleted.",
+    "choicesTitle": "Your choices",
+    "choicesBody": "You can ask to see the data held about you, to correct it, or to have your account and everything in it deleted.",
+    "choicesEmail": "Email <link>{email}</link> and we will reply within 30 days.",
+    "choicesNoEmail": "Contact the organisation running this Chorus site.",
+    "choicesGoogle": "If you signed in with Google, you can also remove Chorus’s access at any time from your Google Account, under Security, then Third-party apps and services.",
+    "changesTitle": "Changes",
+    "changesBody": "If this policy changes, the date at the top will change with it."
+  },
+  "errorPage": {
+    "title": "Something went wrong",
+    "body": "This is usually temporary. Try again, and if it keeps happening the event data is safe: nothing was lost.",
+    "reference": "Reference: {digest}",
+    "retry": "Try again"
+  },
+  "notFound": {
+    "title": "Page not found",
+    "body": "The link may be wrong, or the event may have been removed.",
+    "join": "Join an event",
+    "home": "Go home"
   }
 }

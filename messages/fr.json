@@ -1018,5 +1018,66 @@
     "pageTitle": "Rapport · {title}",
     "goneTitle": "Ce lien ne fonctionne plus",
     "goneBody": "Il a expiré ou l’organisateur l’a désactivé. Demandez-lui un nouveau lien."
+  },
+  "privacy": {
+    "metaTitle": "Politique de confidentialité",
+    "metaDescription": "Ce que Chorus conserve sur les organisateurs et les participants, et pourquoi.",
+    "title": "Politique de confidentialité",
+    "updated": "Dernière mise à jour : {date}",
+    "intro": "Chorus propose des sondages, des questions-réponses et des quiz en direct. Cette page explique ce qu’il conserve sur les personnes qui organisent des événements et sur celles qui y participent, et ce qu’il ne conserve pas.",
+    "hostTitle": "Si vous organisez des événements",
+    "hostStores": "Pour vous créer un compte, Chorus conserve votre <b>nom</b> et votre <b>adresse e-mail</b>.",
+    "hostList": [
+      "Si vous vous inscrivez avec un mot de passe, il n’est conservé que sous forme chiffrée de façon irréversible. Personne, nous compris, ne peut lire votre mot de passe.",
+      "Si vous vous connectez avec Google, Google transmet à Chorus votre nom, votre adresse e-mail et le lien de votre photo de profil, ainsi que les jetons de connexion qu’il émet. Chorus ne demande pas l’accès à votre Gmail, à vos contacts, à votre agenda ni à vos fichiers."
+    ],
+    "hostContent": "Chorus conserve aussi ce que vous créez : vos événements, leurs questions et réglages, et les réponses recueillies.",
+    "joinTitle": "Si vous participez à un événement",
+    "joinId": "Vous n’avez pas besoin de compte. Quand vous rejoignez un événement, Chorus attribue à votre navigateur un identifiant anonyme et aléatoire, pour distinguer vos réponses de celles des autres et empêcher les votes en double. Il n’est lié ni à votre nom, ni à votre e-mail, ni à votre appareil.",
+    "joinStores": "Chorus conserve :",
+    "joinList": [
+      "un nom d’affichage, seulement si vous choisissez d’en saisir un",
+      "vos réponses aux sondages, notations, classements, nuages de mots et questionnaires",
+      "les questions que vous posez et celles pour lesquelles vous votez",
+      "vos réponses et votre score aux quiz"
+    ],
+    "joinHost": "L’organisateur de l’événement peut voir tout cela et l’exporter. Si vous posez une question anonymement, votre nom est caché à l’organisateur et à tous les autres.",
+    "cookiesTitle": "Cookies",
+    "cookiesIntro": "Chorus n’utilise que les cookies nécessaires à son fonctionnement :",
+    "cookiesList": [
+      "un cookie de connexion qui garde les organisateurs connectés",
+      "un cookie de participant contenant votre identifiant anonyme, valable 30 jours"
+    ],
+    "cookiesNone": "Aucun cookie publicitaire, aucune mesure d’audience tierce, aucun suivi sur d’autres sites.",
+    "notTitle": "Ce que Chorus ne fait pas",
+    "notList": [
+      "Il ne vend ni ne loue vos données.",
+      "Il n’affiche pas de publicité.",
+      "Il ne conserve pas votre adresse IP dans sa base de données."
+    ],
+    "whereTitle": "Où sont conservées vos données",
+    "whereBody": "La base de données est hébergée par Neon, dans l’Union européenne (Francfort, Allemagne). L’application fonctionne sur notre propre hébergement. Comme presque tous les serveurs web, il peut conserver brièvement des journaux techniques des requêtes, comme l’adresse IP et le type de navigateur, pour assurer le fonctionnement et la sécurité du service.",
+    "whereShare": "Nous ne partageons des données qu’avec ces prestataires, et avec Google si vous choisissez de vous connecter avec lui, uniquement dans la mesure nécessaire au fonctionnement de Chorus.",
+    "keepTitle": "Durée de conservation",
+    "keepBody": "Les données d’un événement sont conservées jusqu’à ce que l’organisateur le supprime. Supprimer un événement efface définitivement ses participants, réponses et questions. Les données de compte sont conservées jusqu’à la suppression du compte.",
+    "choicesTitle": "Vos droits",
+    "choicesBody": "Vous pouvez demander à consulter les données vous concernant, à les corriger, ou à faire supprimer votre compte et tout son contenu.",
+    "choicesEmail": "Écrivez à <link>{email}</link> : nous répondrons sous 30 jours.",
+    "choicesNoEmail": "Contactez l’organisation qui gère ce site Chorus.",
+    "choicesGoogle": "Si vous vous êtes connecté avec Google, vous pouvez aussi retirer l’accès de Chorus à tout moment depuis votre compte Google, rubrique Sécurité, puis Applications et services tiers.",
+    "changesTitle": "Modifications",
+    "changesBody": "Si cette politique change, la date en haut de la page changera aussi."
+  },
+  "errorPage": {
+    "title": "Un problème est survenu",
+    "body": "C’est généralement temporaire. Réessayez ; si cela continue, les données de l’événement sont en sécurité : rien n’a été perdu.",
+    "reference": "Référence : {digest}",
+    "retry": "Réessayer"
+  },
+  "notFound": {
+    "title": "Page introuvable",
+    "body": "Le lien est peut-être erroné, ou l’événement a été supprimé.",
+    "join": "Rejoindre un événement",
+    "home": "Retour à l’accueil"
   }
 }

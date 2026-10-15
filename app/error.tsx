@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect } from 'react';
+import { useTranslations } from 'next-intl';
 import { Logo } from '@/components/shared/logo';
 import { PoweredBy } from '@/components/shared/powered-by';
 import { Button } from '@/components/ui/button';
@@ -16,6 +17,8 @@ export default function GlobalError({
   error: Error & { digest?: string };
   reset: () => void;
 }) {
+  const t = useTranslations('errorPage');
+
   useEffect(() => {
     console.error('[chorus] unhandled error', error);
   }, [error]);
@@ -23,18 +26,15 @@ export default function GlobalError({
   return (
     <div className="flex min-h-dvh flex-col items-center justify-center px-6 text-center">
       <Logo />
-      <h1 className="mt-8 text-2xl font-semibold">Something went wrong</h1>
-      <p className="mt-2 max-w-sm text-muted-foreground">
-        This is usually temporary. Try again, and if it keeps happening the
-        event data is safe — nothing was lost.
-      </p>
+      <h1 className="mt-8 text-2xl font-semibold">{t('title')}</h1>
+      <p className="mt-2 max-w-sm text-muted-foreground">{t('body')}</p>
       {error.digest && (
         <p className="mt-2 font-mono text-xs text-muted-foreground">
-          Reference: {error.digest}
+          {t('reference', { digest: error.digest })}
         </p>
       )}
       <Button className="mt-6" onClick={reset}>
-        Try again
+        {t('retry')}
       </Button>
       <PoweredBy className="mt-12" />
     </div>
