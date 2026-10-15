@@ -31,7 +31,7 @@ export default async function LandingPage() {
 
   return (
     <>
-      <section className="mx-auto max-w-6xl px-5 pb-16 pt-16 sm:pt-24">
+      <section className="mx-auto max-w-[1600px] px-5 sm:px-8 lg:px-12 pb-16 pt-16 sm:pt-24">
         <div className="max-w-2xl">
           <h1 className="text-4xl font-semibold leading-[1.1] sm:text-5xl lg:text-6xl">
             {t('hero.title')}
@@ -55,7 +55,7 @@ export default async function LandingPage() {
       </section>
 
       <section className="border-y border-border bg-subtle">
-        <div className="mx-auto grid max-w-6xl gap-8 px-5 py-10 sm:grid-cols-3">
+        <div className="mx-auto grid max-w-[1600px] gap-8 px-5 sm:px-8 lg:px-12 py-10 sm:grid-cols-3">
           {promises.map((key) => (
             <div key={key}>
               <p className="font-medium">{t(`promises.${key}.title`)}</p>
@@ -67,7 +67,7 @@ export default async function LandingPage() {
         </div>
       </section>
 
-      <section id="product" className="mx-auto max-w-6xl scroll-mt-20 px-5 py-20">
+      <section id="product" className="mx-auto max-w-[1600px] scroll-mt-20 px-5 sm:px-8 lg:px-12 py-20">
         <h2 className="max-w-lg text-3xl font-semibold sm:text-4xl">
           {t('product.title')}
         </h2>
@@ -87,7 +87,7 @@ export default async function LandingPage() {
       </section>
 
       <section className="border-t border-border bg-subtle">
-        <div className="mx-auto max-w-6xl px-5 py-20">
+        <div className="mx-auto max-w-[1600px] px-5 sm:px-8 lg:px-12 py-20">
           <h2 className="text-3xl font-semibold sm:text-4xl">{t('how.title')}</h2>
           <ol className="mt-10 grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
             {steps.map((key, index) => (
@@ -105,7 +105,7 @@ export default async function LandingPage() {
         </div>
       </section>
 
-      <section id="use-cases" className="mx-auto max-w-6xl scroll-mt-20 px-5 py-20">
+      <section id="use-cases" className="mx-auto max-w-[1600px] scroll-mt-20 px-5 sm:px-8 lg:px-12 py-20">
         <h2 className="text-3xl font-semibold sm:text-4xl">{t('useCases.title')}</h2>
         <div className="mt-10 grid gap-6 sm:grid-cols-2">
           {useCases.map((key) => (

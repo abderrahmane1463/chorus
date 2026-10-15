@@ -18,7 +18,7 @@ export async function SiteFooter() {
 
   return (
     <footer className="border-t border-border">
-      <div className="mx-auto flex max-w-6xl flex-col gap-6 px-5 py-10 sm:flex-row sm:items-center sm:justify-between">
+      <div className="mx-auto flex max-w-[1600px] flex-col gap-6 px-5 sm:px-8 lg:px-12 py-10 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <Logo />
           <p className="mt-2 max-w-xs text-sm text-muted-foreground">
@@ -33,8 +33,8 @@ export async function SiteFooter() {
           ))}
         </nav>
       </div>
-      <div className="border-t border-border px-5 py-4">
-        <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-3">
+      <div className="border-t border-border px-5 py-4 sm:px-8 lg:px-12">
+        <div className="mx-auto flex max-w-[1600px] flex-wrap items-center justify-between gap-3">
           <p className="text-xs text-muted-foreground">
             {/* A string, not a number: a year must not be grouped as "2,026". */}
             {tFooter('copyright', { year: String(new Date().getFullYear()) })}
