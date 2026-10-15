@@ -25,7 +25,7 @@ export async function SiteFooter() {
             {tFooter('tagline')}
           </p>
         </div>
-        <nav className="flex flex-wrap gap-x-6 gap-y-2 text-sm text-muted-foreground">
+        <nav aria-label={t('footerNav')} className="flex flex-wrap gap-x-6 gap-y-2 text-sm text-muted-foreground">
           {links.map((link) => (
             <Link key={link.href} href={link.href} className="hover:text-foreground">
               {link.label}

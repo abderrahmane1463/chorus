@@ -10,14 +10,16 @@ export default async function AuthLayout({ children }: { children: ReactNode }) 
 
   return (
     <div className="flex min-h-dvh flex-col items-center justify-center px-5 py-12">
-      <div className="mb-4">
+      <header className="mb-8 flex flex-col items-center gap-4">
         <LanguageSwitcher />
-      </div>
-      <Link href="/" className="mb-8" aria-label={t('home')}>
-        <Logo />
-      </Link>
-      <div className="w-full max-w-sm">{children}</div>
-      <PoweredBy className="mt-10" />
+        <Link href="/" aria-label={t('home')}>
+          <Logo />
+        </Link>
+      </header>
+      <main className="w-full max-w-sm">{children}</main>
+      <footer className="mt-10">
+        <PoweredBy />
+      </footer>
     </div>
   );
 }

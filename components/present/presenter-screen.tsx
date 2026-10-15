@@ -381,7 +381,7 @@ export function PresenterScreen({
       <footer className="flex flex-wrap items-center gap-x-8 gap-y-4 border-t border-border px-8 py-5">
         <div className={showsJoin ? 'hidden' : 'flex items-center gap-4'}>
           <div className="rounded-lg bg-white p-2">
-            <QRCodeSVG value={joinUrl} size={84} level="M" />
+            <QRCodeSVG value={joinUrl} size={84} level="M" aria-hidden />
           </div>
           <div>
             <p className="text-lg text-muted-foreground">{t('joinAt')}</p>

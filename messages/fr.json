@@ -15,7 +15,9 @@
     "signIn": "Se connecter",
     "getStarted": "Commencer",
     "privacy": "Confidentialité",
-    "menu": "Menu"
+    "menu": "Menu",
+    "mainNav": "Principal",
+    "footerNav": "Liens du site"
   },
   "footer": {
     "tagline": "Sondages, questions et quiz en direct pour vos réunions, cours et conférences.",
@@ -247,7 +249,7 @@
   },
   "live": {
     "connecting": "Connexion",
-    "connected": "En direct",
+    "connected": "Connecté",
     "reconnecting": "Reconnexion",
     "offline": "Hors ligne"
   },

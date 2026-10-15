@@ -1,8 +1,7 @@
 import { getFormatter, getTranslations } from 'next-intl/server';
-import { Check, MessageSquare, MessagesSquare, Percent, Users } from 'lucide-react';
+import { Check, MessageSquare, MessagesSquare, Users } from 'lucide-react';
 import type { EventAnalytics } from '@/lib/queries/analytics';
 import { getInteractionMeta } from '@/lib/interactions/registry';
-import { StatCard } from '@/components/dashboard/stat-card';
 import { ResultsView } from '@/components/interactions/results-view';
 import { Leaderboard } from '@/components/interactions/leaderboard';
 import { EmptyState } from '@/components/shared/empty-state';
@@ -107,7 +106,23 @@ async function Engagement({ analytics }: { analytics: EventAnalytics }) {
 
   return (
     <section>
-      <h2 className="mb-4 text-lg font-semibold">{t('engagementTitle')}</h2>
+      <div className="mb-4 flex flex-wrap items-baseline justify-between gap-x-6 gap-y-2">
+        <h2 className="text-lg font-semibold">{t('engagementTitle')}</h2>
+        {/* The totals, once: the cards below explain what share took part. */}
+        <dl className="flex flex-wrap gap-x-6 gap-y-1 text-sm">
+          {[
+            { label: t('participants'), value: total, icon: Users },
+            { label: t('responses'), value: totals.responses, icon: MessageSquare },
+            { label: t('questions'), value: totals.questions, icon: MessagesSquare },
+          ].map((item) => (
+            <div key={item.label} className="flex items-center gap-1.5">
+              <item.icon className="size-4 text-muted-foreground" aria-hidden />
+              <dt className="text-muted-foreground">{item.label}</dt>
+              <dd className="font-semibold tabular-nums">{format.number(item.value)}</dd>
+            </div>
+          ))}
+        </dl>
+      </div>
       <div className="grid gap-4 lg:grid-cols-3">
         <EngagementCard
           title={t('engagedTitle')}
@@ -146,17 +161,10 @@ async function Engagement({ analytics }: { analytics: EventAnalytics }) {
         />
       </div>
 
-      <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <StatCard label={t('participants')} value={total} icon={Users} />
-        <StatCard label={t('participation')} value={`${percent(e.engaged, total)}%`} icon={Percent} />
-        <StatCard label={t('responses')} value={totals.responses} icon={MessageSquare} />
-        <StatCard label={t('questions')} value={totals.questions} icon={MessagesSquare} />
-      </div>
-
       <div className="mt-6 grid gap-6 lg:grid-cols-2">
         <Card>
           <CardHeader>
-            <CardTitle>{t('overTime')}</CardTitle>
+            <CardTitle as="h3">{t('overTime')}</CardTitle>
           </CardHeader>
           <CardContent>
             <ResponsesOverTime data={analytics.timeline} />
@@ -164,7 +172,7 @@ async function Engagement({ analytics }: { analytics: EventAnalytics }) {
         </Card>
         <Card>
           <CardHeader>
-            <CardTitle>{t('byInteraction')}</CardTitle>
+            <CardTitle as="h3">{t('byInteraction')}</CardTitle>
           </CardHeader>
           <CardContent>
             <ResponsesByInteraction
@@ -217,7 +225,7 @@ async function QaInsights({ analytics }: { analytics: EventAnalytics }) {
       {analytics.topQuestions.length > 0 && (
         <Card className="mt-4">
           <CardHeader>
-            <CardTitle>{t('topQuestions')}</CardTitle>
+            <CardTitle as="h3">{t('topQuestions')}</CardTitle>
           </CardHeader>
           <CardContent>
             <ol className="space-y-3">
@@ -260,7 +268,7 @@ async function PollResults({ analytics }: { analytics: EventAnalytics }) {
               <Card key={item.id}>
                 <CardHeader>
                   <div className="flex flex-wrap items-center gap-2">
-                    <CardTitle>{item.title || t('untitled')}</CardTitle>
+                    <CardTitle as="h3">{item.title || t('untitled')}</CardTitle>
                     <Badge>{meta ? tTypes(`${meta.type}.name`) : item.type}</Badge>
                   </div>
                   <p className="text-sm text-muted-foreground">
@@ -305,7 +313,7 @@ async function QuizInsights({ analytics }: { analytics: EventAnalytics }) {
         {analytics.quizzes.map((quiz) => (
           <Card key={quiz.id}>
             <CardHeader>
-              <CardTitle>{quiz.title || t('untitledQuiz')}</CardTitle>
+              <CardTitle as="h3">{quiz.title || t('untitledQuiz')}</CardTitle>
               <p className="text-sm text-muted-foreground">
                 {t('playerCount', { count: quiz.leaderboard.length })}
               </p>

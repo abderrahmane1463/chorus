@@ -48,32 +48,34 @@ export default async function JoinPage({
     >
       <BrandStyle branding={branding} />
 
-      {/* Offered before the form: a participant who cannot read the page
-          cannot be expected to find a switcher further down it. */}
-      <div className="mb-4">
+      <header className="mb-8 flex flex-col items-center gap-4">
+        {/* Offered before the form: a participant who cannot read the page
+            cannot be expected to find a switcher further down it. */}
         <LanguageSwitcher />
-      </div>
 
-      {branding?.logoId ? (
-        <div className="mb-8">
-          <BrandLogo
-            branding={branding}
-            title={event?.title ?? ''}
-            className="h-16 max-w-56"
-            fallback={null}
-          />
-        </div>
-      ) : (
-        <Link href="/" className="mb-8" aria-label={tNav('home')}>
-          <Logo />
-        </Link>
-      )}
-      <div className="w-full max-w-sm rounded-xl border border-border bg-card p-6">
+        {branding?.logoId ? (
+          <div>
+            <BrandLogo
+              branding={branding}
+              title={event?.title ?? ''}
+              className="h-16 max-w-56"
+              fallback={null}
+            />
+          </div>
+        ) : (
+          <Link href="/" aria-label={tNav('home')}>
+            <Logo />
+          </Link>
+        )}
+      </header>
+      <main className="w-full max-w-sm rounded-xl border border-border bg-card p-6">
         <h1 className="text-xl font-semibold">{event?.title ?? t('title')}</h1>
         <p className="mb-6 mt-1 text-sm text-muted-foreground">{t('subtitle')}</p>
         <JoinForm defaultCode={code ?? ''} />
-      </div>
-      <PoweredBy className="mt-10" />
+      </main>
+      <footer className="mt-10">
+        <PoweredBy />
+      </footer>
     </div>
   );
 }

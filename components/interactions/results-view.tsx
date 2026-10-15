@@ -66,7 +66,7 @@ export function ResultsView({
                 >
                   <div
                     className="bar-fill h-full rounded-full bg-primary"
-                    style={{ width: `${option.share}%` }}
+                    style={{ '--share': option.share } as React.CSSProperties}
                   />
                 </div>
               </div>
@@ -113,7 +113,7 @@ export function ResultsView({
                 </span>
                 <div
                   className={cn(
-                    'bar-fill w-full rounded-t-md',
+                    'bar-grow w-full rounded-t-md',
                     myRating === bucket.value ? 'bg-accent' : 'bg-primary',
                   )}
                   style={{

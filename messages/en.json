@@ -15,7 +15,9 @@
     "signIn": "Sign in",
     "getStarted": "Get started",
     "privacy": "Privacy",
-    "menu": "Menu"
+    "menu": "Menu",
+    "mainNav": "Main",
+    "footerNav": "Site links"
   },
   "footer": {
     "tagline": "Live polls, Q&A and quizzes for meetings, classes and conferences.",
@@ -247,7 +249,7 @@
   },
   "live": {
     "connecting": "Connecting",
-    "connected": "Live",
+    "connected": "Connected",
     "reconnecting": "Reconnecting",
     "offline": "Offline"
   },

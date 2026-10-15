@@ -87,7 +87,7 @@ export function SurveyPanel({
       >
         <div
           className="bar-fill h-full rounded-full bg-primary"
-          style={{ width: `${(answeredCount / survey.questions.length) * 100}%` }}
+          style={{ '--share': (answeredCount / survey.questions.length) * 100 } as React.CSSProperties}
         />
       </div>
 
@@ -98,7 +98,7 @@ export function SurveyPanel({
         return (
           <Card key={question.id} className="space-y-4 p-5">
             <div className="flex items-start justify-between gap-3">
-              <h2 className="font-semibold leading-snug">{question.title}</h2>
+              <h3 className="font-semibold leading-snug">{question.title}</h3>
               {saved && (
                 <Check className="mt-0.5 size-4 shrink-0 text-success" aria-label={t('answered')} />
               )}

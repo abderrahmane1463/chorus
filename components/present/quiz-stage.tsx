@@ -535,7 +535,7 @@ function AnswerProgress({ answered, total }: { answered: number; total: number }
       >
         <div
           className={cn('bar-fill h-full rounded-full', everyone ? 'bg-success' : 'bg-primary')}
-          style={{ width: `${share}%` }}
+          style={{ '--share': share } as React.CSSProperties}
         />
       </div>
     </div>

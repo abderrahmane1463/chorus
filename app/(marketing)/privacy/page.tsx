@@ -91,7 +91,7 @@ export default async function PrivacyPage() {
             ? t.rich('choicesEmail', {
                 email: contact,
                 link: (chunks) => (
-                  <a href={`mailto:${contact}`} className="text-primary hover:underline">
+                  <a href={`mailto:${contact}`} className="font-medium text-primary underline underline-offset-4 hover:decoration-2">
                     {chunks}
                   </a>
                 ),

@@ -22,7 +22,7 @@ export function SiteNav() {
 
   return (
     <header className="sticky top-0 z-40 border-b border-border bg-background/85 backdrop-blur">
-      <nav className="mx-auto flex h-16 max-w-[1600px] items-center gap-6 px-5 sm:px-8 lg:px-12">
+      <nav aria-label={t('mainNav')} className="mx-auto flex h-16 max-w-[1600px] items-center gap-6 px-5 sm:px-8 lg:px-12">
         <Link href="/" aria-label={t('home')}>
           <Logo />
         </Link>

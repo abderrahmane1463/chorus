@@ -70,6 +70,7 @@ export function JoinLobby({
 
       <div className="rounded-3xl bg-white p-4 shadow-sm">
         <QRCodeSVG
+          aria-hidden
           value={joinUrl}
           size={300}
           level="M"

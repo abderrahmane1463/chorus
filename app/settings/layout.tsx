@@ -9,7 +9,7 @@ export default async function SettingsLayout({ children }: { children: ReactNode
   return (
     <div className="flex min-h-dvh flex-col lg:flex-row">
       <DashboardSidebar user={user} />
-      <div className="min-w-0 flex-1">{children}</div>
+      <main className="min-w-0 flex-1">{children}</main>
     </div>
   );
 }

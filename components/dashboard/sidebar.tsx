@@ -59,7 +59,7 @@ export function DashboardSidebar({ user }: { user: User }) {
   return (
     <>
       {/* Mobile bar. The sidebar becomes a sheet below the lg breakpoint. */}
-      <div className="flex h-14 items-center gap-3 border-b border-border px-4 lg:hidden">
+      <header className="flex h-14 items-center gap-3 border-b border-border px-4 lg:hidden">
         <button
           type="button"
           onClick={() => setOpen(true)}
@@ -74,7 +74,7 @@ export function DashboardSidebar({ user }: { user: User }) {
         <div className="ms-auto min-w-0">
           <UserMenu user={user} />
         </div>
-      </div>
+      </header>
 
       {open && (
         <div className="fixed inset-0 z-50 lg:hidden">

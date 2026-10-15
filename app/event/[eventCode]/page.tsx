@@ -270,7 +270,7 @@ export default async function ParticipantEventPage({
             fallback={<Logo showWordmark={false} />}
           />
           <div className="min-w-0 flex-1">
-            <p className="truncate text-sm font-medium">{event.title}</p>
+            <h1 className="truncate text-sm font-medium">{event.title}</h1>
             {/* One line: beside a wide logo the code would otherwise break in two. */}
             <p className="truncate whitespace-nowrap font-mono text-xs text-muted-foreground">
               {event.eventCode}
@@ -304,7 +304,7 @@ export default async function ParticipantEventPage({
         ) : (
           <div className="space-y-5">
             <div>
-              <h1 className="text-xl font-semibold leading-snug">{interaction.title}</h1>
+              <h2 className="text-xl font-semibold leading-snug">{interaction.title}</h2>
               {interaction.description && (
                 <p className="mt-1 text-sm text-muted-foreground">
                   {interaction.description}

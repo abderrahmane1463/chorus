@@ -134,9 +134,24 @@
 }
 
 @layer utilities {
-  /* Live result bars: width changes glide instead of snapping. */
+  /*
+   * Live result bars. The fill is full width and slides in from the start
+   * edge by its share (--share, 0-100), clipped by its rounded track: a
+   * transform glides without re-laying out the page, and the rounded end
+   * keeps its shape, which scaling would squash.
+   */
   .bar-fill {
-    transition: width 500ms cubic-bezier(0.22, 1, 0.36, 1);
+    width: 100%;
+    transform: translateX(calc((var(--share, 0) - 100) * 1%));
+    transition: transform 500ms cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  [dir='rtl'] .bar-fill {
+    transform: translateX(calc((100 - var(--share, 0)) * 1%));
+  }
+  /* Rating columns grow upward with their counts riding on top, so they keep
+     a height transition: at most ten small columns. */
+  .bar-grow {
+    transition: height 500ms cubic-bezier(0.22, 1, 0.36, 1);
   }
 
   /*
@@ -195,7 +210,8 @@
   }
 
   @media (prefers-reduced-motion: reduce) {
-    .bar-fill {
+    .bar-fill,
+    .bar-grow {
       transition: none;
     }
 

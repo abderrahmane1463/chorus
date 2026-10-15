@@ -116,13 +116,18 @@ export function Explainer() {
                 seek(entry.at + 0.5);
                 play();
               }}
-              className={cn(
-                'absolute top-1/2 size-3 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-background transition-transform hover:scale-125',
-                index <= chapter ? 'bg-primary' : 'bg-border',
-              )}
+              // A 12px dot is too small for a thumb; the button around it is 24px.
+              className="group absolute top-1/2 flex size-6 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full"
               style={{ left: `${(entry.at / DURATION) * 100}%` }}
               aria-label={t('chapter', { name: t(`chapters.${entry.name}`) })}
-            />
+            >
+              <span
+                className={cn(
+                  'size-3 rounded-full border-2 border-background transition-transform group-hover:scale-125',
+                  index <= chapter ? 'bg-primary' : 'bg-border',
+                )}
+              />
+            </button>
           ))}
         </div>
 

@@ -106,7 +106,7 @@ export function SignInForm() {
 
       <p className="text-center text-sm text-muted-foreground">
         {t('noAccount')}{' '}
-        <Link href="/sign-up" className="text-primary hover:underline">
+        <Link href="/sign-up" className="font-medium text-primary underline underline-offset-4 hover:decoration-2">
           {t('createOne')}
         </Link>
       </p>
@@ -203,7 +203,7 @@ export function SignUpForm() {
 
       <p className="text-center text-sm text-muted-foreground">
         {t('haveAccount')}{' '}
-        <Link href="/sign-in" className="text-primary hover:underline">
+        <Link href="/sign-in" className="font-medium text-primary underline underline-offset-4 hover:decoration-2">
           {t('signIn')}
         </Link>
       </p>

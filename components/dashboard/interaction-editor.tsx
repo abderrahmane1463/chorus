@@ -1,7 +1,7 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { useOptimistic, useState, useTransition } from 'react';
+import { cloneElement, useId, useOptimistic, useState, useTransition } from 'react';
 import { Play, Plus, RotateCcw, Square, Trash2, X } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { toast } from 'sonner';
@@ -416,15 +416,19 @@ function SettingRow({
 }: {
   label: string;
   hint?: string;
-  children: React.ReactNode;
+  children: React.ReactElement<{ id?: string; 'aria-describedby'?: string }>;
 }) {
+  // The control is passed in, so name it here: a switch or number box with no
+  // label is announced as just "switch" or "edit text".
+  const id = useId();
+
   return (
     <div className="flex items-center justify-between gap-4 py-2">
       <div>
-        <p className="text-sm font-medium">{label}</p>
-        {hint && <p className="text-xs text-muted-foreground">{hint}</p>}
+        <label htmlFor={id} className="text-sm font-medium">{label}</label>
+        {hint && <p id={`${id}-hint`} className="text-xs text-muted-foreground">{hint}</p>}
       </div>
-      {children}
+      {cloneElement(children, { id, 'aria-describedby': hint ? `${id}-hint` : undefined })}
     </div>
   );
 }

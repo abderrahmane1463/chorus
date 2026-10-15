@@ -137,7 +137,7 @@ export function QuizPanel({
     return (
       <div className="space-y-5 text-center">
         <p className="text-sm text-muted-foreground">{position}</p>
-        <h2 className="text-xl font-semibold leading-snug"><bdi>{question.title}</bdi></h2>
+        <h3 className="text-xl font-semibold leading-snug"><bdi>{question.title}</bdi></h3>
         <Card className="p-6">
           <p className="text-muted-foreground">{t('getReady')}</p>
           <p className="mt-1 text-6xl font-semibold tabular-nums text-primary" role="timer">
@@ -218,7 +218,7 @@ export function QuizPanel({
         )}
 
         <Card className="p-5">
-          <h2 className="font-semibold leading-snug"><bdi>{question.title}</bdi></h2>
+          <h3 className="font-semibold leading-snug"><bdi>{question.title}</bdi></h3>
           <p className="mt-3 text-sm text-muted-foreground">
             {t('correctAnswers', { count: correct.length })}
           </p>
@@ -327,7 +327,7 @@ export function QuizPanel({
         />
       )}
 
-      <h2 className="text-lg font-semibold leading-snug"><bdi>{question.title}</bdi></h2>
+      <h3 className="text-lg font-semibold leading-snug"><bdi>{question.title}</bdi></h3>
 
       {question.multiple && (
         <p className="text-sm text-muted-foreground">{t('pickSeveral')}</p>
