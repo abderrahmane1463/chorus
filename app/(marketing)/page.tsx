@@ -34,9 +34,9 @@ export default async function LandingPage() {
 
   return (
     <>
-      <section className="mx-auto max-w-[1600px] px-5 sm:px-8 lg:px-12 pb-16 pt-16 sm:pt-24">
+      <section className="mx-auto grid max-w-[1600px] items-center gap-14 px-5 pb-16 pt-16 sm:px-8 sm:pt-24 lg:px-12 xl:grid-cols-[minmax(0,5fr)_minmax(0,7fr)] xl:gap-16 xl:pt-20">
         <div className="max-w-2xl">
-          <h1 className="text-4xl font-semibold leading-[1.1] sm:text-5xl lg:text-6xl">
+          <h1 className="text-4xl font-semibold leading-[1.1] text-balance sm:text-5xl lg:text-6xl">
             {t('hero.title')}
           </h1>
           <p className="mt-5 max-w-xl text-lg text-muted-foreground">
@@ -52,9 +52,7 @@ export default async function LandingPage() {
           </div>
         </div>
 
-        <div className="mt-14">
-          <ExplainerSection />
-        </div>
+        <ExplainerSection />
       </section>
 
       <section className="border-y border-border bg-subtle">
