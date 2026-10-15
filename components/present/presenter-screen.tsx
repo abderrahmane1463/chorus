@@ -264,7 +264,7 @@ export function PresenterScreen({
         <div aria-hidden className="pointer-events-none absolute inset-0 -z-10 bg-background/80" />
       )}
 
-      <header className="flex flex-wrap items-center gap-x-6 gap-y-3 border-b border-border px-8 py-5">
+      <header className="flex flex-wrap items-center gap-x-6 gap-y-3 border-b border-border px-5 py-5 sm:px-8">
         <BrandLogo
           branding={branding}
           title={eventTitle}
@@ -302,7 +302,7 @@ export function PresenterScreen({
       {/* Lists read from the top, so they stay put as their pages turn. */}
       <main
         className={cn(
-          'flex flex-1 flex-col px-8 py-8 lg:px-16',
+          'flex flex-1 flex-col px-5 py-8 sm:px-8 lg:px-16',
           (active?.type === 'q_and_a' || active?.type === 'open_text') && !gathering
             ? 'justify-start'
             : 'justify-center',
@@ -315,7 +315,7 @@ export function PresenterScreen({
             </p>
             <p className="mt-3 text-xl text-muted-foreground">
               {t('joinAt')}{' '}
-              <span dir="ltr" className="text-foreground">
+              <span dir="ltr" className="break-all text-foreground">
                 {joinUrl.replace(/^https?:\/\//, '')}
               </span>
             </p>
@@ -378,7 +378,7 @@ export function PresenterScreen({
         )}
       </main>
 
-      <footer className="flex flex-wrap items-center gap-x-8 gap-y-4 border-t border-border px-8 py-5">
+      <footer className="flex flex-wrap items-center gap-x-8 gap-y-4 border-t border-border px-5 py-5 sm:px-8">
         <div className={showsJoin ? 'hidden' : 'flex items-center gap-4'}>
           <div className="rounded-lg bg-white p-2">
             <QRCodeSVG value={joinUrl} size={84} level="M" aria-hidden />

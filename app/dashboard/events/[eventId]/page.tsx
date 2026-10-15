@@ -209,7 +209,7 @@ export default async function EventWorkspacePage({
             action={<InteractionTypePicker eventId={event.id} />}
           />
         ) : (
-          <div className="grid gap-6 lg:grid-cols-[16rem_1fr]">
+          <div className="grid gap-6 lg:grid-cols-[16rem_minmax(0,1fr)]">
             <div className="space-y-3">
               <InteractionTypePicker
                 eventId={event.id}
