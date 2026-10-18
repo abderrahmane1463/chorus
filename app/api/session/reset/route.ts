@@ -3,6 +3,7 @@ import { redirect } from 'next/navigation';
 import { auth, signOut } from '@/lib/auth';
 import { db } from '@/lib/db';
 import { users } from '@/db/schema';
+import { stampMatches } from '@/lib/auth/stamp';
 
 /**
  * Where `requireUser` sends a session whose account no longer exists.
@@ -18,14 +19,16 @@ export async function GET() {
 
   if (id) {
     const [current] = await db
-      .select({ id: users.id })
+      .select({ id: users.id, passwordHash: users.passwordHash })
       .from(users)
       .where(eq(users.id, id))
       .limit(1);
 
     // A live account has nothing to clear. Checking again here means a link
     // to this route cannot be used to sign a real host out.
-    if (current) redirect('/dashboard');
+    if (current && stampMatches(session?.user?.stamp, current.passwordHash)) {
+      redirect('/dashboard');
+    }
   }
 
   await signOut({ redirectTo: '/sign-in' });

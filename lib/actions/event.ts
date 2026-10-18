@@ -93,6 +93,12 @@ export async function updateEventAction(input: unknown): Promise<ActionResult> {
     })
     .where(eq(events.id, parsed.data.eventId));
 
+  // Phones and the big screen show the title: tell them, which also moves
+  // the room on so nobody is served the old one from the shared cache.
+  await publish(channels.event(parsed.data.eventId), RealtimeEvent.InteractionChanged, {
+    eventId: parsed.data.eventId,
+  });
+
   revalidatePath(`/dashboard/events/${parsed.data.eventId}`);
   revalidatePath('/dashboard/events');
   return { ok: true };
@@ -148,6 +154,12 @@ export async function regenerateEventCodeAction(input: unknown): Promise<ActionR
         .set({ eventCode: generateEventCode(), updatedAt: new Date() })
         .where(eq(events.id, parsed.data.eventId));
 
+      // The old code must stop working now, not when the shared cache of
+      // the room next expires: moving the room on does that.
+      await publish(channels.event(parsed.data.eventId), RealtimeEvent.InteractionChanged, {
+        eventId: parsed.data.eventId,
+      });
+
       revalidatePath(`/dashboard/events/${parsed.data.eventId}`);
       return { ok: true };
     } catch (error) {
@@ -174,6 +186,11 @@ export async function deleteEventAction(input: unknown): Promise<ActionResult> {
     .returning({ id: events.id });
 
   if (deleted.length === 0) return { ok: false, error: t('errors.eventNotFound') };
+
+  // Phones still open on it learn it is gone at once.
+  await publish(channels.event(parsed.data.eventId), RealtimeEvent.InteractionChanged, {
+    eventId: parsed.data.eventId,
+  });
 
   revalidatePath('/dashboard');
   revalidatePath('/dashboard/events');

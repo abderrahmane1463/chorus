@@ -23,12 +23,14 @@ export const authConfig = {
         token.id = user.id;
         token.name = user.name;
         token.picture = user.image;
+        token.stamp = user.stamp ?? null;
       }
       return token;
     },
     session({ session, token }) {
       if (token.id && session.user) {
         session.user.id = token.id as string;
+        session.user.stamp = (token.stamp as string | null | undefined) ?? null;
       }
       return session;
     },

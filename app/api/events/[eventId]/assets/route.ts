@@ -1,7 +1,7 @@
 import { count, eq } from 'drizzle-orm';
 import { db } from '@/lib/db';
 import { eventAssets } from '@/db/schema';
-import { auth } from '@/lib/auth';
+import { currentUser } from '@/lib/auth';
 import { assertEventOwner } from '@/lib/queries/events';
 import { take } from '@/lib/security/rate-limit';
 import {
@@ -47,13 +47,13 @@ export async function POST(
   request: Request,
   { params }: { params: Promise<{ eventId: string }> },
 ) {
-  const session = await auth();
-  if (!session?.user?.id) return refuse(401, 'unauthorised');
+  const user = await currentUser();
+  if (!user) return refuse(401, 'unauthorised');
 
-  if (!take('uploadPerHost', session.user.id)) return refuse(429, 'slow-down');
+  if (!take('uploadPerHost', user.id)) return refuse(429, 'slow-down');
 
   const { eventId } = await params;
-  const owned = await assertEventOwner(eventId, session.user.id);
+  const owned = await assertEventOwner(eventId, user.id);
   if (!owned) return refuse(404, 'not-found');
 
   const kind = new URL(request.url).searchParams.get('kind') as AssetKind | null;

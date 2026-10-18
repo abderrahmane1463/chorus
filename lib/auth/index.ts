@@ -10,6 +10,7 @@ import { signInSchema } from '@/lib/validations/auth';
 import { verifyPassword } from './password';
 import { clientAddress, take } from '@/lib/security/rate-limit';
 import { authConfig } from './config';
+import { stampMatches, passwordStamp } from './stamp';
 
 /**
  * Google sign-in switches on once both credentials are configured, so the app
@@ -75,6 +76,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth(() => ({
           name: user.name,
           email: user.email,
           image: user.image,
+          stamp: passwordStamp(user.passwordHash),
         };
       },
     }),
@@ -88,18 +90,15 @@ export const { handlers, auth, signIn, signOut } = NextAuth(() => ({
 }));
 
 /**
- * Resolves the signed-in host, or redirects to sign-in.
+ * The signed-in host, re-read from the database, or null.
  *
  * Sessions are JWTs, so a token stays valid until it expires even if the
- * account behind it is gone. This re-reads the user, which means a deleted
- * account loses access on its next request rather than at token expiry.
+ * account behind it is gone or its password has changed. Re-reading the user
+ * means either loses access on its next request rather than at token expiry.
  */
-export async function requireUser() {
+export async function currentUser() {
   const session = await auth();
-  if (!session?.user) redirect('/sign-in');
-  // A session the proxy accepts but this cannot use must be cleared, not sent
-  // to /sign-in, or the proxy redirects straight back. See the reset route.
-  if (!session.user.id) redirect('/api/session/reset');
+  if (!session?.user?.id) return null;
 
   const [current] = await db
     .select({
@@ -107,12 +106,27 @@ export async function requireUser() {
       name: users.name,
       email: users.email,
       image: users.image,
+      passwordHash: users.passwordHash,
     })
     .from(users)
     .where(eq(users.id, session.user.id))
     .limit(1);
 
-  if (!current) redirect('/api/session/reset');
+  if (!current || !stampMatches(session.user.stamp, current.passwordHash)) return null;
 
-  return current;
+  return { id: current.id, name: current.name, email: current.email, image: current.image };
+}
+
+/** Resolves the signed-in host, or redirects to sign-in. */
+export async function requireUser() {
+  const session = await auth();
+  if (!session?.user) redirect('/sign-in');
+
+  // A session the proxy accepts but that is no longer good must be cleared,
+  // not sent to /sign-in, or the proxy redirects straight back. See the
+  // reset route.
+  const user = await currentUser();
+  if (!user) redirect('/api/session/reset');
+
+  return user;
 }

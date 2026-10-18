@@ -8,7 +8,7 @@ import {
   questions,
   responses,
 } from '@/db/schema';
-import { auth } from '@/lib/auth';
+import { currentUser } from '@/lib/auth';
 import { getEventForOwner } from '@/lib/queries/events';
 import { csvFilename, toCsv } from '@/lib/utils/csv';
 
@@ -26,13 +26,13 @@ export async function GET(
   request: Request,
   { params }: { params: Promise<{ eventId: string }> },
 ) {
-  const session = await auth();
-  if (!session?.user?.id) {
+  const user = await currentUser();
+  if (!user) {
     return new Response('Unauthorised', { status: 401 });
   }
 
   const { eventId } = await params;
-  const event = await getEventForOwner(eventId, session.user.id);
+  const event = await getEventForOwner(eventId, user.id);
   if (!event) return new Response('Not found', { status: 404 });
 
   const dataset = new URL(request.url).searchParams.get('dataset') ?? 'responses';

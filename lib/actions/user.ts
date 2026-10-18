@@ -5,7 +5,7 @@ import { revalidatePath } from 'next/cache';
 import { eq } from 'drizzle-orm';
 import { db } from '@/lib/db';
 import { users } from '@/db/schema';
-import { requireUser } from '@/lib/auth';
+import { requireUser, signIn } from '@/lib/auth';
 import { hashPassword, verifyPassword } from '@/lib/auth/password';
 import { take } from '@/lib/security/rate-limit';
 import { changePasswordSchema } from '@/lib/validations/auth';
@@ -69,6 +69,15 @@ export async function changePasswordAction(input: unknown): Promise<ActionResult
     .update(users)
     .set({ passwordHash: await hashPassword(parsed.data.newPassword), updatedAt: new Date() })
     .where(eq(users.id, user.id));
+
+  // The new password changes the account's stamp (lib/auth/stamp), which
+  // signs out every other device. This one signs straight back in with it,
+  // so the person who changed it stays where they are.
+  await signIn('credentials', {
+    email: user.email,
+    password: parsed.data.newPassword,
+    redirect: false,
+  });
 
   return { ok: true };
 }
