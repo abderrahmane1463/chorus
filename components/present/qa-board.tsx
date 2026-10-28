@@ -12,8 +12,10 @@ export function QaBoard({ title, questions }: { title: string; questions: Questi
 
   return (
     <>
-      <div className="mb-10 flex items-baseline justify-between gap-6">
-        <h2 className="text-6xl font-semibold leading-tight">{title}</h2>
+      {/* The title is often a talk's whole theme, a sentence long: kept well
+          below the questions, which are what the room reads. */}
+      <div className="mb-8 flex items-baseline justify-between gap-6">
+        <h2 className="text-4xl font-semibold leading-snug text-balance">{title}</h2>
         {questions.length > 0 && (
           <p className="shrink-0 text-2xl text-muted-foreground">
             {t('questionTotal', { count: questions.length })}
