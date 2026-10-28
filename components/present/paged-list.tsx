@@ -11,6 +11,11 @@ import { cn } from '@/lib/utils/cn';
 const GAP = 20;
 /** How far a swipe must travel to turn the page. */
 const SWIPE_PX = 60;
+/**
+ * Beyond this many pages the dots give way to the count alone: a busy Q&A
+ * runs to dozens of pages, and a dot for each was wider than the screen.
+ */
+const MAX_DOTS = 10;
 
 /**
  * A list for the big screen that never scrolls.
@@ -138,7 +143,7 @@ export function PagedList<T>({
           >
             <ChevronLeft className="size-6 rtl:rotate-180" aria-hidden />
           </button>
-          {pages.map((_, index) => (
+          {pages.length <= MAX_DOTS && pages.map((_, index) => (
             <button
               key={index}
               type="button"
@@ -164,7 +169,7 @@ export function PagedList<T>({
           >
             <ChevronRight className="size-6 rtl:rotate-180" aria-hidden />
           </button>
-          <span className="ms-2 text-lg tabular-nums text-muted-foreground">
+          <span className="ms-2 whitespace-nowrap text-lg tabular-nums text-muted-foreground">
             {shown + 1} / {pages.length}
           </span>
         </nav>
