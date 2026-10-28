@@ -221,13 +221,13 @@
     "hiddenEntry": "Hidden"
   },
   "questionCard": {
-    "upvote": "Upvote this question",
-    "removeUpvote": "Remove your upvote",
+    "upvote": "Like this question",
+    "removeUpvote": "Remove your like",
     "anonymous": "Anonymous",
     "answered": "Answered",
     "pending": "Awaiting approval",
     "hidden": "Hidden",
-    "upvotes": "{count, plural, one {# upvote} other {# upvotes}}",
+    "upvotes": "{count, plural, one {# like} other {# likes}}",
     "you": "you",
     "onScreen": "On screen"
   },

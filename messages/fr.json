@@ -221,13 +221,13 @@
     "hiddenEntry": "Masquée"
   },
   "questionCard": {
-    "upvote": "Voter pour cette question",
-    "removeUpvote": "Retirer mon vote",
+    "upvote": "J’aime cette question",
+    "removeUpvote": "Retirer mon j’aime",
     "anonymous": "Anonyme",
     "answered": "Répondue",
     "pending": "En attente de validation",
     "hidden": "Masquée",
-    "upvotes": "{count, plural, one {# vote} other {# votes}}",
+    "upvotes": "{count, plural, one {# j’aime} other {# j’aime}}",
     "you": "vous",
     "onScreen": "À l’écran"
   },

@@ -1,6 +1,7 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
+import { ThumbsUp } from 'lucide-react';
 import type { QuestionItem } from '@/lib/queries/questions';
 import type { InteractionResults } from '@/lib/queries/interactions';
 import { PagedList } from './paged-list';
@@ -11,29 +12,30 @@ export function QaBoard({ title, questions }: { title: string; questions: Questi
 
   return (
     <>
-      <div className="mb-8 flex items-baseline justify-between gap-6">
-        <h2 className="text-4xl font-semibold">{title}</h2>
+      <div className="mb-10 flex items-baseline justify-between gap-6">
+        <h2 className="text-6xl font-semibold leading-tight">{title}</h2>
         {questions.length > 0 && (
-          <p className="shrink-0 text-xl text-muted-foreground">
+          <p className="shrink-0 text-2xl text-muted-foreground">
             {t('questionTotal', { count: questions.length })}
           </p>
         )}
       </div>
 
       {questions.length === 0 ? (
-        <p className="text-2xl text-muted-foreground">{t('noQuestions')}</p>
+        <p className="text-3xl text-muted-foreground">{t('noQuestions')}</p>
       ) : (
         <PagedList
           items={questions}
           keyOf={(question) => question.id}
           render={(question) => (
-            <div className="flex gap-6">
-              <span className="w-16 shrink-0 text-end text-4xl font-semibold tabular-nums text-primary">
-                {question.votes}
+            <div className="flex items-start gap-8">
+              <span className="flex w-24 shrink-0 flex-col items-center gap-1 pt-1 text-primary">
+                <ThumbsUp className="size-9" aria-hidden />
+                <span className="text-4xl font-semibold tabular-nums">{question.votes}</span>
               </span>
               <div className="min-w-0">
-                <p className="text-3xl leading-snug [overflow-wrap:anywhere]">{question.text}</p>
-                <p className="mt-1 text-xl text-muted-foreground">
+                <p className="text-5xl leading-tight [overflow-wrap:anywhere]">{question.text}</p>
+                <p className="mt-2 text-2xl text-muted-foreground">
                   {question.authorName ?? t('anonymous')}
                 </p>
               </div>

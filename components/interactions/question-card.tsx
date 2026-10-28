@@ -2,7 +2,7 @@
 
 import { useTranslations } from 'next-intl';
 
-import { ArrowBigUp, Star } from 'lucide-react';
+import { Star, ThumbsUp } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils/cn';
 import type { QuestionItem } from '@/lib/queries/questions';
@@ -48,7 +48,7 @@ export function QuestionCard({
             upvoteDisabled && 'cursor-not-allowed opacity-60',
           )}
         >
-          <ArrowBigUp className="size-4" aria-hidden />
+          <ThumbsUp className="size-4" aria-hidden />
           <span className="tabular-nums">{question.votes}</span>
         </button>
       ) : (
@@ -56,7 +56,7 @@ export function QuestionCard({
           className="flex h-14 w-11 shrink-0 flex-col items-center justify-center rounded-md border border-border text-sm font-semibold text-muted-foreground"
           title={t('upvotes', { count: question.votes })}
         >
-          <ArrowBigUp className="size-4" aria-hidden />
+          <ThumbsUp className="size-4" aria-hidden />
           <span className="tabular-nums">{question.votes}</span>
         </div>
       )}

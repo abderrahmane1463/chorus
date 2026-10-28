@@ -221,13 +221,13 @@
     "hiddenEntry": "مخفية"
   },
   "questionCard": {
-    "upvote": "صوّت لهذا السؤال",
-    "removeUpvote": "اسحب تصويتي",
+    "upvote": "أعجبني هذا السؤال",
+    "removeUpvote": "إلغاء إعجابي",
     "anonymous": "مجهول",
     "answered": "تمت الإجابة",
     "pending": "في انتظار الموافقة",
     "hidden": "مخفي",
-    "upvotes": "{count, plural, zero {لا أصوات} one {صوت واحد} two {صوتان} few {# أصوات} many {# صوتًا} other {# صوت}}",
+    "upvotes": "{count, plural, zero {لا إعجاب} one {إعجاب واحد} two {إعجابان} few {# إعجابات} many {# إعجابًا} other {# إعجاب}}",
     "you": "أنت",
     "onScreen": "على الشاشة"
   },
