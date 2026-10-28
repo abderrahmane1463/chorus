@@ -16,6 +16,8 @@ const SWIPE_PX = 60;
  * runs to dozens of pages, and a dot for each was wider than the screen.
  */
 const MAX_DOTS = 10;
+/** The height kept below the list for the page arrows and their margin. */
+const NAV_SPACE = 80;
 
 /**
  * A list for the big screen that never scrolls.
@@ -41,6 +43,8 @@ export function PagedList<T>({
   const measureRef = useRef<HTMLUListElement>(null);
   const [pages, setPages] = useState<T[][]>([items]);
   const [page, setPage] = useState(0);
+  /** The height the list may take, so the arrows sit at its foot on every page. */
+  const [listHeight, setListHeight] = useState<number | null>(null);
   /** Where a swipe began, while one is under way. */
   const swipeFrom = useRef<number | null>(null);
 
@@ -58,7 +62,7 @@ export function PagedList<T>({
       // thing being prevented.
       const top = list.getBoundingClientRect().top + window.scrollY;
       const footerHeight = document.querySelector('footer')?.getBoundingClientRect().height ?? 0;
-      const available = Math.max(160, window.innerHeight - footerHeight - top - 32 - 64);
+      const available = Math.max(160, window.innerHeight - footerHeight - top - 32 - NAV_SPACE);
       const heights = [...measure.children].map((row) => row.getBoundingClientRect().height);
 
       const next: T[][] = [];
@@ -77,6 +81,7 @@ export function PagedList<T>({
       if (current.length > 0) next.push(current);
 
       setPages(next.length > 0 ? next : [[]]);
+      setListHeight(available);
     };
 
     paginate();
@@ -122,15 +127,19 @@ export function PagedList<T>({
 
       {/* The new page replaces the old at once and fades in. Nothing waits
           on the old one leaving, so the page shown is always the page chosen. */}
-      <motion.ul
-        key={shown}
-        className="space-y-5"
-        initial={reduceMotion ? false : { opacity: 0, y: 12 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.3 }}
-      >
-        {rows(pages[shown] ?? [])}
-      </motion.ul>
+      {/* With pages to turn, the list keeps the same height on each, so the
+          arrows stay in one place for the host's hand and the room's eye. */}
+      <div style={pages.length > 1 && listHeight ? { height: listHeight } : undefined}>
+        <motion.ul
+          key={shown}
+          className="space-y-5"
+          initial={reduceMotion ? false : { opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.3 }}
+        >
+          {rows(pages[shown] ?? [])}
+        </motion.ul>
+      </div>
 
       {pages.length > 1 && (
         <nav className="mt-6 flex items-center gap-3" aria-label={t('pageOf', { page: shown + 1, total: pages.length })}>
