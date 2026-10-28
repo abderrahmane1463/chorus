@@ -993,6 +993,7 @@
   "lobby": {
     "title": "Vous êtes inscrit",
     "body": "Regardez le grand écran. La question apparaît ici quand l’animateur la lance.",
+    "qaBody": "Tapez votre question dès que l’animateur ouvre la session des questions, vous pouvez liker toutes les questions qui vous paraissent intéressantes.",
     "joined": "{count, plural, =0 {En attente des participants…} one {# participant a rejoint} other {# participants ont rejoint}}",
     "start": "Démarrer",
     "hint": "La question apparaît sur tous les téléphones quand vous appuyez sur Démarrer."

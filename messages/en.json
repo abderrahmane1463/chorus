@@ -993,6 +993,7 @@
   "lobby": {
     "title": "You are in",
     "body": "Watch the big screen. The question appears here when the host starts it.",
+    "qaBody": "Type your question as soon as the host opens the questions, and like every question you find interesting.",
     "joined": "{count, plural, =0 {Waiting for people to join…} one {# person joined} other {# people joined}}",
     "start": "Start",
     "hint": "The question appears on everyone’s phone when you press Start."

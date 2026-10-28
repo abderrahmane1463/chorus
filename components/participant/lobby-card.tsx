@@ -5,8 +5,9 @@ import { Card } from '@/components/ui/card';
 /**
  * What a phone shows while the room gathers: that it is in, and to watch the
  * big screen. Nothing of the question, which arrives when the host starts it.
+ * A Q&A says instead what is coming: asking, and liking the others' questions.
  */
-export function LobbyCard({ displayName }: { displayName: string | null }) {
+export function LobbyCard({ displayName, isQa = false }: { displayName: string | null; isQa?: boolean }) {
   const t = useTranslations('lobby');
 
   return (
@@ -20,7 +21,7 @@ export function LobbyCard({ displayName }: { displayName: string | null }) {
           {displayName}
         </p>
       )}
-      <p className="mt-3 text-muted-foreground">{t('body')}</p>
+      <p className="mt-3 text-muted-foreground">{t(isQa ? 'qaBody' : 'body')}</p>
     </Card>
   );
 }

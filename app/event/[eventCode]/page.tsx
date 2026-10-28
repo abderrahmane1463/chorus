@@ -300,7 +300,7 @@ export default async function ParticipantEventPage({
             description={t('noActiveBody')}
           />
         ) : waiting ? (
-          <LobbyCard displayName={participant.displayName} />
+          <LobbyCard displayName={participant.displayName} isQa={isQa} />
         ) : (
           <div className="space-y-5">
             <div>
