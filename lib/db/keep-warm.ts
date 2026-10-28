@@ -10,10 +10,11 @@ import { bus } from '@/lib/realtime/bus';
  * and whoever taps first after a quiet spell waits for it: a host opening
  * the next question, a participant's first answer. While a phone, the big
  * screen or the dashboard has a live connection open, a tiny query every few
- * minutes keeps it from falling asleep. With nobody connected it is left to
- * sleep, so it costs nothing between events.
+ * seconds keeps it from falling asleep, and keeps a connection to it open, so
+ * the next click skips the lookup and handshake a lossy route can stall. With
+ * nobody connected it is left to sleep, so it costs nothing between events.
  */
-const EVERY_MS = 4 * 60_000;
+const EVERY_MS = 30_000;
 
 const globalRef = globalThis as unknown as { __keepWarm?: ReturnType<typeof setInterval> };
 
