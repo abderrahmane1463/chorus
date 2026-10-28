@@ -268,10 +268,10 @@ export function PresenterScreen({
         <BrandLogo
           branding={branding}
           title={eventTitle}
-          className="h-11 max-w-44 shrink-0"
+          className="h-16 max-w-64 shrink-0"
           fallback={<Logo showWordmark={false} className="shrink-0" />}
         />
-        <h1 className="min-w-0 flex-1 truncate text-xl font-medium text-muted-foreground">
+        <h1 className="min-w-0 flex-1 truncate text-3xl font-semibold">
           {eventTitle}
         </h1>
 
