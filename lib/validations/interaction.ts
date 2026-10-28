@@ -33,6 +33,7 @@ export const interactionSettingsSchema = z.object({
   allowAnonymous: z.boolean().optional(),
   moderationEnabled: z.boolean().optional(),
   allowUpvotes: z.boolean().optional(),
+  questionSort: z.enum(['votes', 'newest', 'oldest']).optional(),
   timeLimitSeconds: z.number().int().min(5).max(180).optional(),
   points: z.number().int().min(100).max(5000).optional(),
   speedBonus: z.boolean().optional(),
@@ -71,6 +72,11 @@ export const updateInteractionSchema = z.object({
 
 export const interactionIdSchema = z.object({
   interactionId: z.string().uuid(),
+});
+
+export const setQuestionSortSchema = z.object({
+  interactionId: z.string().uuid(),
+  sort: z.enum(['votes', 'newest', 'oldest']),
 });
 
 export const setInteractionStatusSchema = z.object({

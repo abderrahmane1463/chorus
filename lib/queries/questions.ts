@@ -177,12 +177,16 @@ export async function getQuestionCounts(interactionId: string) {
 }
 
 /** Top questions for the presenter screen. */
-export async function getTopQuestions(interactionId: string, limit = 6) {
+export async function getTopQuestions(
+  interactionId: string,
+  limit = 6,
+  sort: QuestionSort = 'votes',
+) {
   const all = await listQuestions({
     interactionId,
     participantId: null,
     isHost: false,
-    sort: 'votes',
+    sort,
     limit: Math.max(limit, 50),
   });
 

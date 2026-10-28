@@ -90,9 +90,10 @@ export default async function EventWorkspacePage({
         : null;
 
   // Q&A stores questions rather than responses, so it loads its own data.
+  // The order last chosen for this Q&A, which the big screen also follows.
   const questionSort: QuestionSort = QUESTION_SORTS.includes(qs as QuestionSort)
     ? (qs as QuestionSort)
-    : 'votes';
+    : (selected?.settings.questionSort ?? 'votes');
 
   const isQuiz = selected?.type === 'quiz';
 

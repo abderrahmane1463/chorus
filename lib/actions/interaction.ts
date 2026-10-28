@@ -2,7 +2,7 @@
 
 import { getTranslations } from 'next-intl/server';
 import { revalidatePath } from 'next/cache';
-import { and, eq, isNull, max } from 'drizzle-orm';
+import { and, eq, isNull, max, sql } from 'drizzle-orm';
 import { db } from '@/lib/db';
 import { events, interactionOptions, interactions, responses } from '@/db/schema';
 import { requireUser } from '@/lib/auth';
@@ -14,6 +14,7 @@ import {
   interactionIdSchema,
   reorderInteractionsSchema,
   setInteractionStatusSchema,
+  setQuestionSortSchema,
   updateInteractionSchema,
 } from '@/lib/validations/interaction';
 import { publish } from '@/lib/realtime/server';
@@ -120,7 +121,9 @@ export async function updateInteractionAction(input: unknown): Promise<ActionRes
     .set({
       title: parsed.data.title,
       description: parsed.data.description?.trim() || null,
-      settings: parsed.data.settings,
+      // The question order is chosen beside the list, not in this form, which
+      // may hold an older one: the stored order is always kept.
+      settings: sql`${JSON.stringify(parsed.data.settings ?? {})}::jsonb || jsonb_strip_nulls(jsonb_build_object('questionSort', ${interactions.settings}->'questionSort'))`,
       updatedAt: new Date(),
     })
     .where(eq(interactions.id, parsed.data.interactionId));
@@ -246,6 +249,38 @@ export async function setInteractionStatusAction(
       : RealtimeEvent.InteractionStopped,
     { eventId: owned.eventId, interactionId: owned.id },
   );
+
+  revalidateEvent(owned.eventId);
+  return { ok: true };
+}
+
+/**
+ * Sets the order of a Q&A's questions, on the dashboard and the big screen.
+ * The screen is told on the host's channel, so the phones do not refetch.
+ */
+export async function setQuestionSortAction(input: unknown): Promise<ActionResult> {
+  const t = await getTranslations();
+
+  const user = await requireUser();
+
+  const parsed = setQuestionSortSchema.safeParse(input);
+  if (!parsed.success) return { ok: false, error: t('errors.invalidInteraction') };
+
+  const owned = await requireOwnedInteraction(parsed.data.interactionId, user.id);
+  if (!owned || owned.type !== 'q_and_a') return { ok: false, error: t('errors.interactionNotFound') };
+
+  await db
+    .update(interactions)
+    .set({
+      settings: sql`coalesce(${interactions.settings}, '{}'::jsonb) || ${JSON.stringify({ questionSort: parsed.data.sort })}::jsonb`,
+      updatedAt: new Date(),
+    })
+    .where(eq(interactions.id, owned.id));
+
+  await publish(channels.host(owned.eventId), RealtimeEvent.InteractionChanged, {
+    eventId: owned.eventId,
+    interactionId: owned.id,
+  });
 
   revalidateEvent(owned.eventId);
   return { ok: true };

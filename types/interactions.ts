@@ -27,6 +27,8 @@ export type InteractionSettings = {
   allowAnonymous?: boolean;
   moderationEnabled?: boolean;
   allowUpvotes?: boolean;
+  /** The order the host chose for the questions, followed by the big screen. */
+  questionSort?: 'votes' | 'newest' | 'oldest';
 
   // Quiz
   /** Reveal at the buzzer and move to the next question without the host. */

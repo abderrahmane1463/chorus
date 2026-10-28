@@ -26,6 +26,7 @@ import {
   deleteInteractionAction,
   resetInteractionAction,
   setInteractionStatusAction,
+  setQuestionSortAction,
   startInteractionAction,
   updateInteractionAction,
 } from '@/lib/actions/interaction';
@@ -95,6 +96,7 @@ export function InteractionEditor({
 
   const [saving, startSave] = useTransition();
   const [controlling, startControl] = useTransition();
+  const [, startSort] = useTransition();
 
   function patch(next: Partial<InteractionSettings>) {
     setSettings((current) => ({ ...current, ...next }));
@@ -336,6 +338,14 @@ export function InteractionEditor({
                   const params = new URLSearchParams(window.location.search);
                   params.set('qs', next);
                   router.push(`?${params.toString()}`, { scroll: false });
+                  // The big screen follows the order chosen here.
+                  startSort(async () => {
+                    const result = await setQuestionSortAction({
+                      interactionId: interaction.id,
+                      sort: next,
+                    });
+                    if (!result.ok) toast.error(result.error);
+                  });
                 }}
               />
             ) : (
