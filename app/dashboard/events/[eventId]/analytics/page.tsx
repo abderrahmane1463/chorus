@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { getFormatter, getTranslations } from 'next-intl/server';
-import { ArrowLeft, Download } from 'lucide-react';
+import { ArrowLeft, Download, FileText } from 'lucide-react';
 import { requireUser } from '@/lib/auth';
 import { getEventForOwner } from '@/lib/queries/events';
 import { getEventAnalytics } from '@/lib/queries/analytics';
@@ -96,6 +96,12 @@ export default async function EventAnalyticsPage({
               <a href={`/api/events/${event.id}/export?dataset=contributions`}>
                 <Download />
                 {t('contributionsXlsx')}
+              </a>
+            </Button>
+            <Button variant="secondary" asChild>
+              <a href={`/present/${event.id}/archive`} target="_blank" rel="noreferrer">
+                <FileText />
+                {t('archivePdf')}
               </a>
             </Button>
           </div>

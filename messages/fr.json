@@ -734,6 +734,7 @@
     "back": "Retour aux interactions",
     "noActivity": "Aucune activité enregistrée.",
     "responsesCsv": "Réponses CSV",
+    "archivePdf": "Archive PDF",
     "contributionsXlsx": "Contributions Excel",
     "questionsCsv": "Questions CSV",
     "participants": "Participants",
@@ -1051,6 +1052,17 @@
     "sentForReview": "Envoyé — il apparaîtra sur le mur après relecture",
     "emptyTitle": "Aucun message pour l’instant",
     "emptyBody": "Soyez le premier à partager le vôtre."
+  },
+  "archive": {
+    "metaTitle": "Archive de {title}",
+    "metaFallback": "Archive des contributions",
+    "hint": "Cliquez sur « Télécharger en PDF », puis choisissez « Enregistrer au format PDF » comme imprimante. Seuls les messages validés et affichés au public figurent dans l’archive.",
+    "print": "Télécharger en PDF",
+    "summary": "{count, plural, =0 {Aucune contribution validée} one {# contribution validée} other {# contributions validées}} · archive du {date}",
+    "count": "{count, plural, one {# contribution} other {# contributions}}",
+    "empty": "Aucune contribution validée pour l’instant.",
+    "anonymous": "Anonyme",
+    "footer": "Archive générée par Chorus. Contient uniquement les contributions validées par l’organisateur."
   },
   "kiosk": {
     "thanks": "Merci pour votre contribution !",
