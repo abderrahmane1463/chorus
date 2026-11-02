@@ -8,7 +8,7 @@ export async function generateMetadata(): Promise<Metadata> {
   return { title: t('metaTitle'), description: t('metaDescription') };
 }
 
-const LAST_UPDATED = new Date('2026-09-17T12:00:00Z');
+const LAST_UPDATED = new Date('2026-11-02T12:00:00Z');
 
 function Section({ title, children }: { title: string; children: ReactNode }) {
   return (
@@ -63,6 +63,12 @@ export default async function PrivacyPage() {
         <p>{t('joinStores')}</p>
         <List items={list('joinList')} />
         <p>{t('joinHost')}</p>
+      </Section>
+
+      <Section title={t('collectTitle')}>
+        <p>{t('collectConsent')}</p>
+        <p>{t('collectKiosk')}</p>
+        <p>{t('collectExport')}</p>
       </Section>
 
       <Section title={t('cookiesTitle')}>

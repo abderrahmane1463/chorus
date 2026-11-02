@@ -1101,11 +1101,16 @@
       "your quiz answers and score"
     ],
     "joinHost": "The host of the event can see all of this, and can export it. If you ask a question anonymously, your name is hidden from the host and everyone else.",
+    "collectTitle": "Consent, shared tablets and exports",
+    "collectConsent": "The organiser may ask for your agreement before you join their event, in words they write. You can only take part once you have accepted. Chorus records only the date and time you agreed.",
+    "collectKiosk": "On a tablet the organiser provides, Chorus forgets each visitor as soon as they have taken part, or after 90 seconds without activity. The next visitor sees nothing the previous one sent, and gives their own agreement.",
+    "collectExport": "The organiser can export their event’s contributions to Excel: the text, its status (approved, pending, hidden), when it was sent and when consent was given, and your name only if you gave one and did not choose to stay anonymous. No IP address or device identifier is included.",
     "cookiesTitle": "Cookies",
     "cookiesIntro": "Chorus sets only the cookies it needs to work:",
     "cookiesList": [
       "a sign-in cookie that keeps hosts logged in",
-      "a participant cookie holding your anonymous identifier, which lasts 30 days"
+      "a participant cookie holding your anonymous identifier, which lasts 30 days",
+      "a kiosk cookie, only on a tablet the organiser has set up as a kiosk, so that it resets between visitors"
     ],
     "cookiesNone": "There are no advertising cookies, no third-party analytics and no tracking across other websites.",
     "notTitle": "What Chorus does not do",

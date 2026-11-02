@@ -1101,11 +1101,16 @@
       "vos réponses et votre score aux quiz"
     ],
     "joinHost": "L’organisateur de l’événement peut voir tout cela et l’exporter. Si vous posez une question anonymement, votre nom est caché à l’organisateur et à tous les autres.",
+    "collectTitle": "Consentement, tablette partagée et export",
+    "collectConsent": "L’organisateur peut demander votre accord avant que vous rejoigniez son événement, avec un texte qu’il rédige. Vous ne pouvez participer qu’après l’avoir accepté. Chorus enregistre seulement la date et l’heure de votre accord.",
+    "collectKiosk": "Sur une tablette mise à disposition par l’organisateur, Chorus oublie chaque visiteur dès qu’il a participé, ou après 90 secondes sans activité. Le visiteur suivant ne voit rien de ce que le précédent a envoyé, et donne lui-même son accord.",
+    "collectExport": "L’organisateur peut exporter les contributions de son événement en Excel : le texte, son statut (validé, en attente, masqué), la date d’envoi et la date du consentement, et votre nom seulement si vous l’avez donné et n’avez pas choisi l’anonymat. Aucune adresse IP ni aucun identifiant d’appareil n’y figure.",
     "cookiesTitle": "Cookies",
     "cookiesIntro": "Chorus n’utilise que les cookies nécessaires à son fonctionnement :",
     "cookiesList": [
       "un cookie de connexion qui garde les organisateurs connectés",
-      "un cookie de participant contenant votre identifiant anonyme, valable 30 jours"
+      "un cookie de participant contenant votre identifiant anonyme, valable 30 jours",
+      "un cookie de borne, seulement sur une tablette que l’organisateur a configurée comme borne, pour qu’elle se réinitialise entre deux visiteurs"
     ],
     "cookiesNone": "Aucun cookie publicitaire, aucune mesure d’audience tierce, aucun suivi sur d’autres sites.",
     "notTitle": "Ce que Chorus ne fait pas",
