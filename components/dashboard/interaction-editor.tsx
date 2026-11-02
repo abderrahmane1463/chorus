@@ -102,13 +102,24 @@ export function InteractionEditor({
     setSettings((current) => ({ ...current, ...next }));
   }
 
-  function save() {
+  /**
+   * A switch that takes effect as it is flipped, as a switch is expected to:
+   * left waiting for Save, a host could believe moderation was on while
+   * every question went straight to the screen.
+   */
+  function toggle(next: Partial<InteractionSettings>) {
+    const merged = { ...settings, ...next };
+    setSettings(merged);
+    save(merged);
+  }
+
+  function save(next: InteractionSettings = settings) {
     startSave(async () => {
       const result = await updateInteractionAction({
         interactionId: interaction.id,
         title,
         description,
-        settings,
+        settings: next,
         options: meta?.hasOptions ? options : undefined,
       });
       if (result.ok) {
@@ -301,9 +312,14 @@ export function InteractionEditor({
             />
           )}
 
-          <SettingsEditor type={interaction.type} settings={settings} onPatch={patch} />
+          <SettingsEditor
+            type={interaction.type}
+            settings={settings}
+            onPatch={patch}
+            onToggle={toggle}
+          />
 
-          <Button onClick={save} loading={saving}>
+          <Button onClick={() => save()} loading={saving}>
             {t('save')}
           </Button>
         </CardContent>
@@ -447,10 +463,13 @@ function SettingsEditor({
   type,
   settings,
   onPatch,
+  onToggle,
 }: {
   type: string;
   settings: InteractionSettings;
   onPatch: (next: Partial<InteractionSettings>) => void;
+  /** Changes a setting and saves it at once. */
+  onToggle: (next: Partial<InteractionSettings>) => void;
 }) {
   const t = useTranslations('settings');
 
@@ -585,7 +604,7 @@ function SettingsEditor({
           >
             <Switch
               checked={settings.allowAnonymous ?? true}
-              onCheckedChange={(checked) => onPatch({ allowAnonymous: checked })}
+              onCheckedChange={(checked) => onToggle({ allowAnonymous: checked })}
             />
           </SettingRow>
           <SettingRow
@@ -594,13 +613,19 @@ function SettingsEditor({
           >
             <Switch
               checked={settings.moderationEnabled ?? false}
-              onCheckedChange={(checked) => onPatch({ moderationEnabled: checked })}
+              onCheckedChange={(checked) => onToggle({ moderationEnabled: checked })}
             />
           </SettingRow>
           <SettingRow label={t('allowUpvotes')}>
             <Switch
               checked={settings.allowUpvotes ?? true}
-              onCheckedChange={(checked) => onPatch({ allowUpvotes: checked })}
+              onCheckedChange={(checked) => onToggle({ allowUpvotes: checked })}
+            />
+          </SettingRow>
+          <SettingRow label={t('wallDisplay')} hint={t('wallDisplayHint')}>
+            <Switch
+              checked={settings.display === 'wall'}
+              onCheckedChange={(checked) => onToggle({ display: checked ? 'wall' : 'list' })}
             />
           </SettingRow>
         </>

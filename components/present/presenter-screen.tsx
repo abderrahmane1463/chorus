@@ -18,6 +18,7 @@ import { ResultsView } from '@/components/interactions/results-view';
 import { QuizStage } from './quiz-stage';
 import { InteractionLobby } from './join-lobby';
 import { QaBoard, TextBoard } from './qa-board';
+import { WallBoard } from './wall-board';
 import { inLobby } from '@/lib/interactions/lobby';
 import { useEventSync } from '@/hooks/use-event-sync';
 import { channels } from '@/lib/realtime/events';
@@ -321,7 +322,16 @@ export function PresenterScreen({
             </p>
           </div>
         ) : (
-          <div className="mx-auto w-full max-w-5xl">
+          // A wall spreads across the whole screen; everything else reads
+          // best in a column.
+          <div
+            className={cn(
+              'mx-auto w-full',
+              active.type === 'q_and_a' && active.settings?.display === 'wall' && !gathering
+                ? 'max-w-none'
+                : 'max-w-5xl',
+            )}
+          >
             {gathering ? (
               <InteractionLobby
                 onStart={startQuestion}
@@ -342,6 +352,12 @@ export function PresenterScreen({
                 joinUrl={joinUrl}
                 eventCode={eventCode}
                 serverNow={serverNow}
+              />
+            ) : active.type === 'q_and_a' && active.settings?.display === 'wall' ? (
+              <WallBoard
+                title={active.title}
+                questions={questions}
+                showVotes={active.settings.allowUpvotes ?? true}
               />
             ) : active.type === 'q_and_a' ? (
               <QaBoard title={active.title} questions={questions} />

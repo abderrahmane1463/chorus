@@ -29,6 +29,8 @@ export type InteractionSettings = {
   allowUpvotes?: boolean;
   /** The order the host chose for the questions, followed by the big screen. */
   questionSort?: 'votes' | 'newest' | 'oldest';
+  /** How the big screen shows the questions: a ranked list, or a wall of cards. */
+  display?: 'list' | 'wall';
 
   // Quiz
   /** Reveal at the buzzer and move to the next question without the host. */

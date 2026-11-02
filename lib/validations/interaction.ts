@@ -34,6 +34,7 @@ export const interactionSettingsSchema = z.object({
   moderationEnabled: z.boolean().optional(),
   allowUpvotes: z.boolean().optional(),
   questionSort: z.enum(['votes', 'newest', 'oldest']).optional(),
+  display: z.enum(['list', 'wall']).optional(),
   timeLimitSeconds: z.number().int().min(5).max(180).optional(),
   points: z.number().int().min(100).max(5000).optional(),
   speedBonus: z.boolean().optional(),
