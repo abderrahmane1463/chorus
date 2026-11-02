@@ -1,4 +1,5 @@
-import { asc, eq } from 'drizzle-orm';
+import { and, asc, count, eq, isNotNull } from 'drizzle-orm';
+import { getTranslations } from 'next-intl/server';
 import { db } from '@/lib/db';
 import {
   interactionOptions,
@@ -11,6 +12,7 @@ import {
 import { currentUser } from '@/lib/auth';
 import { getEventForOwner } from '@/lib/queries/events';
 import { csvFilename, toCsv } from '@/lib/utils/csv';
+import { toXlsx } from '@/lib/utils/xlsx';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -18,9 +20,12 @@ export const dynamic = 'force-dynamic';
 /**
  * Exports one event as CSV.
  *
- * Two datasets are supported: `responses` (every answer, one row each) and
- * `questions` (the Q&A with vote counts). Ownership is checked before any data
- * is read, so an export URL cannot be used to read another host's event.
+ * Three datasets are supported: `responses` (every answer, one row each) and
+ * `questions` (the Q&A with vote counts) as CSV, and `contributions` as an
+ * Excel workbook: every Q&A message with its status and when its author gave
+ * consent, beside a sheet describing the event and its consent statement.
+ * Ownership is checked before any data is read, so an export URL cannot be
+ * used to read another host's event.
  */
 export async function GET(
   request: Request,
@@ -36,6 +41,10 @@ export async function GET(
   if (!event) return new Response('Not found', { status: 404 });
 
   const dataset = new URL(request.url).searchParams.get('dataset') ?? 'responses';
+
+  if (dataset === 'contributions') {
+    return contributionsWorkbook(event);
+  }
 
   if (dataset === 'questions') {
     const rows = await db
@@ -149,6 +158,111 @@ function csvResponse(csv: string, filename: string) {
   return new Response(csv, {
     headers: {
       'content-type': 'text/csv; charset=utf-8',
+      'content-disposition': `attachment; filename="${filename}"`,
+      'cache-control': 'no-store',
+    },
+  });
+}
+
+/** Day and time in UTC, which Excel sorts as text and reads unambiguously. */
+function stamp(date: Date | null) {
+  return date ? `${date.toISOString().slice(0, 16).replace('T', ' ')} UTC` : null;
+}
+
+type OwnedEvent = NonNullable<Awaited<ReturnType<typeof getEventForOwner>>>;
+
+async function contributionsWorkbook(event: OwnedEvent) {
+  const t = await getTranslations('export');
+
+  const rows = await db
+    .select({
+      id: questions.id,
+      interaction: interactions.title,
+      text: questions.text,
+      status: questions.status,
+      isAnonymous: questions.isAnonymous,
+      authorName: participants.displayName,
+      consentedAt: participants.consentedAt,
+      createdAt: questions.createdAt,
+    })
+    .from(questions)
+    .innerJoin(interactions, eq(interactions.id, questions.interactionId))
+    .leftJoin(participants, eq(participants.id, questions.participantId))
+    .where(eq(questions.eventId, event.id))
+    .orderBy(asc(interactions.position), asc(questions.createdAt));
+
+  const votes = await db
+    .select({ questionId: questionVotes.questionId, total: count() })
+    .from(questionVotes)
+    .innerJoin(questions, eq(questions.id, questionVotes.questionId))
+    .where(eq(questions.eventId, event.id))
+    .groupBy(questionVotes.questionId);
+  const tally = new Map(votes.map((vote) => [vote.questionId, vote.total]));
+
+  const [consenting] = await db
+    .select({ total: count() })
+    .from(participants)
+    .where(and(eq(participants.eventId, event.id), isNotNull(participants.consentedAt)));
+
+  const statusLabel = {
+    pending: t('statusPending'),
+    approved: t('statusApproved'),
+    answered: t('statusAnswered'),
+    hidden: t('statusHidden'),
+    archived: t('statusArchived'),
+  } as const;
+
+  const consent = event.settings?.consent;
+  const shown = rows.filter((row) => row.status === 'approved' || row.status === 'answered');
+
+  const workbook = toXlsx([
+    {
+      name: t('sheetContributions'),
+      headers: [
+        t('interaction'),
+        t('message'),
+        t('author'),
+        t('status'),
+        t('likes'),
+        t('sentAt'),
+        t('consentAt'),
+      ],
+      widths: [36, 70, 22, 14, 10, 20, 22],
+      rows: rows.map((row) => [
+        row.interaction,
+        row.text,
+        row.isAnonymous ? t('anonymous') : (row.authorName ?? t('anonymous')),
+        statusLabel[row.status],
+        tally.get(row.id) ?? 0,
+        stamp(row.createdAt),
+        stamp(row.consentedAt),
+      ]),
+    },
+    {
+      name: t('sheetEvent'),
+      headers: [t('field'), t('value')],
+      widths: [40, 90],
+      rows: [
+        [t('eventName'), event.title],
+        [t('eventCode'), event.eventCode],
+        [t('exportedAt'), stamp(new Date())],
+        [t('contributions'), rows.length],
+        [t('approved'), shown.length],
+        [t('participants'), event.participantCount],
+        [t('consenting'), consenting?.total ?? 0],
+        [
+          t('consentText'),
+          consent?.enabled ? (consent.text ?? t('consentDefaultUsed')) : t('consentOff'),
+        ],
+        [t('note'), t('noteBody')],
+      ],
+    },
+  ]);
+
+  const filename = csvFilename(event.title, 'contributions').replace(/\.csv$/, '.xlsx');
+  return new Response(workbook, {
+    headers: {
+      'content-type': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
       'content-disposition': `attachment; filename="${filename}"`,
       'cache-control': 'no-store',
     },

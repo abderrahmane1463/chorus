@@ -92,6 +92,12 @@ export default async function EventAnalyticsPage({
                 {t('questionsCsv')}
               </a>
             </Button>
+            <Button variant="secondary" asChild>
+              <a href={`/api/events/${event.id}/export?dataset=contributions`}>
+                <Download />
+                {t('contributionsXlsx')}
+              </a>
+            </Button>
           </div>
         }
       />
