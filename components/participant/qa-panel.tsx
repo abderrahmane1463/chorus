@@ -13,6 +13,7 @@ import { QuestionCard } from '@/components/interactions/question-card';
 import { askQuestionAction, toggleQuestionVoteAction } from '@/lib/actions/question';
 import type { QuestionItem } from '@/lib/queries/questions';
 import type { InteractionSettings } from '@/types/interactions';
+import { announceContribution } from './kiosk-session';
 
 const MAX_LENGTH = 500;
 
@@ -51,7 +52,9 @@ export function QaPanel({
         // Given back, so nothing typed is lost.
         setText(sent);
         toast.error(result.error);
+        return;
       }
+      announceContribution();
     });
   }
 

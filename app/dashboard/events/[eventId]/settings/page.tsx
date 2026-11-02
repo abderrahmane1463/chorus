@@ -56,6 +56,7 @@ export default async function EventSettingsPage({
 
   const origin = process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000';
   const joinUrl = `${origin}/event/${event.eventCode}`;
+  const kioskUrl = `${origin}/kiosk/${event.eventCode}`;
 
   return (
     <div className="mx-auto max-w-3xl px-5 py-8 lg:px-8">
@@ -112,6 +113,21 @@ export default async function EventSettingsPage({
                 {t('openParticipant')}
               </a>
             </Button>
+          </div>
+
+          <div className="space-y-2 border-t border-border pt-4">
+            <p className="text-sm font-medium">{t('kioskLink')}</p>
+            <p className="text-sm text-muted-foreground">{t('kioskHint')}</p>
+            <div className="flex flex-wrap items-center gap-3">
+              <code dir="ltr" className="rounded-md bg-muted px-3 py-1.5 text-sm">
+                {kioskUrl}
+              </code>
+              <CopyButton
+                value={kioskUrl}
+                label={t('copyKiosk')}
+                successMessage={t('kioskCopied')}
+              />
+            </div>
           </div>
 
           <dl className="grid grid-cols-2 gap-4 border-t border-border pt-4 sm:grid-cols-4">

@@ -790,6 +790,10 @@
     "archived": "Archived"
   },
   "eventSettings": {
+    "kioskLink": "Tablet (kiosk) link",
+    "kioskHint": "Open this link once on the stand’s tablet: after each contribution it thanks the visitor and resets for the next one. To release it, add ?exit=1 to the link.",
+    "copyKiosk": "Copy tablet link",
+    "kioskCopied": "Tablet link copied",
     "consentTitle": "Participant consent",
     "consentBody": "Each participant accepts a statement before joining: that their contributions may be shown and kept. Recommended for institutions, audiences of minors and any collection reused after the event.",
     "consentEnable": "Ask for consent",
@@ -997,6 +1001,11 @@
     "oneEvent": "One event.",
     "joinedLabel": "joined",
     "pointsLabel": "points"
+  },
+  "kiosk": {
+    "thanks": "Thank you for your contribution!",
+    "thanksBody": "The next visitor can begin.",
+    "next": "New participant"
   },
   "brand": {
     "poweredBy": "Powered by"

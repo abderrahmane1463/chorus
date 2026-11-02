@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { cn } from '@/lib/utils/cn';
 import { submitResponseAction } from '@/lib/actions/response';
+import { announceContribution } from './kiosk-session';
 import type { InteractionSettings } from '@/types/interactions';
 import { RankingAnswer } from './ranking-answer';
 import { canChangeAnswer } from '@/lib/interactions/registry';
@@ -86,6 +87,7 @@ export function AnswerForm(props: Props) {
       // change (it revalidates the page), so a refresh here would render it
       // a second time for nothing, once per tap, for every player.
       if (!result.ok) toast.error(result.error);
+      else announceContribution();
     });
   }
 

@@ -5,7 +5,8 @@ import { and, eq } from 'drizzle-orm';
 import { MessageSquareDashed } from 'lucide-react';
 import { db } from '@/lib/db';
 import { events, participants } from '@/db/schema';
-import { readSessionId } from '@/lib/participant/session';
+import { readKioskCode, readSessionId } from '@/lib/participant/session';
+import { KioskSession } from '@/components/participant/kiosk-session';
 import { normalizeEventCode } from '@/lib/utils/event-code';
 import { serverNow } from '@/lib/utils/server-time';
 import {
@@ -145,6 +146,9 @@ export default async function ParticipantEventPage({
 
   if (!participant) redirect(`/join?code=${encodeURIComponent(code)}`);
 
+  // This device is the event's shared tablet: it resets between visitors.
+  const isKiosk = (await readKioskCode()) === code;
+
   // Live, but the host has not started it: the phone waits without the question.
   const waiting = interaction ? inLobby(interaction) : false;
 
@@ -261,6 +265,7 @@ export default async function ParticipantEventPage({
       <BrandStyle branding={branding} />
       {/* Keeps this player counted as in the room while the page is open. */}
       <Presence eventId={event.id} />
+      {isKiosk && <KioskSession />}
       <header className="sticky top-0 z-30 border-b border-border bg-background/90 px-4 py-3 backdrop-blur">
         <div className="mx-auto flex max-w-2xl items-center gap-3">
           <BrandLogo

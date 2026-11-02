@@ -5,7 +5,12 @@ import { getTranslations } from 'next-intl/server';
 import { and, eq } from 'drizzle-orm';
 import { db } from '@/lib/db';
 import { events, participants } from '@/db/schema';
-import { ensureSessionId, readSessionId } from '@/lib/participant/session';
+import {
+  clearSessionId,
+  ensureSessionId,
+  readKioskCode,
+  readSessionId,
+} from '@/lib/participant/session';
 import { normalizeEventCode } from '@/lib/utils/event-code';
 import { joinEventSchema, nicknameSchema } from '@/lib/validations/user';
 import { seenNow } from '@/lib/queries/presence';
@@ -159,4 +164,16 @@ export async function setNicknameAction(input: unknown): Promise<ActionResult> {
   });
 
   return { ok: true };
+}
+
+/**
+ * Hands a kiosk tablet to the next visitor: forgets the one who just took
+ * part, and answers with the join screen to load, consent included. Does
+ * nothing on a device that is not a kiosk, so no phone can be logged out.
+ */
+export async function nextKioskVisitorAction(): Promise<string | null> {
+  const code = await readKioskCode();
+  if (!code) return null;
+  await clearSessionId();
+  return `/join?code=${encodeURIComponent(code)}`;
 }

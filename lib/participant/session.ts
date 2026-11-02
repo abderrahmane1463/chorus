@@ -73,6 +73,45 @@ export async function ensureSessionId(): Promise<string> {
 }
 
 /**
+ * Forgets this device's participant, so the next visitor joins as someone
+ * new. Only callable from a Server Action or Route Handler.
+ */
+export async function clearSessionId(): Promise<void> {
+  const store = await cookies();
+  store.delete(COOKIE_NAME);
+}
+
+const KIOSK_COOKIE = 'chorus_kiosk';
+
+/**
+ * A shared tablet on a stand, marked by the event code it serves.
+ *
+ * Set by opening the event's kiosk link on that device, and only there: every
+ * other phone joins and stays as it always has. Signed like the participant
+ * cookie, so a phone cannot turn itself into a kiosk by editing a value.
+ */
+export async function readKioskCode(): Promise<string | null> {
+  const store = await cookies();
+  return verify(store.get(KIOSK_COOKIE)?.value);
+}
+
+/** Marks this device as the kiosk of an event, or clears the mark with null. */
+export async function setKioskCode(code: string | null): Promise<void> {
+  const store = await cookies();
+  if (code === null) {
+    store.delete(KIOSK_COOKIE);
+    return;
+  }
+  store.set(KIOSK_COOKIE, serialize(code), {
+    httpOnly: true,
+    sameSite: 'lax',
+    secure: usesHttps(),
+    path: '/',
+    maxAge: MAX_AGE_SECONDS,
+  });
+}
+
+/**
  * Whether to mark the cookie `secure`.
  *
  * Keyed off the public URL rather than NODE_ENV: a production build served

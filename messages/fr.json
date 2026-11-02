@@ -790,6 +790,10 @@
     "archived": "Archivée"
   },
   "eventSettings": {
+    "kioskLink": "Lien tablette (borne)",
+    "kioskHint": "Ouvrez ce lien une fois sur la tablette du stand : après chaque contribution, elle remercie le visiteur et se réinitialise pour le suivant. Pour la libérer, ajoutez ?exit=1 au lien.",
+    "copyKiosk": "Copier le lien tablette",
+    "kioskCopied": "Lien tablette copié",
     "consentTitle": "Consentement des participants",
     "consentBody": "Chaque participant accepte une déclaration avant de rejoindre : que ses contributions soient affichées et conservées. Recommandé pour les institutions, les publics mineurs et toute collecte réutilisée après l’événement.",
     "consentEnable": "Demander le consentement",
@@ -997,6 +1001,11 @@
     "oneEvent": "Un événement.",
     "joinedLabel": "inscrits",
     "pointsLabel": "points"
+  },
+  "kiosk": {
+    "thanks": "Merci pour votre contribution !",
+    "thanksBody": "Le prochain visiteur peut commencer.",
+    "next": "Nouveau participant"
   },
   "brand": {
     "poweredBy": "Propulsé par"
