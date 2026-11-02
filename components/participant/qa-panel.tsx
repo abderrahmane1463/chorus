@@ -26,7 +26,9 @@ export function QaPanel({
   settings: InteractionSettings;
   questions: QuestionItem[];
 }) {
-  const t = useTranslations('qa');
+  // A wall collects messages, not questions, and says so.
+  const wall = settings.display === 'wall';
+  const t = useTranslations(wall ? 'wall' : 'qa');
   const [text, setText] = useState('');
   const [anonymous, setAnonymous] = useState(false);
   const [, startTransition] = useTransition();
@@ -74,7 +76,7 @@ export function QaPanel({
           onChange={(event) => setText(event.target.value)}
           rows={3}
           maxLength={MAX_LENGTH}
-          placeholder={t('placeholder')}
+          placeholder={settings.placeholder?.trim() || t('placeholder')}
           aria-label={t('label')}
         />
 

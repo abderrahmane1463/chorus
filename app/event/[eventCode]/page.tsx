@@ -305,7 +305,11 @@ export default async function ParticipantEventPage({
             description={t('noActiveBody')}
           />
         ) : waiting ? (
-          <LobbyCard displayName={participant.displayName} isQa={isQa} />
+          <LobbyCard
+            displayName={participant.displayName}
+            isQa={isQa}
+            isWall={isQa && interaction.settings?.display === 'wall'}
+          />
         ) : (
           <div className="space-y-5">
             <div>

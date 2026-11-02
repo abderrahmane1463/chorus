@@ -31,6 +31,8 @@ export type InteractionSettings = {
   questionSort?: 'votes' | 'newest' | 'oldest';
   /** How the big screen shows the questions: a ranked list, or a wall of cards. */
   display?: 'list' | 'wall';
+  /** The host's own invitation in the phone's text box, in place of Chorus's. */
+  placeholder?: string;
 
   // Quiz
   /** Reveal at the buzzer and move to the next question without the host. */

@@ -472,6 +472,8 @@ function SettingsEditor({
   onToggle: (next: Partial<InteractionSettings>) => void;
 }) {
   const t = useTranslations('settings');
+  const tQa = useTranslations('qa');
+  const tWall = useTranslations('wall');
 
   return (
     <div className="divide-y divide-border rounded-lg border border-border px-4">
@@ -626,6 +628,15 @@ function SettingsEditor({
             <Switch
               checked={settings.display === 'wall'}
               onCheckedChange={(checked) => onToggle({ display: checked ? 'wall' : 'list' })}
+            />
+          </SettingRow>
+          <SettingRow label={t('placeholder')} hint={t('placeholderHint')}>
+            <Input
+              maxLength={120}
+              value={settings.placeholder ?? ''}
+              placeholder={settings.display === 'wall' ? tWall('placeholder') : tQa('placeholder')}
+              onChange={(event) => onPatch({ placeholder: event.target.value })}
+              className="w-72"
             />
           </SettingRow>
         </>

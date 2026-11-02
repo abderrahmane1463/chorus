@@ -568,6 +568,8 @@
     "allowUpvotes": "Autoriser les votes",
     "wallDisplay": "Afficher en mur",
     "wallDisplayHint": "Sur le grand écran, les messages validés apparaissent en cartes, les plus récents d’abord. Idéal pour un mur d’idées ou de souhaits.",
+    "placeholder": "Texte d’invitation",
+    "placeholderHint": "Affiché dans la zone de saisie des téléphones. Laissez vide pour le texte par défaut.",
     "oneByOne": "Afficher une question à la fois",
     "oneByOneHint": "Désactivé, tout le questionnaire tient sur un écran.",
     "showResults": "Montrer les résultats aux participants",
@@ -1038,6 +1040,18 @@
     "note": "Note",
     "noteBody": "Heures en UTC. Les messages « Masqué » ou « En attente » n’ont pas été affichés au public."
   },
+  "wall": {
+    "placeholder": "Partagez votre message…",
+    "label": "Votre message",
+    "anonymous": "Envoyer anonymement",
+    "namesShown": "Les messages affichent votre nom.",
+    "send": "Envoyer",
+    "moderated": "Les messages sont relus avant d’apparaître sur le mur.",
+    "sent": "Message envoyé",
+    "sentForReview": "Envoyé — il apparaîtra sur le mur après relecture",
+    "emptyTitle": "Aucun message pour l’instant",
+    "emptyBody": "Soyez le premier à partager le vôtre."
+  },
   "kiosk": {
     "thanks": "Merci pour votre contribution !",
     "thanksBody": "Le prochain visiteur peut commencer.",
@@ -1050,6 +1064,7 @@
     "title": "Vous êtes inscrit",
     "body": "Regardez le grand écran. La question apparaît ici quand l’animateur la lance.",
     "qaBody": "Tapez votre question dès que l’animateur ouvre la session des questions, vous pouvez liker toutes les questions qui vous paraissent intéressantes.",
+    "wallBody": "Partagez votre message dès que l’animateur ouvre le mur. Il apparaîtra sur le grand écran.",
     "joined": "{count, plural, =0 {En attente des participants…} one {# participant a rejoint} other {# participants ont rejoint}}",
     "start": "Démarrer",
     "hint": "La question apparaît sur tous les téléphones quand vous appuyez sur Démarrer."

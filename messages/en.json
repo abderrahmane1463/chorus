@@ -568,6 +568,8 @@
     "allowUpvotes": "Allow upvotes",
     "wallDisplay": "Show as a wall",
     "wallDisplayHint": "On the big screen, approved messages appear as cards, newest first. Made for a wall of ideas or wishes.",
+    "placeholder": "Invitation text",
+    "placeholderHint": "Shown in the phones’ text box. Leave empty for the default text.",
     "oneByOne": "Show one question at a time",
     "oneByOneHint": "Off shows the whole survey on a single screen.",
     "showResults": "Show results to participants",
@@ -1038,6 +1040,18 @@
     "note": "Note",
     "noteBody": "Times in UTC. “Hidden” or “Pending” messages were never shown to the audience."
   },
+  "wall": {
+    "placeholder": "Share your message…",
+    "label": "Your message",
+    "anonymous": "Send anonymously",
+    "namesShown": "Messages show your name.",
+    "send": "Send",
+    "moderated": "Messages are reviewed before they appear on the wall.",
+    "sent": "Message sent",
+    "sentForReview": "Sent — it will appear on the wall once reviewed",
+    "emptyTitle": "No messages yet",
+    "emptyBody": "Be the first to share yours."
+  },
   "kiosk": {
     "thanks": "Thank you for your contribution!",
     "thanksBody": "The next visitor can begin.",
@@ -1050,6 +1064,7 @@
     "title": "You are in",
     "body": "Watch the big screen. The question appears here when the host starts it.",
     "qaBody": "Type your question as soon as the host opens the questions, and like every question you find interesting.",
+    "wallBody": "Share your message as soon as the host opens the wall. It will appear on the big screen.",
     "joined": "{count, plural, =0 {Waiting for people to join…} one {# person joined} other {# people joined}}",
     "start": "Start",
     "hint": "The question appears on everyone’s phone when you press Start."
