@@ -125,7 +125,9 @@
     "code": "Event code",
     "name": "Your name (optional)",
     "namePlaceholder": "Stay anonymous by leaving this blank",
-    "submit": "Join event"
+    "submit": "Join event",
+    "consentDefault": "I agree that my contribution may be shown during the event and kept by the organiser. I include no personal information in it (full name, phone, address, school…).",
+    "consentRequired": "Tick the box to continue."
   },
   "event": {
     "fallbackTitle": "Event",
@@ -254,6 +256,7 @@
     "offline": "Offline"
   },
   "errors": {
+    "consentRequired": "This event asks for your agreement before you take part. Tick the box to continue.",
     "noEventWithCode": "No event found with that code",
     "eventArchived": "That event has been archived",
     "eventNotFound": "Event not found",
@@ -787,6 +790,14 @@
     "archived": "Archived"
   },
   "eventSettings": {
+    "consentTitle": "Participant consent",
+    "consentBody": "Each participant accepts a statement before joining: that their contributions may be shown and kept. Recommended for institutions, audiences of minors and any collection reused after the event.",
+    "consentEnable": "Ask for consent",
+    "consentEnableHint": "People who joined before it was turned on are not asked: turn it on before sharing the code.",
+    "consentText": "Text shown to participants",
+    "consentTextHint": "Leave empty for the default text. For minors, mention a parent’s agreement.",
+    "consentSave": "Save",
+    "consentSaved": "Consent saved",
     "metaTitle": "{title} settings",
     "metaFallback": "Event settings",
     "back": "Back to interactions",

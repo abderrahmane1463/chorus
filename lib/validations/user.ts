@@ -19,6 +19,8 @@ export const joinEventSchema = z.object({
     .min(4, 'validation.codeRequired')
     .max(20, 'validation.codeTooLong'),
   displayName: z.string().trim().max(60).optional(),
+  /** Ticked when the event asks visitors to accept its statement. */
+  consent: z.boolean().optional(),
 });
 
 export type JoinEventInput = z.infer<typeof joinEventSchema>;

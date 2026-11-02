@@ -10,6 +10,7 @@ import {
   uuid,
 } from 'drizzle-orm/pg-core';
 import type { EventBranding } from '@/types/branding';
+import type { EventSettings } from '@/types/event-settings';
 import { users } from './auth';
 import { eventStatusEnum, memberRoleEnum } from './enums';
 
@@ -31,6 +32,8 @@ export const events = pgTable(
     activeInteractionId: uuid('active_interaction_id'),
     // How the event looks to its audience. Null means the Chorus look.
     branding: jsonb('branding').$type<EventBranding>(),
+    // How the event treats its audience, e.g. asking consent. Null means none.
+    settings: jsonb('settings').$type<EventSettings>(),
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
   },

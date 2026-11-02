@@ -11,23 +11,47 @@ import { Label } from '@/components/ui/label';
 import { joinEventAction } from '@/lib/actions/join';
 import { joinEventSchema, type JoinEventInput } from '@/lib/validations/user';
 
-export function JoinForm({ defaultCode = '' }: { defaultCode?: string }) {
+/**
+ * Joins an event by its code. When the event asks for consent, the visitor
+ * ticks its statement first: known up front when they arrive by the QR code,
+ * learned from the server when they typed the code by hand.
+ */
+export function JoinForm({
+  defaultCode = '',
+  consent = null,
+}: {
+  defaultCode?: string;
+  /** The statement to accept, or null when the event asks for none. */
+  consent?: { text: string | null } | null;
+}) {
   // Unscoped: validation messages arrive as full keys from the schema.
   const t = useTranslations();
   const [pending, startTransition] = useTransition();
   const [formError, setFormError] = useState<string | null>(null);
+  const [asked, setAsked] = useState(consent);
+  const [consentMissing, setConsentMissing] = useState(false);
 
   const form = useForm<JoinEventInput>({
     resolver: zodResolver(joinEventSchema),
-    defaultValues: { code: defaultCode, displayName: '' },
+    defaultValues: { code: defaultCode, displayName: '', consent: false },
   });
 
   function onSubmit(values: JoinEventInput) {
     setFormError(null);
+    if (asked && !values.consent) {
+      setConsentMissing(true);
+      return;
+    }
+    setConsentMissing(false);
     startTransition(async () => {
       const result = await joinEventAction(values);
       // Joining redirects, so anything returned here is a failure.
       if (result && !result.ok) {
+        if ('consent' in result) {
+          setAsked({ text: result.consent });
+          setConsentMissing(true);
+          return;
+        }
         setFormError(result.error);
         toast.error(result.error);
       }
@@ -71,6 +95,34 @@ export function JoinForm({ defaultCode = '' }: { defaultCode?: string }) {
           {...form.register('displayName')}
         />
       </div>
+
+      {asked && (
+        <div className="space-y-1.5">
+          <label
+            htmlFor="consent"
+            className="flex cursor-pointer items-start gap-3 rounded-lg border border-border p-3 text-sm leading-relaxed"
+          >
+            <input
+              id="consent"
+              type="checkbox"
+              className="mt-0.5 size-5 shrink-0 accent-primary"
+              aria-invalid={consentMissing}
+              aria-describedby={consentMissing ? 'consent-error' : undefined}
+              {...form.register('consent', {
+                onChange: (event) => event.target.checked && setConsentMissing(false),
+              })}
+            />
+            <span dir="auto" className="whitespace-pre-line">
+              {asked.text ?? t('join.consentDefault')}
+            </span>
+          </label>
+          {consentMissing && (
+            <p id="consent-error" role="alert" className="text-sm text-destructive">
+              {t('join.consentRequired')}
+            </p>
+          )}
+        </div>
+      )}
 
       {formError && (
         <p role="alert" className="rounded-md bg-destructive-subtle px-3 py-2 text-sm text-destructive">

@@ -3,7 +3,7 @@
 import { getTranslations } from 'next-intl/server';
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
-import { and, eq } from 'drizzle-orm';
+import { and, eq, sql } from 'drizzle-orm';
 import { db } from '@/lib/db';
 import { events } from '@/db/schema';
 import { requireUser } from '@/lib/auth';
@@ -11,6 +11,7 @@ import { assertEventOwner } from '@/lib/queries/events';
 import { generateEventCode } from '@/lib/utils/event-code';
 import {
   createEventSchema,
+  eventConsentSchema,
   eventIdSchema,
   updateEventSchema,
   updateEventStatusSchema,
@@ -101,6 +102,35 @@ export async function updateEventAction(input: unknown): Promise<ActionResult> {
 
   revalidatePath(`/dashboard/events/${parsed.data.eventId}`);
   revalidatePath('/dashboard/events');
+  return { ok: true };
+}
+
+/**
+ * Turns the consent statement on or off, in the host's words or Chorus's.
+ * Only this setting is written, so any other event setting is kept.
+ */
+export async function updateEventConsentAction(input: unknown): Promise<ActionResult> {
+  const t = await getTranslations();
+
+  const user = await requireUser();
+
+  const parsed = eventConsentSchema.safeParse(input);
+  if (!parsed.success) return { ok: false, error: t('errors.eventNotFound') };
+
+  const owned = await assertEventOwner(parsed.data.eventId, user.id);
+  if (!owned) return { ok: false, error: t('errors.eventNotFound') };
+
+  const consent = { enabled: parsed.data.enabled, text: parsed.data.text?.trim() || null };
+
+  await db
+    .update(events)
+    .set({
+      settings: sql`coalesce(${events.settings}, '{}'::jsonb) || ${JSON.stringify({ consent })}::jsonb`,
+      updatedAt: new Date(),
+    })
+    .where(eq(events.id, parsed.data.eventId));
+
+  revalidatePath(`/dashboard/events/${parsed.data.eventId}/settings`);
   return { ok: true };
 }
 

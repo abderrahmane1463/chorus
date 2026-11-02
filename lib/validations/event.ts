@@ -22,6 +22,13 @@ export const updateEventSchema = createEventSchema.extend({
   eventId: z.string().uuid(),
 });
 
+/** Whether visitors accept a statement before joining, and in whose words. */
+export const eventConsentSchema = z.object({
+  eventId: z.string().uuid(),
+  enabled: z.boolean(),
+  text: z.string().trim().max(600).optional().or(z.literal('')),
+});
+
 export const updateEventStatusSchema = z.object({
   eventId: z.string().uuid(),
   status: z.enum(eventStatuses),

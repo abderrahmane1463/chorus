@@ -15,6 +15,8 @@ export const participants = pgTable(
       .references(() => events.id, { onDelete: 'cascade' }),
     sessionId: text('session_id').notNull(),
     displayName: text('display_name'),
+    // When they accepted the event's consent statement, if it asked for one.
+    consentedAt: timestamp('consented_at', { withTimezone: true }),
     joinedAt: timestamp('joined_at', { withTimezone: true }).notNull().defaultNow(),
     lastSeenAt: timestamp('last_seen_at', { withTimezone: true }).notNull().defaultNow(),
   },

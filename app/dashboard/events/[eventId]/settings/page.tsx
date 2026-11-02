@@ -5,6 +5,7 @@ import { ArrowLeft, ExternalLink } from 'lucide-react';
 import { requireUser } from '@/lib/auth';
 import { getEventForOwner } from '@/lib/queries/events';
 import { EventForm } from '@/components/dashboard/event-form';
+import { ConsentSettings } from '@/components/dashboard/consent-settings';
 import { EventStatusControl } from '@/components/dashboard/event-status-control';
 import { CopyButton } from '@/components/dashboard/copy-button';
 import { DangerZone } from '@/components/dashboard/danger-zone';
@@ -144,6 +145,16 @@ export default async function EventSettingsPage({
               description: event.description ?? '',
             }}
           />
+        </CardContent>
+      </Card>
+
+      <Card className="mb-6">
+        <CardHeader>
+          <CardTitle>{t('consentTitle')}</CardTitle>
+          <CardDescription>{t('consentBody')}</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <ConsentSettings eventId={event.id} consent={event.settings?.consent} />
         </CardContent>
       </Card>
 

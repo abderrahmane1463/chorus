@@ -125,7 +125,9 @@
     "code": "Code de l'événement",
     "name": "Votre nom (facultatif)",
     "namePlaceholder": "Laissez vide pour rester anonyme",
-    "submit": "Rejoindre"
+    "submit": "Rejoindre",
+    "consentDefault": "J’accepte que ma contribution soit affichée pendant l’événement et conservée par l’organisateur. Je n’y indique aucune information personnelle (nom complet, téléphone, adresse, école…).",
+    "consentRequired": "Cochez la case pour continuer."
   },
   "event": {
     "fallbackTitle": "Événement",
@@ -254,6 +256,7 @@
     "offline": "Hors ligne"
   },
   "errors": {
+    "consentRequired": "Cet événement demande votre accord avant de participer. Cochez la case pour continuer.",
     "noEventWithCode": "Aucun événement ne correspond à ce code",
     "eventArchived": "Cet événement a été archivé",
     "eventNotFound": "Événement introuvable",
@@ -787,6 +790,14 @@
     "archived": "Archivée"
   },
   "eventSettings": {
+    "consentTitle": "Consentement des participants",
+    "consentBody": "Chaque participant accepte une déclaration avant de rejoindre : que ses contributions soient affichées et conservées. Recommandé pour les institutions, les publics mineurs et toute collecte réutilisée après l’événement.",
+    "consentEnable": "Demander le consentement",
+    "consentEnableHint": "Les personnes qui ont rejoint avant l’activation ne sont pas concernées : activez-le avant de partager le code.",
+    "consentText": "Texte affiché aux participants",
+    "consentTextHint": "Laissez vide pour le texte par défaut. Pour un public mineur, mentionnez l’accord d’un parent.",
+    "consentSave": "Enregistrer",
+    "consentSaved": "Consentement enregistré",
     "metaTitle": "Paramètres de {title}",
     "metaFallback": "Paramètres de l’événement",
     "back": "Retour aux interactions",

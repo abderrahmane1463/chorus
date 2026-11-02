@@ -32,12 +32,14 @@ export default async function JoinPage({
   // event yet and it stays Chorus.
   const [event] = code
     ? await db
-        .select({ title: events.title, branding: events.branding })
+        .select({ title: events.title, branding: events.branding, settings: events.settings })
         .from(events)
         .where(eq(events.eventCode, normalizeEventCode(code)))
         .limit(1)
     : [];
   const branding = readBranding(event?.branding);
+  // The statement to accept, when the event asks for one; null text means Chorus's.
+  const consent = event?.settings?.consent?.enabled ? { text: event.settings.consent.text } : null;
 
   return (
     <div
@@ -71,7 +73,7 @@ export default async function JoinPage({
       <main className="w-full max-w-sm rounded-xl border border-border bg-card p-6">
         <h1 className="text-xl font-semibold">{event?.title ?? t('title')}</h1>
         <p className="mb-6 mt-1 text-sm text-muted-foreground">{t('subtitle')}</p>
-        <JoinForm defaultCode={code ?? ''} />
+        <JoinForm defaultCode={code ?? ''} consent={consent} />
       </main>
       <footer className="mt-10">
         <PoweredBy />

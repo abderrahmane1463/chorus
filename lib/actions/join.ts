@@ -17,13 +17,19 @@ import { messageKey } from '@/lib/validations/message';
 import type { ActionResult } from './auth';
 
 /**
+ * A failed join, which may name the statement the event asks visitors to
+ * accept: a code typed by hand reaches an event the form knew nothing of.
+ */
+export type JoinResult = ActionResult | { ok: false; error: string; consent: string | null };
+
+/**
  * Joins an audience member to an event.
  *
  * Redirects on success, so a returned result always means failure. The
  * participant row is keyed on (event, session) with a unique constraint, which
  * makes rejoining idempotent rather than creating duplicates.
  */
-export async function joinEventAction(input: unknown): Promise<ActionResult> {
+export async function joinEventAction(input: unknown): Promise<JoinResult> {
   // Resolved here rather than returned as a key, so every caller keeps
   // receiving a sentence it can show as-is.
   const t = await getTranslations();
@@ -40,7 +46,12 @@ export async function joinEventAction(input: unknown): Promise<ActionResult> {
   const code = normalizeEventCode(parsed.data.code);
 
   const [event] = await db
-    .select({ id: events.id, code: events.eventCode, status: events.status })
+    .select({
+      id: events.id,
+      code: events.eventCode,
+      status: events.status,
+      settings: events.settings,
+    })
     .from(events)
     .where(eq(events.eventCode, code))
     .limit(1);
@@ -55,6 +66,18 @@ export async function joinEventAction(input: unknown): Promise<ActionResult> {
   if (!acceptsAudience(event.status)) {
     return { ok: false, error: t('errors.eventEnded') };
   }
+
+  // An event that asks for consent lets nobody in without it. The form is
+  // handed the statement to show; null means Chorus's own wording.
+  const consentAsked = event.settings?.consent?.enabled === true;
+  if (consentAsked && parsed.data.consent !== true) {
+    return {
+      ok: false,
+      error: t('errors.consentRequired'),
+      consent: event.settings?.consent?.text ?? null,
+    };
+  }
+  const consentedAt = consentAsked ? new Date() : null;
 
   const sessionId = await ensureSessionId();
   const displayName = parsed.data.displayName?.trim() || null;
@@ -74,13 +97,14 @@ export async function joinEventAction(input: unknown): Promise<ActionResult> {
         lastSeenAt: seenNow,
         // Keep the stored name unless a new one was supplied.
         ...(displayName ? { displayName } : {}),
+        ...(consentedAt ? { consentedAt } : {}),
       })
       .where(eq(participants.id, existing.id));
   } else {
     // A second tap on Join from the same phone lands on the row the first made.
     await db
       .insert(participants)
-      .values({ eventId: event.id, sessionId, displayName })
+      .values({ eventId: event.id, sessionId, displayName, consentedAt })
       .onConflictDoNothing();
   }
 

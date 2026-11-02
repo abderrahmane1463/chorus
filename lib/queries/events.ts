@@ -5,6 +5,7 @@ import { db } from '@/lib/db';
 import { events, interactions, participants, questions, responses } from '@/db/schema';
 import { readBranding } from '@/lib/branding/templates';
 import type { EventBranding } from '@/types/branding';
+import type { EventSettings } from '@/types/event-settings';
 
 export type EventDetail = {
   id: string;
@@ -16,6 +17,8 @@ export type EventDetail = {
   createdAt: Date;
   /** The event's own design, or null for the Chorus look. */
   branding: EventBranding | null;
+  /** How the event treats its audience, e.g. asking consent. */
+  settings: EventSettings | null;
   participantCount: number;
   interactionCount: number;
   responseCount: number;
@@ -49,6 +52,7 @@ export const getEventForOwner = cache(async function getEventForOwner(
           activeInteractionId: events.activeInteractionId,
           createdAt: events.createdAt,
           branding: events.branding,
+          settings: events.settings,
         })
         .from(events)
         .where(and(eq(events.id, eventId), eq(events.ownerId, userId)))
