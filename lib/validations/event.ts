@@ -29,6 +29,13 @@ export const eventConsentSchema = z.object({
   text: z.string().trim().max(600).optional().or(z.literal('')),
 });
 
+/** The thanks a kiosk tablet shows after each visitor; empty keeps Chorus's. */
+export const eventKioskSchema = z.object({
+  eventId: z.string().uuid(),
+  thanks: z.string().trim().max(120).optional().or(z.literal('')),
+  thanksBody: z.string().trim().max(200).optional().or(z.literal('')),
+});
+
 export const updateEventStatusSchema = z.object({
   eventId: z.string().uuid(),
   status: z.enum(eventStatuses),

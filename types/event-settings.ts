@@ -12,4 +12,9 @@ export type EventSettings = {
     /** The host's own wording, or null for Chorus's. */
     text: string | null;
   };
+  /** What a kiosk tablet thanks a visitor with; null keeps Chorus's words. */
+  kiosk?: {
+    thanks: string | null;
+    thanksBody: string | null;
+  };
 };

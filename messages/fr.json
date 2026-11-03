@@ -796,6 +796,10 @@
     "archived": "Archivée"
   },
   "eventSettings": {
+    "kioskThanks": "Message de remerciement (tablette)",
+    "kioskThanksBody": "Deuxième ligne",
+    "kioskSave": "Enregistrer le message",
+    "kioskSaved": "Message de la tablette enregistré",
     "kioskLink": "Lien tablette (borne)",
     "kioskHint": "Ouvrez ce lien une fois sur la tablette du stand : après chaque contribution, elle remercie le visiteur et se réinitialise pour le suivant. Pour la libérer, ajoutez ?exit=1 au lien.",
     "copyKiosk": "Copier le lien tablette",

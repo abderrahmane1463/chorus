@@ -27,7 +27,14 @@ const IDLE_MS = 90_000;
  * on themselves. Each reset forgets the visitor and returns to the join
  * screen, so the next one gives their own consent.
  */
-export function KioskSession() {
+export function KioskSession({
+  thanks = null,
+  thanksBody = null,
+}: {
+  /** The host's own thanks, or null for Chorus's. */
+  thanks?: string | null;
+  thanksBody?: string | null;
+}) {
   const t = useTranslations('kiosk');
   const [thanking, setThanking] = useState(false);
   const [resetting, startReset] = useTransition();
@@ -74,8 +81,12 @@ export function KioskSession() {
         <span className="flex size-16 items-center justify-center rounded-full bg-success-subtle text-success">
           <Heart className="size-8" aria-hidden />
         </span>
-        <p className="text-3xl font-semibold">{t('thanks')}</p>
-        <p className="text-lg text-muted-foreground">{t('thanksBody')}</p>
+        <p dir="auto" className="text-3xl font-semibold text-balance">
+          {thanks ?? t('thanks')}
+        </p>
+        <p dir="auto" className="text-lg text-muted-foreground text-balance">
+          {thanksBody ?? t('thanksBody')}
+        </p>
       </div>
     );
   }

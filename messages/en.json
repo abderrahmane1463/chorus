@@ -796,6 +796,10 @@
     "archived": "Archived"
   },
   "eventSettings": {
+    "kioskThanks": "Thank-you message (tablet)",
+    "kioskThanksBody": "Second line",
+    "kioskSave": "Save message",
+    "kioskSaved": "Tablet message saved",
     "kioskLink": "Tablet (kiosk) link",
     "kioskHint": "Open this link once on the stand’s tablet: after each contribution it thanks the visitor and resets for the next one. To release it, add ?exit=1 to the link.",
     "copyKiosk": "Copy tablet link",

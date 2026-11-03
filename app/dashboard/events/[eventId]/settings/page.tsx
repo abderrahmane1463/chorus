@@ -6,6 +6,7 @@ import { requireUser } from '@/lib/auth';
 import { getEventForOwner } from '@/lib/queries/events';
 import { EventForm } from '@/components/dashboard/event-form';
 import { ConsentSettings } from '@/components/dashboard/consent-settings';
+import { KioskSettings } from '@/components/dashboard/kiosk-settings';
 import { EventStatusControl } from '@/components/dashboard/event-status-control';
 import { CopyButton } from '@/components/dashboard/copy-button';
 import { DangerZone } from '@/components/dashboard/danger-zone';
@@ -128,6 +129,7 @@ export default async function EventSettingsPage({
                 successMessage={t('kioskCopied')}
               />
             </div>
+            <KioskSettings eventId={event.id} kiosk={event.settings?.kiosk} />
           </div>
 
           <dl className="grid grid-cols-2 gap-4 border-t border-border pt-4 sm:grid-cols-4">

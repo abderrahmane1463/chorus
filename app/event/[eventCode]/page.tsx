@@ -63,6 +63,7 @@ async function readEvent(code: string) {
       eventCode: events.eventCode,
       status: events.status,
       branding: events.branding,
+      settings: events.settings,
     })
     .from(events)
     .where(eq(events.eventCode, code))
@@ -265,7 +266,12 @@ export default async function ParticipantEventPage({
       <BrandStyle branding={branding} />
       {/* Keeps this player counted as in the room while the page is open. */}
       <Presence eventId={event.id} />
-      {isKiosk && <KioskSession />}
+      {isKiosk && (
+        <KioskSession
+          thanks={event.settings?.kiosk?.thanks ?? null}
+          thanksBody={event.settings?.kiosk?.thanksBody ?? null}
+        />
+      )}
       <header className="sticky top-0 z-30 border-b border-border bg-background/90 px-4 py-3 backdrop-blur">
         <div className="mx-auto flex max-w-2xl items-center gap-3">
           <BrandLogo

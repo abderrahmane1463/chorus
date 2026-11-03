@@ -13,6 +13,7 @@ import {
   createEventSchema,
   eventConsentSchema,
   eventIdSchema,
+  eventKioskSchema,
   updateEventSchema,
   updateEventStatusSchema,
 } from '@/lib/validations/event';
@@ -129,6 +130,43 @@ export async function updateEventConsentAction(input: unknown): Promise<ActionRe
       updatedAt: new Date(),
     })
     .where(eq(events.id, parsed.data.eventId));
+
+  revalidatePath(`/dashboard/events/${parsed.data.eventId}/settings`);
+  return { ok: true };
+}
+
+/**
+ * Sets the thanks a kiosk tablet shows after each visitor. Only this setting
+ * is written; the room is told, so a tablet already open picks it up.
+ */
+export async function updateEventKioskAction(input: unknown): Promise<ActionResult> {
+  const t = await getTranslations();
+
+  const user = await requireUser();
+
+  const parsed = eventKioskSchema.safeParse(input);
+  if (!parsed.success) return { ok: false, error: t('errors.eventNotFound') };
+
+  const owned = await assertEventOwner(parsed.data.eventId, user.id);
+  if (!owned) return { ok: false, error: t('errors.eventNotFound') };
+
+  const kiosk = {
+    thanks: parsed.data.thanks?.trim() || null,
+    thanksBody: parsed.data.thanksBody?.trim() || null,
+  };
+
+  await db
+    .update(events)
+    .set({
+      settings: sql`coalesce(${events.settings}, '{}'::jsonb) || ${JSON.stringify({ kiosk })}::jsonb`,
+      updatedAt: new Date(),
+    })
+    .where(eq(events.id, parsed.data.eventId));
+
+  // Moves the room on, so no device keeps the old words from the shared cache.
+  await publish(channels.event(parsed.data.eventId), RealtimeEvent.InteractionChanged, {
+    eventId: parsed.data.eventId,
+  });
 
   revalidatePath(`/dashboard/events/${parsed.data.eventId}/settings`);
   return { ok: true };
