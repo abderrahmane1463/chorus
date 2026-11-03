@@ -1060,8 +1060,10 @@
   "archive": {
     "metaTitle": "Archive de {title}",
     "metaFallback": "Archive des contributions",
-    "hint": "Cliquez sur « Télécharger en PDF », puis choisissez « Enregistrer au format PDF » comme imprimante. Seuls les messages validés et affichés au public figurent dans l’archive.",
+    "hint": "Cliquez sur « Télécharger en PDF » : le fichier est créé et téléchargé directement. Seuls les messages validés et affichés au public figurent dans l’archive.",
     "print": "Télécharger en PDF",
+    "printing": "Création du PDF…",
+    "printFailed": "Le PDF n’a pas pu être créé. Réessayez.",
     "summary": "{count, plural, =0 {Aucune contribution validée} one {# contribution validée} other {# contributions validées}} · archive du {date}",
     "count": "{count, plural, one {# contribution} other {# contributions}}",
     "empty": "Aucune contribution validée pour l’instant.",

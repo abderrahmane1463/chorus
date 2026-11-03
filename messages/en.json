@@ -1060,8 +1060,10 @@
   "archive": {
     "metaTitle": "Archive of {title}",
     "metaFallback": "Contributions archive",
-    "hint": "Click “Download as PDF”, then choose “Save as PDF” as the printer. Only messages approved and shown to the audience are in the archive.",
+    "hint": "Click “Download as PDF”: the file is created and downloaded directly. Only messages approved and shown to the audience are in the archive.",
     "print": "Download as PDF",
+    "printing": "Creating the PDF…",
+    "printFailed": "The PDF could not be created. Try again.",
     "summary": "{count, plural, =0 {No approved contributions} one {# approved contribution} other {# approved contributions}} · archived {date}",
     "count": "{count, plural, one {# contribution} other {# contributions}}",
     "empty": "No approved contributions yet.",
