@@ -56,6 +56,9 @@ export function QuizPanel({
   // What was tapped, shown at once while the server confirms it. Waiting for
   // the round trip before reacting makes a tap feel like it missed.
   const [sent, setSent] = useState<string[] | null>(null);
+  /** A numeric answer as typed, and the number once sent. */
+  const [typed, setTyped] = useState('');
+  const [sentValue, setSentValue] = useState<number | null>(null);
   const [, startTransition] = useTransition();
 
   const question = view.question;
@@ -170,6 +173,27 @@ export function QuizPanel({
     });
   }
 
+  // A number, sent once: the comma typed as a decimal mark is read as one.
+  function submitNumber() {
+    const value = Number(typed.replace(/\s/g, '').replace(',', '.'));
+    if (typed.trim() === '' || !Number.isFinite(value) || sent) return;
+    setSent([]);
+    setSentValue(value);
+    startTransition(async () => {
+      const result = await submitQuizAnswerAction({ questionId: question!.id, value });
+      if (!result.ok) {
+        setSent(null);
+        setSentValue(null);
+        toast.error(result.error);
+      }
+    });
+  }
+
+  const numeric = question.answerType === 'number';
+  const myValue = view.myAnswer?.value ?? sentValue;
+  const withUnit = (value: number) =>
+    question!.unit ? `${format.number(value)} ${question!.unit}` : format.number(value);
+
   function toggle(optionId: string) {
     setSelected((current) =>
       current.includes(optionId)
@@ -191,7 +215,11 @@ export function QuizPanel({
         <p className="text-center text-sm text-muted-foreground">{position}</p>
 
         {view.myAnswer ? (
-          <PointsBurst correct={view.myAnswer.correct} points={view.myAnswer.points} />
+          <PointsBurst
+            // A numeric answer is judged by how near it came: any points are a success.
+            correct={numeric ? view.myAnswer.points > 0 : view.myAnswer.correct}
+            points={view.myAnswer.points}
+          />
         ) : (
           <div className="rounded-xl bg-muted px-4 py-5 text-center" role="status">
             <span className="block text-2xl font-semibold">{t('noAnswerTitle')}</span>
@@ -219,6 +247,20 @@ export function QuizPanel({
 
         <Card className="p-5">
           <h3 className="font-semibold leading-snug"><bdi>{question.title}</bdi></h3>
+          {numeric ? (
+            <>
+              <p className="mt-3 text-sm text-muted-foreground">{t('correctNumber')}</p>
+              <p className="mt-1 text-3xl font-semibold tabular-nums text-success">
+                {question.correctNumber !== null ? withUnit(question.correctNumber) : '–'}
+              </p>
+              {myValue !== null && (
+                <p className="mt-3 text-sm text-muted-foreground">
+                  {t('yourNumberWas', { value: withUnit(myValue) })}
+                </p>
+              )}
+            </>
+          ) : (
+          <>
           <p className="mt-3 text-sm text-muted-foreground">
             {t('correctAnswers', { count: correct.length })}
           </p>
@@ -227,8 +269,10 @@ export function QuizPanel({
               <AnswerChip key={option.id} option={option} index={indexOf(option.id)} />
             ))}
           </ul>
+          </>
+          )}
 
-          {view.myAnswer && !view.myAnswer.correct && (
+          {!numeric && view.myAnswer && !view.myAnswer.correct && (
             <>
               <p className="mt-4 text-sm text-muted-foreground">{t('yourAnswerWas')}</p>
               <ul className="mt-2 space-y-2">
@@ -275,6 +319,9 @@ export function QuizPanel({
           </span>
           <h2 className="mt-4 text-xl font-semibold">{t('answerSent')}</h2>
           <p className="mt-1 text-muted-foreground">{t('lockedWaiting')}</p>
+          {numeric && myValue !== null && (
+            <p className="mt-5 text-3xl font-semibold tabular-nums">{withUnit(myValue)}</p>
+          )}
           <ul className="mt-5 space-y-2 text-start">
             {myAnswerIds.map((optionId) => {
               const option = question.options[indexOf(optionId)];
@@ -329,6 +376,35 @@ export function QuizPanel({
 
       <h3 className="text-lg font-semibold leading-snug"><bdi>{question.title}</bdi></h3>
 
+      {numeric ? (
+        <form
+          className="space-y-3"
+          onSubmit={(event) => {
+            event.preventDefault();
+            submitNumber();
+          }}
+        >
+          <div className="flex items-center gap-3">
+            <Input
+              autoFocus
+              inputMode="decimal"
+              value={typed}
+              onChange={(event) => setTyped(event.target.value)}
+              placeholder={t('numberPlaceholder')}
+              aria-label={t('numberLabel')}
+              className="h-16 text-center text-3xl font-semibold tabular-nums"
+            />
+            {question.unit && (
+              <span className="shrink-0 text-lg text-muted-foreground">{question.unit}</span>
+            )}
+          </div>
+          <p className="text-sm text-muted-foreground">{t('numberHint')}</p>
+          <Button type="submit" className="w-full" size="lg" disabled={typed.trim() === ''}>
+            {t('submitNumber')}
+          </Button>
+        </form>
+      ) : (
+      <>
       {question.multiple && (
         <p className="text-sm text-muted-foreground">{t('pickSeveral')}</p>
       )}
@@ -370,6 +446,8 @@ export function QuizPanel({
         >
           {t('submitAnswers')}
         </Button>
+      )}
+      </>
       )}
     </div>
   );

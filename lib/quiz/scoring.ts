@@ -38,6 +38,39 @@ export function computeScore({
   return Math.round(basePoints * (0.5 + 0.5 * remaining));
 }
 
+/**
+ * The score of a numeric answer: by how close it is, with speed only
+ * deciding between answers equally close.
+ *
+ * Closeness is the error relative to the right number (the error itself when
+ * that number is 0): exact earns the full points, off by half earns half, off
+ * by as much as the number itself earns nothing. Speed adds at most a tenth,
+ * so a quick guess never beats a careful near answer.
+ */
+export function computeNumericScore({
+  value,
+  target,
+  elapsedMs,
+  timeLimitSeconds,
+  basePoints,
+  speedBonus,
+}: {
+  value: number;
+  target: number;
+  elapsedMs: number;
+  timeLimitSeconds: number;
+  basePoints: number;
+  speedBonus: boolean;
+}): number {
+  const error = Math.abs(value - target) / Math.max(Math.abs(target), 1);
+  const closeness = Math.max(0, 1 - error);
+  if (!speedBonus) return Math.round(basePoints * closeness);
+
+  const limitMs = Math.max(timeLimitSeconds, 1) * 1000;
+  const remaining = 1 - Math.min(Math.max(elapsedMs, 0), limitMs) / limitMs;
+  return Math.round(basePoints * closeness * (0.9 + 0.1 * remaining));
+}
+
 /** True when the chosen options exactly match the correct ones. */
 export function isAnswerCorrect(
   chosenIds: string[],

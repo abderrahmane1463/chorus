@@ -45,6 +45,12 @@ export type InteractionSettings = {
   placeholder?: string;
 
   // Quiz
+  /** How a quiz question is answered: by picking options, or with a number. */
+  answerType?: 'choice' | 'number';
+  /** The number a numeric question is scored against; the closest answer wins. */
+  correctNumber?: number;
+  /** The unit shown beside a numeric answer, such as m² or DZD. */
+  unit?: string;
   /** Reveal at the buzzer and move to the next question without the host. */
   autoAdvance?: boolean;
   /** Seconds the answer and standings stay up before the next question. */
@@ -68,4 +74,12 @@ export type ResponseData =
   | { kind: 'light' }
   | { kind: 'open_text'; text: string }
   | { kind: 'ranking'; optionIds: string[] }
-  | { kind: 'quiz'; optionIds: string[]; answeredAtMs: number; correct: boolean; points: number };
+  | {
+      kind: 'quiz';
+      optionIds: string[];
+      answeredAtMs: number;
+      correct: boolean;
+      points: number;
+      /** The number given, on a numeric question. */
+      value?: number;
+    };

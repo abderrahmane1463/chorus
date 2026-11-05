@@ -163,6 +163,12 @@
     "emptyBody": "Be the first to ask."
   },
   "quiz": {
+    "numberLabel": "Your answer",
+    "numberPlaceholder": "Your estimate",
+    "numberHint": "The closest answer wins.",
+    "submitNumber": "Submit",
+    "correctNumber": "Correct answer",
+    "yourNumberWas": "Your answer: {value}",
     "finished": "Quiz finished",
     "getReady": "Get ready",
     "scored": "You scored {score} with {correct, plural, one {# correct answer} other {# correct answers}}.",
@@ -257,6 +263,8 @@
     "offline": "Offline"
   },
   "errors": {
+    "enterCorrectNumber": "Enter the correct answer as a number.",
+    "enterNumber": "Enter a number.",
     "consentRequired": "This event asks for your agreement before you take part. Tick the box to continue.",
     "noEventWithCode": "No event found with that code",
     "eventArchived": "That event has been archived",
@@ -624,6 +632,13 @@
     "deleted": "Question deleted"
   },
   "quizEditor": {
+    "answerType": "Answer type",
+    "typeChoice": "Choice",
+    "typeNumber": "Number (estimate)",
+    "correctNumber": "Correct answer",
+    "unit": "Unit",
+    "unitPlaceholder": "m², USD…",
+    "numberHint": "Players type a number. The closest answer earns the most points; when equally close, the fastest.",
     "run": "Run the quiz",
     "start": "Start quiz",
     "started": "Quiz started",
@@ -842,6 +857,10 @@
     "dangerZone": "Danger zone"
   },
   "presenter": {
+    "numberPrompt": "Type your estimate on your phone. The closest wins.",
+    "correctNumber": "Correct answer:",
+    "closestAnswers": "Closest answers",
+    "noNumberAnswers": "No answers.",
     "lightReveal": "Reveal",
     "lightReset": "Turn off",
     "lightSimulate": "Run without phones",

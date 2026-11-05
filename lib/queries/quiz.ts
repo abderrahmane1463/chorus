@@ -34,6 +34,11 @@ export type QuizQuestion = {
   answerCount: number;
   /** How many of those answers were right. Host screens and reports only. */
   correctCount: number;
+  /**
+   * On a numeric question, the answers nearest the right number, nearest
+   * first and the quicker first when equally near. Host screens only.
+   */
+  closest: { name: string | null; value: number }[];
 };
 
 export type QuizDetail = {
@@ -96,9 +101,14 @@ export async function getQuizDetail(quizId: string): Promise<QuizDetail | null> 
       .orderBy(asc(interactionOptions.position)),
 
     db
-      .select({ questionId: responses.interactionId, data: responses.responseData })
+      .select({
+        questionId: responses.interactionId,
+        data: responses.responseData,
+        name: participants.displayName,
+      })
       .from(responses)
       .innerJoin(interactions, eq(interactions.id, responses.interactionId))
+      .leftJoin(participants, eq(participants.id, responses.participantId))
       .where(eq(interactions.parentId, quizId)),
   ]);
 
@@ -131,6 +141,7 @@ export async function getQuizDetail(quizId: string): Promise<QuizDetail | null> 
       })),
     answerCount: answerCounts.get(child.id) ?? 0,
     correctCount: correctCounts.get(child.id) ?? 0,
+    closest: nearest(child, answers),
   }));
 
   return {
@@ -143,6 +154,27 @@ export async function getQuizDetail(quizId: string): Promise<QuizDetail | null> 
     answerRevealed: quiz.answerRevealed,
     questions,
   };
+}
+
+/** How many of the nearest numeric answers the host's screens are given. */
+const CLOSEST_SHOWN = 5;
+
+/** The nearest answers to a numeric question, nearest then quickest first. */
+function nearest(
+  question: { id: string; settings: InteractionSettings },
+  answers: { questionId: string; data: ResponseData; name: string | null }[],
+) {
+  const target = question.settings.correctNumber;
+  if (question.settings.answerType !== 'number' || target === undefined) return [];
+  return answers
+    .filter((a) => a.questionId === question.id && a.data.kind === 'quiz' && typeof a.data.value === 'number')
+    .map((a) => {
+      const data = a.data as Extract<ResponseData, { kind: 'quiz' }>;
+      return { name: a.name, value: data.value as number, ms: data.answeredAtMs };
+    })
+    .sort((a, b) => Math.abs(a.value - target) - Math.abs(b.value - target) || a.ms - b.ms)
+    .slice(0, CLOSEST_SHOWN)
+    .map(({ name, value }) => ({ name, value }));
 }
 
 /**
@@ -380,6 +412,7 @@ async function getQuizForPlayer(quizId: string): Promise<QuizDetail | null> {
         })),
       answerCount: 0,
       correctCount: 0,
+      closest: [],
     })),
   };
 }
@@ -412,8 +445,13 @@ export type ParticipantQuizView = {
     /** Only populated once the host reveals the answer. */
     correctOptionIds: string[];
     explanation: string | null;
+    /** Picking options, or typing a number. */
+    answerType: 'choice' | 'number';
+    unit: string | null;
+    /** The right number, only once the host reveals it. */
+    correctNumber: number | null;
   } | null;
-  myAnswer: { optionIds: string[]; correct: boolean; points: number } | null;
+  myAnswer: { optionIds: string[]; correct: boolean; points: number; value: number | null } | null;
   myScore: { score: number; correctAnswers: number } | null;
 };
 
@@ -529,6 +567,7 @@ export async function getPhoneQuiz(
           optionIds: answer.data.optionIds,
           correct: answer.data.correct,
           points: answer.data.points,
+          value: answer.data.value ?? null,
         }
       : null;
 
@@ -563,6 +602,10 @@ export async function getPhoneQuiz(
           explanation: quiz.answerRevealed
             ? (current.settings.explanation ?? null)
             : null,
+          answerType: current.settings.answerType === 'number' ? 'number' : 'choice',
+          unit: current.settings.unit ?? null,
+          // Withheld like the correct options: never in the page before the reveal.
+          correctNumber: quiz.answerRevealed ? (current.settings.correctNumber ?? null) : null,
         }
       : null,
     myAnswer,

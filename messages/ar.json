@@ -163,6 +163,12 @@
     "emptyBody": "كن أول من يسأل."
   },
   "quiz": {
+    "numberLabel": "إجابتك",
+    "numberPlaceholder": "تقديرك",
+    "numberHint": "الإجابة الأقرب تفوز.",
+    "submitNumber": "تأكيد",
+    "correctNumber": "الإجابة الصحيحة",
+    "yourNumberWas": "إجابتك: {value}",
     "finished": "انتهت المسابقة",
     "getReady": "استعد",
     "scored": "حصلت على {score} نقطة مع {correct, plural, zero {لا إجابة صحيحة} one {إجابة صحيحة واحدة} two {إجابتين صحيحتين} few {# إجابات صحيحة} many {# إجابة صحيحة} other {# إجابة صحيحة}}.",
@@ -257,6 +263,8 @@
     "offline": "غير متصل"
   },
   "errors": {
+    "enterCorrectNumber": "أدخل الإجابة الصحيحة بالأرقام.",
+    "enterNumber": "أدخل رقمًا.",
     "consentRequired": "يطلب هذا الحدث موافقتك قبل المشاركة. حدّد المربع للمتابعة.",
     "noEventWithCode": "لا توجد فعالية بهذا الرمز",
     "eventArchived": "تمت أرشفة هذه الفعالية",
@@ -624,6 +632,13 @@
     "deleted": "حُذف السؤال"
   },
   "quizEditor": {
+    "answerType": "نوع الإجابة",
+    "typeChoice": "اختيار",
+    "typeNumber": "رقم (تقدير)",
+    "correctNumber": "الإجابة الصحيحة",
+    "unit": "الوحدة",
+    "unitPlaceholder": "م²، دج…",
+    "numberHint": "يكتب اللاعبون رقمًا. الإجابة الأقرب تنال أكبر عدد من النقاط، وعند التساوي الأسرع.",
     "run": "تشغيل المسابقة",
     "start": "ابدأ المسابقة",
     "started": "بدأت المسابقة",
@@ -842,6 +857,10 @@
     "dangerZone": "منطقة الخطر"
   },
   "presenter": {
+    "numberPrompt": "اكتب تقديرك على هاتفك. الأقرب يفوز.",
+    "correctNumber": "الإجابة الصحيحة:",
+    "closestAnswers": "الأقرب",
+    "noNumberAnswers": "لا توجد إجابات.",
     "lightReveal": "اكشف",
     "lightReset": "أطفئ",
     "lightSimulate": "التشغيل دون الهواتف",

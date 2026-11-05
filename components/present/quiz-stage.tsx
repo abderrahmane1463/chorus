@@ -228,6 +228,10 @@ export function QuizStage({
 
       <h2 className="text-5xl font-semibold leading-tight"><bdi>{question.title}</bdi></h2>
 
+      {question.settings.answerType === 'number' ? (
+        <NumberAnswer question={question} revealed={revealed} />
+      ) : (
+      <>
       {revealed && <PicksChart question={question} />}
 
       <ul className="mt-8 grid gap-4 sm:grid-cols-2">
@@ -261,6 +265,8 @@ export function QuizStage({
           );
         })}
       </ul>
+      </>
+      )}
 
       {!revealed && <AnswerProgress answered={question.answerCount} total={playerTotal} />}
 
@@ -323,8 +329,71 @@ function useSoundPreference(): [boolean, (on: boolean) => void] {
 }
 
 /** One line naming the right answer, for the scoreboard screen. */
+/**
+ * A numeric question on the big screen: a prompt while the room answers, then
+ * the right number and the answers nearest it, nearest first.
+ */
+function NumberAnswer({ question, revealed }: { question: QuizQuestion; revealed: boolean }) {
+  const t = useTranslations('presenter');
+  const format = useFormatter();
+  const unit = question.settings.unit;
+  const withUnit = (value: number) => (unit ? `${format.number(value)} ${unit}` : format.number(value));
+  const target = question.settings.correctNumber;
+
+  if (!revealed || target === undefined) {
+    return (
+      <p className="mt-10 rounded-2xl border border-border px-8 py-10 text-center text-3xl text-muted-foreground">
+        {t('numberPrompt')}
+      </p>
+    );
+  }
+
+  return (
+    <div className="mt-8 grid gap-8 lg:grid-cols-[1fr_1.4fr]">
+      <div className="rounded-2xl bg-success-subtle px-8 py-8">
+        <p className="text-2xl text-muted-foreground">{t('correctNumber')}</p>
+        <p className="mt-2 text-7xl font-semibold tabular-nums text-success">{withUnit(target)}</p>
+      </div>
+      <div>
+        <p className="text-2xl text-muted-foreground">{t('closestAnswers')}</p>
+        <ol className="mt-3 space-y-3">
+          {question.closest.map((answer, index) => (
+            <li
+              key={`${answer.name ?? ''}-${index}`}
+              className={cn(
+                'flex items-center gap-5 rounded-xl px-5 py-3 text-3xl',
+                index === 0 ? 'bg-primary text-primary-foreground' : 'bg-muted',
+              )}
+            >
+              <span className="w-10 shrink-0 font-semibold tabular-nums">{index + 1}</span>
+              <bdi className="min-w-0 flex-1 truncate">{answer.name ?? t('anonymous')}</bdi>
+              <span className="shrink-0 font-semibold tabular-nums">{withUnit(answer.value)}</span>
+            </li>
+          ))}
+          {question.closest.length === 0 && (
+            <li className="text-2xl text-muted-foreground">{t('noNumberAnswers')}</li>
+          )}
+        </ol>
+      </div>
+    </div>
+  );
+}
+
 function CorrectLine({ question }: { question: QuizQuestion }) {
   const t = useTranslations('presenter');
+  const format = useFormatter();
+  if (question.settings.answerType === 'number' && question.settings.correctNumber !== undefined) {
+    const unit = question.settings.unit;
+    return (
+      <p className="mt-3 text-2xl text-muted-foreground">
+        {t('correctNumber')}{' '}
+        <span className="font-semibold tabular-nums text-foreground">
+          {format.number(question.settings.correctNumber)}
+          {unit ? ` ${unit}` : ''}
+        </span>
+      </p>
+    );
+  }
   const correct = question.options
     .map((option, index) => ({ option, index }))
     .filter(({ option }) => option.isCorrect);

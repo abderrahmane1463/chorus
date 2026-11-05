@@ -17,13 +17,7 @@ import { requireUser } from '@/lib/auth';
 import { readSessionId } from '@/lib/participant/session';
 import { assertQuizOwner, getQuizDetail } from '@/lib/queries/quiz';
 import { countPresentPlayers, isPresent } from '@/lib/queries/presence';
-import {
-  ANSWER_GRACE_MS,
-  computeScore,
-  DEFAULT_QUIZ_POINTS,
-  DEFAULT_TIME_LIMIT_SECONDS,
-  isAnswerCorrect,
-} from '@/lib/quiz/scoring';
+import { ANSWER_GRACE_MS, DEFAULT_QUIZ_POINTS, DEFAULT_TIME_LIMIT_SECONDS, computeNumericScore, computeScore, isAnswerCorrect } from '@/lib/quiz/scoring';
 import {
   quizControlSchema,
   quizIdSchema,
@@ -106,10 +100,18 @@ export async function saveQuizQuestionAction(input: unknown): Promise<ActionResu
     return { ok: false, error: t(messageKey(parsed.error, 'errors.invalidQuestion')) };
   }
 
-  const filled = parsed.data.options.filter((o) => o.text.trim().length > 0);
-  if (filled.length < 2) return { ok: false, error: t('errors.addTwoAnswers') };
-  if (!filled.some((o) => o.isCorrect)) {
-    return { ok: false, error: t('errors.markOneCorrect') };
+  const numeric = parsed.data.answerType === 'number';
+  // A numeric question keeps no options: its answer is the number.
+  const filled = numeric ? [] : parsed.data.options.filter((o) => o.text.trim().length > 0);
+  if (numeric) {
+    if (parsed.data.correctNumber === undefined) {
+      return { ok: false, error: t('errors.enterCorrectNumber') };
+    }
+  } else {
+    if (filled.length < 2) return { ok: false, error: t('errors.addTwoAnswers') };
+    if (!filled.some((o) => o.isCorrect)) {
+      return { ok: false, error: t('errors.markOneCorrect') };
+    }
   }
 
   // The question is a child interaction, so ownership runs through its parent.
@@ -137,6 +139,13 @@ export async function saveQuizQuestionAction(input: unknown): Promise<ActionResu
         points: parsed.data.points,
         speedBonus: parsed.data.speedBonus,
         explanation: parsed.data.explanation?.trim() || undefined,
+        ...(numeric
+          ? {
+              answerType: 'number' as const,
+              correctNumber: parsed.data.correctNumber,
+              unit: parsed.data.unit?.trim() || undefined,
+            }
+          : {}),
       },
       updatedAt: new Date(),
     })
@@ -410,21 +419,29 @@ export async function submitQuizAnswerAction(input: unknown): Promise<ActionResu
     return { ok: false, error: t('errors.timeUp') };
   }
 
-  const validIds = new Set(options.map((o) => o.id));
-  if (!parsed.data.optionIds.every((id) => validIds.has(id))) {
-    return { ok: false, error: t('errors.answerNotValid') };
+  const basePoints = context.settings.points ?? DEFAULT_QUIZ_POINTS;
+  const speedBonus = context.settings.speedBonus ?? true;
+  let correct: boolean;
+  let points: number;
+  const value = parsed.data.value;
+
+  if (context.settings.answerType === 'number') {
+    // A number, scored by how close it is to the right one.
+    const target = context.settings.correctNumber;
+    if (value === undefined || target === undefined) {
+      return { ok: false, error: t('errors.enterNumber') };
+    }
+    correct = value === target;
+    points = computeNumericScore({ value, target, elapsedMs, timeLimitSeconds, basePoints, speedBonus });
+  } else {
+    const validIds = new Set(options.map((o) => o.id));
+    if (parsed.data.optionIds.length === 0 || !parsed.data.optionIds.every((id) => validIds.has(id))) {
+      return { ok: false, error: t('errors.answerNotValid') };
+    }
+    const correctIds = options.filter((o) => o.isCorrect).map((o) => o.id);
+    correct = isAnswerCorrect(parsed.data.optionIds, correctIds);
+    points = computeScore({ correct, elapsedMs, timeLimitSeconds, basePoints, speedBonus });
   }
-
-  const correctIds = options.filter((o) => o.isCorrect).map((o) => o.id);
-  const correct = isAnswerCorrect(parsed.data.optionIds, correctIds);
-
-  const points = computeScore({
-    correct,
-    elapsedMs,
-    timeLimitSeconds,
-    basePoints: context.settings.points ?? DEFAULT_QUIZ_POINTS,
-    speedBonus: context.settings.speedBonus ?? true,
-  });
 
   // One answer per question, enforced by the slot-0 unique constraint.
   const inserted = await db
@@ -439,6 +456,7 @@ export async function submitQuizAnswerAction(input: unknown): Promise<ActionResu
         answeredAtMs: elapsedMs,
         correct,
         points,
+        ...(context.settings.answerType === 'number' ? { value } : {}),
       },
     })
     .onConflictDoNothing()

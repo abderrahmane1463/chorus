@@ -163,6 +163,12 @@
     "emptyBody": "Soyez le premier à en poser une."
   },
   "quiz": {
+    "numberLabel": "Votre réponse",
+    "numberPlaceholder": "Votre estimation",
+    "numberHint": "La réponse la plus proche gagne.",
+    "submitNumber": "Valider",
+    "correctNumber": "Bonne réponse",
+    "yourNumberWas": "Votre réponse : {value}",
     "finished": "Quiz terminé",
     "getReady": "Préparez-vous",
     "scored": "Vous avez marqué {score} points avec {correct, plural, one {# bonne réponse} other {# bonnes réponses}}.",
@@ -257,6 +263,8 @@
     "offline": "Hors ligne"
   },
   "errors": {
+    "enterCorrectNumber": "Saisissez la bonne réponse en chiffres.",
+    "enterNumber": "Saisissez un nombre.",
     "consentRequired": "Cet événement demande votre accord avant de participer. Cochez la case pour continuer.",
     "noEventWithCode": "Aucun événement ne correspond à ce code",
     "eventArchived": "Cet événement a été archivé",
@@ -624,6 +632,13 @@
     "deleted": "Question supprimée"
   },
   "quizEditor": {
+    "answerType": "Type de réponse",
+    "typeChoice": "Choix",
+    "typeNumber": "Nombre (estimation)",
+    "correctNumber": "Bonne réponse",
+    "unit": "Unité",
+    "unitPlaceholder": "m², DZD…",
+    "numberHint": "Les joueurs tapent un nombre. La réponse la plus proche gagne le plus de points ; à égalité, la plus rapide.",
     "run": "Lancer le quiz",
     "start": "Démarrer le quiz",
     "started": "Quiz démarré",
@@ -842,6 +857,10 @@
     "dangerZone": "Zone sensible"
   },
   "presenter": {
+    "numberPrompt": "Tapez votre estimation sur votre téléphone. La plus proche gagne.",
+    "correctNumber": "Bonne réponse :",
+    "closestAnswers": "Les plus proches",
+    "noNumberAnswers": "Aucune réponse.",
     "lightReveal": "Révéler",
     "lightReset": "Éteindre",
     "lightSimulate": "Lancer sans les téléphones",

@@ -357,6 +357,13 @@ function QuizQuestionEditor({
   const [points, setPoints] = useState(question.settings.points ?? 1000);
   const [speedBonus, setSpeedBonus] = useState(question.settings.speedBonus ?? true);
   const [explanation, setExplanation] = useState(question.settings.explanation ?? '');
+  const [answerType, setAnswerType] = useState<'choice' | 'number'>(
+    question.settings.answerType === 'number' ? 'number' : 'choice',
+  );
+  const [correctNumber, setCorrectNumber] = useState(
+    question.settings.correctNumber === undefined ? '' : String(question.settings.correctNumber),
+  );
+  const [unit, setUnit] = useState(question.settings.unit ?? '');
   const [options, setOptions] = useState<OptionDraft[]>(
     question.options.map((option) => ({
       id: option.id,
@@ -375,7 +382,14 @@ function QuizQuestionEditor({
         points,
         speedBonus,
         explanation,
-        options,
+        answerType,
+        // A comma typed as the decimal mark is read as one.
+        correctNumber:
+          answerType === 'number' && correctNumber.trim() !== ''
+            ? Number(correctNumber.replace(',', '.'))
+            : undefined,
+        unit,
+        options: answerType === 'number' ? [] : options,
       });
       if (result.ok) {
         toast.success(t('saved'));
@@ -451,6 +465,53 @@ function QuizQuestionEditor({
             />
           </div>
 
+          <div className="flex gap-2" role="radiogroup" aria-label={t('answerType')}>
+            {(['choice', 'number'] as const).map((kind) => (
+              <button
+                key={kind}
+                type="button"
+                role="radio"
+                aria-checked={answerType === kind}
+                onClick={() => setAnswerType(kind)}
+                className={cn(
+                  'rounded-full border px-3 py-1.5 text-sm transition-colors',
+                  answerType === kind
+                    ? 'border-primary bg-primary-subtle text-primary'
+                    : 'border-border text-muted-foreground hover:text-foreground',
+                )}
+              >
+                {kind === 'choice' ? t('typeChoice') : t('typeNumber')}
+              </button>
+            ))}
+          </div>
+
+          {answerType === 'number' ? (
+            <div className="space-y-2">
+              <div className="grid gap-3 sm:grid-cols-[1fr_8rem]">
+                <div className="space-y-1.5">
+                  <Label htmlFor={`n-${question.id}`}>{t('correctNumber')}</Label>
+                  <Input
+                    id={`n-${question.id}`}
+                    inputMode="decimal"
+                    value={correctNumber}
+                    onChange={(event) => setCorrectNumber(event.target.value)}
+                    placeholder="1250"
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor={`u-${question.id}`}>{t('unit')}</Label>
+                  <Input
+                    id={`u-${question.id}`}
+                    value={unit}
+                    maxLength={20}
+                    onChange={(event) => setUnit(event.target.value)}
+                    placeholder={t('unitPlaceholder')}
+                  />
+                </div>
+              </div>
+              <p className="text-xs text-muted-foreground">{t('numberHint')}</p>
+            </div>
+          ) : (
           <div className="space-y-2">
             <Label>{t('answersLabel')}</Label>
             {options.map((option, optionIndex) => (
@@ -509,6 +570,7 @@ function QuizQuestionEditor({
               </Button>
             )}
           </div>
+          )}
 
           <div className="grid gap-3 sm:grid-cols-2">
             <div className="space-y-1.5">
