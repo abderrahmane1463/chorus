@@ -13,6 +13,7 @@ import {
   createInteractionSchema,
   interactionIdSchema,
   reorderInteractionsSchema,
+  revealSchema,
   setInteractionStatusSchema,
   setQuestionSortSchema,
   updateInteractionSchema,
@@ -255,6 +256,35 @@ export async function setInteractionStatusAction(
 }
 
 /**
+ * Reveals a collective lighting: the lights converge into its text on the big
+ * screen, and the phones are told to look up. Undone with `revealed: false`.
+ */
+export async function revealInteractionAction(input: unknown): Promise<ActionResult> {
+  const t = await getTranslations();
+
+  const user = await requireUser();
+
+  const parsed = revealSchema.safeParse(input);
+  if (!parsed.success) return { ok: false, error: t('errors.invalidInteraction') };
+
+  const owned = await requireOwnedInteraction(parsed.data.interactionId, user.id);
+  if (!owned || owned.type !== 'light') return { ok: false, error: t('errors.interactionNotFound') };
+
+  await db
+    .update(interactions)
+    .set({ answerRevealed: parsed.data.revealed, updatedAt: new Date() })
+    .where(eq(interactions.id, owned.id));
+
+  await publish(channels.event(owned.eventId), RealtimeEvent.InteractionChanged, {
+    eventId: owned.eventId,
+    interactionId: owned.id,
+  });
+
+  revalidateEvent(owned.eventId);
+  return { ok: true };
+}
+
+/**
  * Sets the order of a Q&A's questions, on the dashboard and the big screen.
  * The screen is told on the host's channel, so the phones do not refetch.
  */
@@ -337,6 +367,11 @@ export async function resetInteractionAction(input: unknown): Promise<ActionResu
   if (!owned) return { ok: false, error: t('errors.interactionNotFound') };
 
   await db.delete(responses).where(eq(responses.interactionId, owned.id));
+  // A collective lighting starts dark again, not already revealed.
+  await db
+    .update(interactions)
+    .set({ answerRevealed: false })
+    .where(eq(interactions.id, owned.id));
 
   await publish(channels.event(owned.eventId), RealtimeEvent.InteractionReset, {
     eventId: owned.eventId,

@@ -7,6 +7,7 @@ import {
   Star,
   Trophy,
   ClipboardList,
+  Sparkles,
   type LucideIcon,
 } from 'lucide-react';
 import type { InteractionSettings } from '@/types/interactions';
@@ -19,7 +20,8 @@ export type InteractionType =
   | 'ranking'
   | 'q_and_a'
   | 'quiz'
-  | 'survey';
+  | 'survey'
+  | 'light';
 
 export type InteractionMeta = {
   type: InteractionType;
@@ -103,6 +105,14 @@ export const INTERACTION_TYPES: InteractionMeta[] = [
     hasOptions: false,
     defaults: {
       navigationMode: 'all_at_once',
+    },
+  },
+  {
+    type: 'light',
+    icon: Sparkles,
+    hasOptions: false,
+    defaults: {
+      autoReveal: false,
     },
   },
   {

@@ -474,6 +474,7 @@ function SettingsEditor({
   const t = useTranslations('settings');
   const tQa = useTranslations('qa');
   const tWall = useTranslations('wall');
+  const tLight = useTranslations('light');
 
   return (
     <div className="divide-y divide-border rounded-lg border border-border px-4">
@@ -505,6 +506,48 @@ function SettingsEditor({
             <Switch
               checked={settings.allowChangeAnswer ?? false}
               onCheckedChange={(checked) => onPatch({ allowChangeAnswer: checked })}
+            />
+          </SettingRow>
+        </>
+      )}
+
+      {type === 'light' && (
+        <>
+          <SettingRow label={t('lightText')} hint={t('lightTextHint')}>
+            <Input
+              maxLength={60}
+              value={settings.lightText ?? ''}
+              placeholder={t('lightTextPlaceholder')}
+              onChange={(event) => onPatch({ lightText: event.target.value })}
+              className="w-72"
+            />
+          </SettingRow>
+          <SettingRow label={t('lightButton')} hint={t('lightButtonHint')}>
+            <Input
+              maxLength={30}
+              value={settings.lightButton ?? ''}
+              placeholder={tLight('button')}
+              onChange={(event) => onPatch({ lightButton: event.target.value })}
+              className="w-56"
+            />
+          </SettingRow>
+          <SettingRow label={t('lightTarget')} hint={t('lightTargetHint')}>
+            <Input
+              type="number"
+              min={1}
+              max={5000}
+              value={settings.lightTarget ?? ''}
+              placeholder={t('lightTargetPlaceholder')}
+              onChange={(event) =>
+                onPatch({ lightTarget: event.target.value ? Number(event.target.value) : undefined })
+              }
+              className="w-28"
+            />
+          </SettingRow>
+          <SettingRow label={t('autoReveal')} hint={t('autoRevealHint')}>
+            <Switch
+              checked={settings.autoReveal ?? false}
+              onCheckedChange={(checked) => onToggle({ autoReveal: checked })}
             />
           </SettingRow>
         </>

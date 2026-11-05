@@ -123,6 +123,9 @@ export async function GET(
         case 'ranking':
           answer = data.optionIds.map((id) => labels.get(id) ?? id).join(' | ');
           break;
+        case 'light':
+          answer = '✓';
+          break;
         case 'rating':
           answer = String(data.value);
           break;

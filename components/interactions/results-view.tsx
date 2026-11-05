@@ -78,6 +78,19 @@ export function ResultsView({
         </div>
       );
 
+    case 'light':
+
+      return (
+
+        <p className="text-2xl font-semibold tabular-nums">
+
+          {t('lightTotal', { count: results.total })}
+
+        </p>
+
+      );
+
+
     case 'rating': {
       const peak = Math.max(...results.distribution.map((bucket) => bucket.count), 1);
       // Bar heights are in pixels, not percentages: a percentage height inside

@@ -19,6 +19,7 @@ import { QuizStage } from './quiz-stage';
 import { InteractionLobby } from './join-lobby';
 import { QaBoard, TextBoard } from './qa-board';
 import { WallBoard } from './wall-board';
+import { LightBoard } from './light-board';
 import { inLobby } from '@/lib/interactions/lobby';
 import { useEventSync } from '@/hooks/use-event-sync';
 import { channels } from '@/lib/realtime/events';
@@ -304,7 +305,8 @@ export function PresenterScreen({
       <main
         className={cn(
           'flex flex-1 flex-col px-5 py-8 sm:px-8 lg:px-16',
-          (active?.type === 'q_and_a' || active?.type === 'open_text') && !gathering
+          (active?.type === 'q_and_a' || active?.type === 'open_text' || active?.type === 'light') &&
+            !gathering
             ? 'justify-start'
             : 'justify-center',
         )}
@@ -327,7 +329,9 @@ export function PresenterScreen({
           <div
             className={cn(
               'mx-auto w-full',
-              active.type === 'q_and_a' && active.settings?.display === 'wall' && !gathering
+              ((active.type === 'q_and_a' && active.settings?.display === 'wall') ||
+                active.type === 'light') &&
+                !gathering
                 ? 'max-w-none'
                 : 'max-w-5xl',
             )}
@@ -352,6 +356,16 @@ export function PresenterScreen({
                 joinUrl={joinUrl}
                 eventCode={eventCode}
                 serverNow={serverNow}
+              />
+            ) : active.type === 'light' ? (
+              <LightBoard
+                interactionId={active.id}
+                title={active.title}
+                text={active.settings?.lightText?.trim() || active.title}
+                total={results?.kind === 'light' ? results.total : 0}
+                target={active.settings?.lightTarget ?? Math.max(participantCount, 1)}
+                revealed={active.answerRevealed}
+                autoReveal={active.settings?.autoReveal ?? false}
               />
             ) : active.type === 'q_and_a' && active.settings?.display === 'wall' ? (
               <WallBoard

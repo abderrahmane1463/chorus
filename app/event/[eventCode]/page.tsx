@@ -20,6 +20,7 @@ import { Logo } from '@/components/shared/logo';
 import { LanguageSwitcher } from '@/components/shared/language-switcher';
 import { AnswerForm } from '@/components/participant/answer-form';
 import { QaPanel } from '@/components/participant/qa-panel';
+import { LightPanel } from '@/components/participant/light-panel';
 import { listQuestionsShared } from '@/lib/queries/questions';
 import { QuizPanel } from '@/components/participant/quiz-panel';
 import { getPhoneQuiz } from '@/lib/queries/quiz';
@@ -156,6 +157,7 @@ export default async function ParticipantEventPage({
   const isQa = interaction?.type === 'q_and_a';
   const isQuiz = interaction?.type === 'quiz';
   const isSurvey = interaction?.type === 'survey';
+  const isLight = interaction?.type === 'light';
 
   const survey = isSurvey ? await getSurveyDetail(interaction.id) : null;
   const surveyAnswers = isSurvey
@@ -340,6 +342,13 @@ export default async function ParticipantEventPage({
               />
             ) : isSurvey && survey ? (
               <SurveyPanel survey={survey} answers={surveyAnswers} />
+            ) : isLight ? (
+              <LightPanel
+                interactionId={interaction.id}
+                label={interaction.settings?.lightButton?.trim() || null}
+                lit={mine.length > 0}
+                revealed={interaction.answerRevealed}
+              />
             ) : isQa ? (
               <QaPanel
                 interactionId={interaction.id}

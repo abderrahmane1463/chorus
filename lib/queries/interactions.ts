@@ -158,6 +158,7 @@ export type InteractionResults =
       distribution: { value: number; count: number }[];
     }
   | { kind: 'word_cloud'; total: number; words: { word: string; count: number }[] }
+  | { kind: 'light'; total: number }
   | {
       kind: 'ranking';
       total: number;
@@ -227,6 +228,9 @@ export async function getInteractionResults(
         }),
       };
     }
+
+    case 'light':
+      return { kind: 'light', total: rows.length };
 
     case 'rating': {
       const min = interaction.settings.scaleMin ?? 1;

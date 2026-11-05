@@ -18,6 +18,7 @@ export const interactionTypeEnum = pgEnum('interaction_type', [
   'q_and_a',
   'quiz',
   'survey',
+  'light',
 ]);
 
 export const interactionStatusEnum = pgEnum('interaction_status', [

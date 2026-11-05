@@ -211,6 +211,7 @@
     "position": "{index} / {total}"
   },
   "results": {
+    "lightTotal": "{count, plural, =0 {Aucune lumière allumée} one {# lumière allumée} other {# lumières allumées}}",
     "noAnswers": "Aucune réponse pour l'instant.",
     "responses": "{count, plural, one {# réponse} other {# réponses}}",
     "mentions": "{count, plural, one {# mention} other {# mentions}}",
@@ -409,6 +410,7 @@
     "closed": "Fermé"
   },
   "types": {
+    "light": {"name": "Allumage collectif", "description": "Chaque participant allume sa lumière sur son téléphone ; sur le grand écran, les lumières se rejoignent pour former votre message."},
     "multiple_choice": {
       "name": "Choix multiple",
       "description": "Posez une question à réponses prédéfinies et regardez les barres se remplir."
@@ -547,6 +549,16 @@
     "questionsBelow": "Ceci est seulement le nom. Ajoutez les questions et leurs réponses ci-dessous."
   },
   "settings": {
+    "lightText": "Message révélé",
+    "lightTextHint": "Les lumières se rejoignent pour l’écrire. Laissez vide pour le titre.",
+    "lightTextPlaceholder": "Shaping the Future Together",
+    "lightButton": "Texte du bouton",
+    "lightButtonHint": "Ce que lit chaque participant sur son téléphone.",
+    "lightTarget": "Objectif de lumières",
+    "lightTargetHint": "Laissez vide pour tous les participants connectés.",
+    "lightTargetPlaceholder": "Tous",
+    "autoReveal": "Révéler automatiquement",
+    "autoRevealHint": "Dès que l’objectif est atteint. Sinon, vous révélez au moment choisi.",
     "allowMultiple": "Autoriser plusieurs réponses",
     "maxSelections": "Nombre maximum de choix",
     "allowChange": "Autoriser la modification",
@@ -830,6 +842,9 @@
     "dangerZone": "Zone sensible"
   },
   "presenter": {
+    "lightReveal": "Révéler",
+    "lightReset": "Éteindre",
+    "lightSimulate": "Lancer sans les téléphones",
     "enterFullscreen": "Passer en plein écran",
     "exitFullscreen": "Quitter le plein écran",
     "fullscreenBlocked": "Le navigateur a bloqué le plein écran.",
@@ -1069,6 +1084,13 @@
     "empty": "Aucune contribution validée pour l’instant.",
     "anonymous": "Anonyme",
     "footer": "Archive générée par Chorus. Contient uniquement les contributions validées par l’organisateur."
+  },
+  "light": {
+    "button": "J’allume",
+    "hint": "Appuyez une fois : votre lumière apparaît sur le grand écran.",
+    "lit": "Allumée",
+    "litHint": "Votre lumière brille sur le grand écran. Regardez-la rejoindre les autres.",
+    "lookUp": "Regardez le grand écran ✨"
   },
   "kiosk": {
     "thanks": "Merci pour votre contribution !",

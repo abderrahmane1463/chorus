@@ -209,10 +209,56 @@
     }
   }
 
+  /* A light that is on: the event's colour glowing round it, breathing. */
+  .light-on {
+    box-shadow:
+      0 0 0 6px color-mix(in srgb, var(--primary) 18%, transparent),
+      0 0 60px 10px color-mix(in srgb, var(--primary) 45%, transparent);
+    animation: light-breathe 2.8s ease-in-out infinite;
+  }
+
+  .light-dot {
+    box-shadow: 0 0 24px 6px color-mix(in srgb, var(--primary) 55%, transparent);
+    animation: light-breathe 2.8s ease-in-out infinite;
+  }
+
+  /* The revealed text: it rises out of the gathered lights. */
+  .light-reveal {
+    text-shadow:
+      0 0 18px color-mix(in srgb, var(--primary) 80%, transparent),
+      0 0 60px color-mix(in srgb, var(--primary) 50%, transparent);
+    animation: light-reveal 1.4s ease-out both;
+  }
+
+  @keyframes light-reveal {
+    from {
+      opacity: 0;
+      filter: blur(8px);
+    }
+    to {
+      opacity: 1;
+      filter: blur(0);
+    }
+  }
+
+  @keyframes light-breathe {
+    50% {
+      box-shadow:
+        0 0 0 10px color-mix(in srgb, var(--primary) 12%, transparent),
+        0 0 90px 18px color-mix(in srgb, var(--primary) 55%, transparent);
+    }
+  }
+
   @media (prefers-reduced-motion: reduce) {
     .bar-fill,
     .bar-grow {
       transition: none;
+    }
+
+    /* The glow stays; only its breathing goes. */
+    .light-on,
+    .light-dot {
+      animation: none;
     }
 
     /* The draining timer stays: it is information, not decoration. The pulse

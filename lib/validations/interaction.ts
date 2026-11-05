@@ -11,6 +11,7 @@ export const creatableTypes = [
   'quiz',
   'ranking',
   'survey',
+  'light',
 ] as const;
 
 const optionSchema = z.object({
@@ -31,6 +32,10 @@ export const interactionSettingsSchema = z.object({
   maxLength: z.number().int().min(20).max(1000).optional(),
   allowMultipleSubmissions: z.boolean().optional(),
   allowAnonymous: z.boolean().optional(),
+  lightButton: z.string().trim().max(30).optional(),
+  lightText: z.string().trim().max(60).optional(),
+  lightTarget: z.number().int().min(1).max(5000).optional(),
+  autoReveal: z.boolean().optional(),
   moderationEnabled: z.boolean().optional(),
   allowUpvotes: z.boolean().optional(),
   questionSort: z.enum(['votes', 'newest', 'oldest']).optional(),
@@ -74,6 +79,11 @@ export const updateInteractionSchema = z.object({
 
 export const interactionIdSchema = z.object({
   interactionId: z.string().uuid(),
+});
+
+export const revealSchema = z.object({
+  interactionId: z.string().uuid(),
+  revealed: z.boolean(),
 });
 
 export const setQuestionSortSchema = z.object({

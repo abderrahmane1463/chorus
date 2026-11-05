@@ -211,6 +211,7 @@
     "position": "{index} / {total}"
   },
   "results": {
+    "lightTotal": "{count, plural, zero {لا أنوار مُضاءة} one {نور واحد مُضاء} two {نوران مُضاءان} few {# أنوار مُضاءة} many {# نورًا مُضاءً} other {# نور مُضاء}}",
     "noAnswers": "لا توجد إجابات بعد.",
     "responses": "{count, plural, zero {لا إجابات} one {إجابة واحدة} two {إجابتان} few {# إجابات} many {# إجابة} other {# إجابة}}",
     "mentions": "{count, plural, zero {لا ذكر} one {ذكر واحد} two {ذكران} few {# ذكرات} many {# ذكرًا} other {# ذكر}}",
@@ -409,6 +410,7 @@
     "closed": "مغلق"
   },
   "types": {
+    "light": {"name": "الإضاءة الجماعية", "description": "يضيء كل مشارك نوره من هاتفه، وعلى الشاشة الكبيرة تجتمع الأنوار لتكتب رسالتك."},
     "multiple_choice": {
       "name": "اختيار من متعدد",
       "description": "اطرح سؤالًا بإجابات محددة وشاهد الأعمدة تمتلئ."
@@ -547,6 +549,16 @@
     "questionsBelow": "هذا الاسم فقط. أضف الأسئلة وإجاباتها في الأسفل."
   },
   "settings": {
+    "lightText": "الرسالة المكشوفة",
+    "lightTextHint": "تجتمع الأنوار لتكتبها. اتركها فارغة لاستخدام العنوان.",
+    "lightTextPlaceholder": "Shaping the Future Together",
+    "lightButton": "نص الزر",
+    "lightButtonHint": "ما يقرؤه كل مشارك على هاتفه.",
+    "lightTarget": "عدد الأنوار المستهدف",
+    "lightTargetHint": "اتركه فارغًا لجميع المتصلين.",
+    "lightTargetPlaceholder": "الجميع",
+    "autoReveal": "الكشف التلقائي",
+    "autoRevealHint": "بمجرد بلوغ الهدف. وإلا تكشف أنت في الوقت الذي تختاره.",
     "allowMultiple": "السماح بعدة إجابات",
     "maxSelections": "أقصى عدد اختيارات",
     "allowChange": "السماح بتغيير الإجابة",
@@ -830,6 +842,9 @@
     "dangerZone": "منطقة الخطر"
   },
   "presenter": {
+    "lightReveal": "اكشف",
+    "lightReset": "أطفئ",
+    "lightSimulate": "التشغيل دون الهواتف",
     "enterFullscreen": "ملء الشاشة",
     "exitFullscreen": "إنهاء ملء الشاشة",
     "fullscreenBlocked": "منع المتصفح وضع ملء الشاشة.",
@@ -1069,6 +1084,13 @@
     "empty": "لا مساهمات معتمدة بعد.",
     "anonymous": "مجهول",
     "footer": "أرشيف أنشأه Chorus. يتضمن فقط المساهمات التي اعتمدها المنظّم."
+  },
+  "light": {
+    "button": "أُضيء",
+    "hint": "اضغط مرة واحدة: يظهر نورك على الشاشة الكبيرة.",
+    "lit": "مُضاء",
+    "litHint": "نورك يلمع على الشاشة الكبيرة. شاهده ينضم إلى الآخرين.",
+    "lookUp": "انظر إلى الشاشة الكبيرة ✨"
   },
   "kiosk": {
     "thanks": "شكرًا على مساهمتك!",

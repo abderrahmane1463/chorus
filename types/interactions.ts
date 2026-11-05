@@ -23,6 +23,16 @@ export type InteractionSettings = {
   maxLength?: number;
   allowMultipleSubmissions?: boolean;
 
+  // Collective lighting
+  /** The phone's button, in the host's words; empty keeps Chorus's. */
+  lightButton?: string;
+  /** What the lights converge into on the big screen; empty uses the title. */
+  lightText?: string;
+  /** How many lights to wait for; empty means everyone in the room. */
+  lightTarget?: number;
+  /** Reveal by itself once the target is reached, rather than on the host's cue. */
+  autoReveal?: boolean;
+
   // Q&A
   allowAnonymous?: boolean;
   moderationEnabled?: boolean;
@@ -55,6 +65,7 @@ export type ResponseData =
   | { kind: 'multiple_choice'; optionIds: string[] }
   | { kind: 'word_cloud'; word: string; normalized: string }
   | { kind: 'rating'; value: number }
+  | { kind: 'light' }
   | { kind: 'open_text'; text: string }
   | { kind: 'ranking'; optionIds: string[] }
   | { kind: 'quiz'; optionIds: string[]; answeredAtMs: number; correct: boolean; points: number };

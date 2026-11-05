@@ -221,6 +221,10 @@ async function buildResponseData(
       return { data: { kind: 'multiple_choice', optionIds: ids } };
     }
 
+    // A light carries nothing but the fact that this person lit it.
+    case 'light':
+      return { data: { kind: 'light' } };
+
     case 'rating': {
       const min = context.settings.scaleMin ?? 1;
       const max = context.settings.scaleMax ?? 5;
