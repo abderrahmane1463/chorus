@@ -134,16 +134,18 @@ export default async function LandingPage() {
       </section>
 
       <section id="use-cases" className="mx-auto max-w-[1600px] scroll-mt-20 px-5 sm:px-8 lg:px-12 py-20">
-        <h2 className="text-3xl font-semibold sm:text-4xl">{t('useCases.title')}</h2>
-        <div className="mt-10 grid gap-6 sm:grid-cols-2">
-          {useCases.map((key) => (
-            <div key={key} className="rounded-lg border border-border p-6">
-              <h3 className="font-semibold">{t(`useCases.${key}.title`)}</h3>
-              <p className="mt-1.5 text-sm leading-relaxed text-muted-foreground">
-                {t(`useCases.${key}.body`)}
-              </p>
-            </div>
-          ))}
+        {/* The heading beside a ruled list, as "Six ways" above it: one room
+            per row, not four boxes that look alike. */}
+        <div className="grid gap-10 lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)]">
+          <h2 className="text-3xl font-semibold text-balance sm:text-4xl">{t('useCases.title')}</h2>
+          <dl className="divide-y divide-border border-y border-border">
+            {useCases.map((key) => (
+              <div key={key} className="grid gap-1 py-5 sm:grid-cols-[minmax(0,2fr)_minmax(0,3fr)] sm:gap-8">
+                <dt className="font-semibold">{t(`useCases.${key}.title`)}</dt>
+                <dd className="text-muted-foreground text-pretty">{t(`useCases.${key}.body`)}</dd>
+              </div>
+            ))}
+          </dl>
         </div>
       </section>
 

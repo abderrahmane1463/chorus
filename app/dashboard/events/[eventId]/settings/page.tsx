@@ -116,22 +116,6 @@ export default async function EventSettingsPage({
             </Button>
           </div>
 
-          <div className="space-y-2 border-t border-border pt-4">
-            <p className="text-sm font-medium">{t('kioskLink')}</p>
-            <p className="text-sm text-muted-foreground">{t('kioskHint')}</p>
-            <div className="flex flex-wrap items-center gap-3">
-              <code dir="ltr" className="rounded-md bg-muted px-3 py-1.5 text-sm">
-                {kioskUrl}
-              </code>
-              <CopyButton
-                value={kioskUrl}
-                label={t('copyKiosk')}
-                successMessage={t('kioskCopied')}
-              />
-            </div>
-            <KioskSettings eventId={event.id} kiosk={event.settings?.kiosk} />
-          </div>
-
           <dl className="grid grid-cols-2 gap-4 border-t border-border pt-4 sm:grid-cols-4">
             {[
               ['interactions', event.interactionCount],
@@ -147,6 +131,24 @@ export default async function EventSettingsPage({
               </div>
             ))}
           </dl>
+        </CardContent>
+      </Card>
+
+      {/* The shared tablet has its own link and its own words: its own card,
+          rather than tucked between the join code and the figures. */}
+      <Card className="mb-6">
+        <CardHeader>
+          <CardTitle>{t('kioskLink')}</CardTitle>
+          <CardDescription>{t('kioskHint')}</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="flex flex-wrap items-center gap-3">
+            <code dir="ltr" className="rounded-md bg-muted px-3 py-1.5 text-sm">
+              {kioskUrl}
+            </code>
+            <CopyButton value={kioskUrl} label={t('copyKiosk')} successMessage={t('kioskCopied')} />
+          </div>
+          <KioskSettings eventId={event.id} kiosk={event.settings?.kiosk} />
         </CardContent>
       </Card>
 

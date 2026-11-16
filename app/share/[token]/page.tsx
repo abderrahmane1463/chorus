@@ -71,7 +71,7 @@ async function Report({
   return (
     <>
       <div className="mb-8">
-        <p className="text-sm font-medium uppercase tracking-wide text-primary">{t('eyebrow')}</p>
+        <p className="text-sm text-muted-foreground">{t('eyebrow')}</p>
         <h1 className="mt-1 text-2xl font-semibold sm:text-3xl">{share.title}</h1>
         <p className="mt-1 text-sm text-muted-foreground">
           {t('expiresOn', {

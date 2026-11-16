@@ -1,11 +1,11 @@
 import Link from 'next/link';
 import type { Metadata } from 'next';
 import { getTranslations } from 'next-intl/server';
-import { BarChart3, MessageSquare, Users } from 'lucide-react';
 import { requireUser } from '@/lib/auth';
 import { getDashboardStats, listEventsForUser } from '@/lib/queries/dashboard';
 import { PageHeader } from '@/components/dashboard/page-header';
-import { StatCard } from '@/components/dashboard/stat-card';
+import { BarChart3 } from 'lucide-react';
+import { StatStrip } from '@/components/dashboard/stat-card';
 import { EmptyState } from '@/components/shared/empty-state';
 import { Card } from '@/components/ui/card';
 
@@ -29,11 +29,13 @@ export default async function AnalyticsPage() {
         description={t('description')}
       />
 
-      <div className="grid gap-4 sm:grid-cols-3">
-        <StatCard label={t('event')} value={stats.totalEvents} icon={BarChart3} />
-        <StatCard label={t('participants')} value={stats.totalParticipants} icon={Users} />
-        <StatCard label={t('responses')} value={stats.totalResponses} icon={MessageSquare} />
-      </div>
+      <StatStrip
+        items={[
+          { label: t('event'), value: stats.totalEvents },
+          { label: t('participants'), value: stats.totalParticipants },
+          { label: t('responses'), value: stats.totalResponses },
+        ]}
+      />
 
       <section className="mt-10">
         <h2 className="mb-4 text-lg font-semibold">{t('byEvent')}</h2>
