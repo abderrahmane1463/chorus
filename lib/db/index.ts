@@ -1,6 +1,8 @@
 import { lookup as dnsLookup, Resolver, type LookupAddress } from 'node:dns';
 import { neon, neonConfig } from '@neondatabase/serverless';
 import { drizzle, type NeonHttpDatabase } from 'drizzle-orm/neon-http';
+import { drizzle as drizzlePg } from 'drizzle-orm/node-postgres';
+import { Pool } from 'pg';
 import { Agent, fetch as undiciFetch } from 'undici';
 import * as schema from '@/db/schema';
 
@@ -153,13 +155,32 @@ export function getDb(): NeonHttpDatabase<typeof schema> {
         'DATABASE_URL is not set. Add it to your environment (Vercel project settings, or .env.local locally).',
       );
     }
-    client = drizzle(neon(connectionString), { schema });
+    client = isNeon(connectionString)
+      ? drizzle(neon(connectionString), { schema })
+      : // Same query builder over a plain Postgres pool. The two clients
+        // differ only in transport, which no caller depends on.
+        (drizzlePg(
+          new Pool({ connectionString, max: 10, idleTimeoutMillis: 60_000 }),
+          { schema },
+        ) as unknown as NeonHttpDatabase<typeof schema>);
   }
   return client;
 }
 
-/** Drizzle client over Neon's HTTP driver — no long-lived connections, so it
- *  suits serverless deployment targets like Vercel. */
+/**
+ * True for a Neon address, reached over HTTP; anything else, such as a
+ * database on the same server as the app, gets a standard connection pool.
+ */
+function isNeon(connectionString: string): boolean {
+  try {
+    return new URL(connectionString).hostname.endsWith('.neon.tech');
+  } catch {
+    return false;
+  }
+}
+
+/** The Drizzle client: Neon's HTTP driver for a Neon database, a pooled
+ *  standard connection for any other Postgres. */
 export const db = new Proxy({} as NeonHttpDatabase<typeof schema>, {
   get(_target, property, receiver) {
     return Reflect.get(getDb(), property, receiver);

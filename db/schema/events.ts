@@ -17,7 +17,7 @@ import { eventStatusEnum, memberRoleEnum } from './enums';
 export const events = pgTable(
   'events',
   {
-    id: uuid('id').primaryKey().defaultRandom(),
+    id: uuid('id').primaryKey().defaultRandom().$defaultFn(() => crypto.randomUUID()),
     ownerId: uuid('owner_id')
       .notNull()
       .references(() => users.id, { onDelete: 'cascade' }),
@@ -46,7 +46,7 @@ export const events = pgTable(
 export const eventMembers = pgTable(
   'event_members',
   {
-    id: uuid('id').primaryKey().defaultRandom(),
+    id: uuid('id').primaryKey().defaultRandom().$defaultFn(() => crypto.randomUUID()),
     eventId: uuid('event_id')
       .notNull()
       .references(() => events.id, { onDelete: 'cascade' }),
@@ -73,7 +73,7 @@ export const eventMembers = pgTable(
 export const eventAssets = pgTable(
   'event_assets',
   {
-    id: uuid('id').primaryKey().defaultRandom(),
+    id: uuid('id').primaryKey().defaultRandom().$defaultFn(() => crypto.randomUUID()),
     eventId: uuid('event_id')
       .notNull()
       .references(() => events.id, { onDelete: 'cascade' }),

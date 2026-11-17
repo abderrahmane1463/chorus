@@ -16,7 +16,7 @@ import { questionStatusEnum } from './enums';
 export const questions = pgTable(
   'questions',
   {
-    id: uuid('id').primaryKey().defaultRandom(),
+    id: uuid('id').primaryKey().defaultRandom().$defaultFn(() => crypto.randomUUID()),
     eventId: uuid('event_id')
       .notNull()
       .references(() => events.id, { onDelete: 'cascade' }),
@@ -44,7 +44,7 @@ export const questions = pgTable(
 export const questionVotes = pgTable(
   'question_votes',
   {
-    id: uuid('id').primaryKey().defaultRandom(),
+    id: uuid('id').primaryKey().defaultRandom().$defaultFn(() => crypto.randomUUID()),
     questionId: uuid('question_id')
       .notNull()
       .references(() => questions.id, { onDelete: 'cascade' }),

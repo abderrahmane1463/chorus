@@ -24,7 +24,7 @@ import type { ResponseData } from '@/types/interactions';
 export const responses = pgTable(
   'responses',
   {
-    id: uuid('id').primaryKey().defaultRandom(),
+    id: uuid('id').primaryKey().defaultRandom().$defaultFn(() => crypto.randomUUID()),
     interactionId: uuid('interaction_id')
       .notNull()
       .references(() => interactions.id, { onDelete: 'cascade' }),

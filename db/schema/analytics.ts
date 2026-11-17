@@ -6,7 +6,7 @@ import { participants } from './participants';
 export const analyticsEvents = pgTable(
   'analytics_events',
   {
-    id: uuid('id').primaryKey().defaultRandom(),
+    id: uuid('id').primaryKey().defaultRandom().$defaultFn(() => crypto.randomUUID()),
     eventId: uuid('event_id')
       .notNull()
       .references(() => events.id, { onDelete: 'cascade' }),
@@ -33,7 +33,7 @@ export const analyticsEvents = pgTable(
 export const analyticsShares = pgTable(
   'analytics_shares',
   {
-    id: uuid('id').primaryKey().defaultRandom(),
+    id: uuid('id').primaryKey().defaultRandom().$defaultFn(() => crypto.randomUUID()),
     eventId: uuid('event_id')
       .notNull()
       .references(() => events.id, { onDelete: 'cascade' }),

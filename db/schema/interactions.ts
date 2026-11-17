@@ -24,7 +24,7 @@ import type { InteractionSettings } from '@/types/interactions';
 export const interactions = pgTable(
   'interactions',
   {
-    id: uuid('id').primaryKey().defaultRandom(),
+    id: uuid('id').primaryKey().defaultRandom().$defaultFn(() => crypto.randomUUID()),
     eventId: uuid('event_id')
       .notNull()
       .references(() => events.id, { onDelete: 'cascade' }),
@@ -56,7 +56,7 @@ export const interactions = pgTable(
 export const interactionOptions = pgTable(
   'interaction_options',
   {
-    id: uuid('id').primaryKey().defaultRandom(),
+    id: uuid('id').primaryKey().defaultRandom().$defaultFn(() => crypto.randomUUID()),
     interactionId: uuid('interaction_id')
       .notNull()
       .references(() => interactions.id, { onDelete: 'cascade' }),

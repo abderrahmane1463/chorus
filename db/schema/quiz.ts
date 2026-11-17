@@ -14,7 +14,7 @@ import { participants } from './participants';
 export const quizScores = pgTable(
   'quiz_scores',
   {
-    id: uuid('id').primaryKey().defaultRandom(),
+    id: uuid('id').primaryKey().defaultRandom().$defaultFn(() => crypto.randomUUID()),
     quizId: uuid('quiz_id')
       .notNull()
       .references(() => interactions.id, { onDelete: 'cascade' }),
