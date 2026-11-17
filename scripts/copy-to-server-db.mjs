@@ -16,7 +16,7 @@
  * events <-> interactions cycle do not matter. Each table's row count is
  * checked at the end; any difference fails the run.
  */
-import { readdirSync, readFileSync } from 'node:fs';
+import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { neon } from '@neondatabase/serverless';
@@ -24,6 +24,20 @@ import pg from 'pg';
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 const replace = process.argv.includes('--replace');
+
+// Panels that run npm commands (Plesk) may not pass the app's environment
+// variables, which Next reads from .env files. Read the same files; a
+// variable already set wins over any file.
+for (const file of ['.env.production.local', '.env.local', '.env.production', '.env']) {
+  const path = join(root, file);
+  if (existsSync(path)) {
+    process.loadEnvFile(path);
+    console.log(`Read ${file}`);
+  }
+}
+for (const name of ['SOURCE_DATABASE_URL', 'DATABASE_URL', 'TARGET_DATABASE_URL']) {
+  console.log(`  ${name}: ${process.env[name] ? 'set' : 'not set'}`);
+}
 
 const sourceUrl = process.env.SOURCE_DATABASE_URL || process.env.DATABASE_URL;
 const targetUrl = process.env.TARGET_DATABASE_URL;
