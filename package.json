@@ -15,6 +15,7 @@
     "icons": "node scripts/generate-icons.mjs",
     "db:copy-to-server": "node scripts/copy-to-server-db.mjs",
     "db:copy-to-server:replace": "node scripts/copy-to-server-db.mjs --replace",
+    "db:recent": "node scripts/recent-activity.mjs",
     "typecheck": "tsc --noEmit",
     "test": "tsx --conditions=react-server --test \"tests/**/*.test.ts\""
   },
