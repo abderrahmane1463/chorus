@@ -50,7 +50,7 @@
     "jspdf": "2.5.2",
     "lucide-react": "^1.41.0",
     "nanoid": "^6.0.1",
-    "next": "16.4.2",
+    "next": "16.4.6",
     "next-auth": "^5.0.0-beta.32",
     "next-intl": "^4.14.5",
     "pg": "^8.13.1",
@@ -76,7 +76,7 @@
     "dotenv": "^17.4.2",
     "drizzle-kit": "^0.31.10",
     "eslint": "^9",
-    "eslint-config-next": "16.4.2",
+    "eslint-config-next": "16.4.6",
     "tailwindcss": "^4",
     "tsx": "^4.23.13",
     "typescript": "^5"
