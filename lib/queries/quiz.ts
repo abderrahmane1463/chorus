@@ -123,8 +123,11 @@ export async function getQuizDetail(quizId: string): Promise<QuizDetail | null> 
     if (answer.data.correct) {
       correctCounts.set(answer.questionId, (correctCounts.get(answer.questionId) ?? 0) + 1);
     }
-    for (const optionId of answer.data.optionIds) {
-      picks.set(optionId, (picks.get(optionId) ?? 0) + 1);
+    // One pick per option per answer, counted on the answer's own question
+    // only, whatever an older or malformed answer row holds.
+    for (const optionId of new Set(answer.data.optionIds)) {
+      const key = `${answer.questionId}:${optionId}`;
+      picks.set(key, (picks.get(key) ?? 0) + 1);
     }
   }
 
@@ -137,7 +140,7 @@ export async function getQuizDetail(quizId: string): Promise<QuizDetail | null> 
         text: option.text,
         isCorrect: option.isCorrect ?? false,
         position: option.position,
-        picks: picks.get(option.id) ?? 0,
+        picks: picks.get(`${child.id}:${option.id}`) ?? 0,
       })),
     answerCount: answerCounts.get(child.id) ?? 0,
     correctCount: correctCounts.get(child.id) ?? 0,

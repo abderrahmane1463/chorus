@@ -7,7 +7,7 @@ import { db } from '@/lib/db';
 import { users } from '@/db/schema';
 import { requireUser, signIn } from '@/lib/auth';
 import { hashPassword, verifyPassword } from '@/lib/auth/password';
-import { take } from '@/lib/security/rate-limit';
+import { callerAddress, exhausted, passwordBuckets, take } from '@/lib/security/rate-limit';
 import { changePasswordSchema } from '@/lib/validations/auth';
 import { updateProfileSchema } from '@/lib/validations/user';
 import { messageKey } from '@/lib/validations/message';
@@ -50,7 +50,10 @@ export async function changePasswordAction(input: unknown): Promise<ActionResult
     return { ok: false, error: t(messageKey(parsed.error, 'validation.passwordRequired')) };
   }
 
-  if (!take('signInPerAccount', user.email)) {
+  // The same buckets as sign-in, so this form is no easier a way to guess
+  // the current password. Only wrong guesses count.
+  const buckets = passwordBuckets(user.email, await callerAddress());
+  if (buckets.some(([rule, subject]) => exhausted(rule, subject))) {
     return { ok: false, error: t('errors.tooManyAttempts') };
   }
 
@@ -63,7 +66,10 @@ export async function changePasswordAction(input: unknown): Promise<ActionResult
   if (!account?.passwordHash) return { ok: false, error: t('errors.noPasswordToChange') };
 
   const valid = await verifyPassword(parsed.data.currentPassword, account.passwordHash);
-  if (!valid) return { ok: false, error: t('errors.wrongPassword') };
+  if (!valid) {
+    for (const [rule, subject] of buckets) take(rule, subject);
+    return { ok: false, error: t('errors.wrongPassword') };
+  }
 
   await db
     .update(users)

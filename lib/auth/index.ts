@@ -8,7 +8,7 @@ import { db, getDb } from '@/lib/db';
 import { accounts, sessions, users, verificationTokens } from '@/db/schema';
 import { signInSchema } from '@/lib/validations/auth';
 import { verifyPassword } from './password';
-import { clientAddress, take } from '@/lib/security/rate-limit';
+import { clientAddress, exhausted, passwordBuckets, take } from '@/lib/security/rate-limit';
 import { authConfig } from './config';
 import { stampMatches, passwordStamp } from './stamp';
 
@@ -51,13 +51,18 @@ export const { handlers, auth, signIn, signOut } = NextAuth(() => ({
         // Checked here, where every password attempt passes, and not only in
         // the sign-in form's action: Auth.js's own endpoint takes attempts
         // directly, and a limit placed only in the form would not see those.
-        // Counted per account and per address, so guessing one account from
-        // many places and many accounts from one place are both slowed.
-        const address = clientAddress(request.headers);
-        const allowed =
-          take('signInPerAccount', parsed.data.email) &&
-          take('signInPerAddress', address);
-        if (!allowed) return null;
+        //
+        // Only wrong passwords are counted, and the tightest limit is per
+        // account *and* address: a stranger guessing at someone's account
+        // from elsewhere uses up their own allowance, never the owner's, so
+        // they cannot lock the owner out. Guessing one account from many
+        // places, or many accounts from one place, is still slowed.
+        const buckets = passwordBuckets(parsed.data.email, clientAddress(request.headers));
+        if (buckets.some(([rule, subject]) => exhausted(rule, subject))) return null;
+        const refuse = () => {
+          for (const [rule, subject] of buckets) take(rule, subject);
+          return null;
+        };
 
         const [user] = await db
           .select()
@@ -66,10 +71,10 @@ export const { handlers, auth, signIn, signOut } = NextAuth(() => ({
           .limit(1);
 
         // Accounts created through OAuth have no password hash to compare.
-        if (!user?.passwordHash) return null;
+        if (!user?.passwordHash) return refuse();
 
         const valid = await verifyPassword(parsed.data.password, user.passwordHash);
-        if (!valid) return null;
+        if (!valid) return refuse();
 
         return {
           id: user.id,

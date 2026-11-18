@@ -434,8 +434,15 @@ export async function submitQuizAnswerAction(input: unknown): Promise<ActionResu
     correct = value === target;
     points = computeNumericScore({ value, target, elapsedMs, timeLimitSeconds, basePoints, speedBonus });
   } else {
+    // Each option once, and only this question's: a repeated id would count
+    // the same person's pick several times on the room's answer bars.
     const validIds = new Set(options.map((o) => o.id));
-    if (parsed.data.optionIds.length === 0 || !parsed.data.optionIds.every((id) => validIds.has(id))) {
+    const chosen = parsed.data.optionIds;
+    if (
+      chosen.length === 0 ||
+      new Set(chosen).size !== chosen.length ||
+      !chosen.every((id) => validIds.has(id))
+    ) {
       return { ok: false, error: t('errors.answerNotValid') };
     }
     const correctIds = options.filter((o) => o.isCorrect).map((o) => o.id);
@@ -452,7 +459,9 @@ export async function submitQuizAnswerAction(input: unknown): Promise<ActionResu
       slot: 0,
       responseData: {
         kind: 'quiz',
-        optionIds: parsed.data.optionIds,
+        // A numeric answer picks no option; anything sent there is dropped
+        // rather than counted on another question's bars.
+        optionIds: context.settings.answerType === 'number' ? [] : parsed.data.optionIds,
         answeredAtMs: elapsedMs,
         correct,
         points,

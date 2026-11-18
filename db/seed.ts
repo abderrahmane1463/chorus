@@ -51,7 +51,32 @@ async function addInteraction(
   return created.id;
 }
 
+/**
+ * Refuses to seed anything but a local database or one explicitly listed in
+ * SEED_ALLOWED_HOSTS. The demo host's password is published in the README,
+ * so seeding the live database by mistake would hand anyone a host account.
+ */
+function assertSeedTarget() {
+  let host = '';
+  try {
+    host = new URL(process.env.DATABASE_URL ?? '').hostname;
+  } catch {
+    // An unparseable address is refused below.
+  }
+  const allowed = (process.env.SEED_ALLOWED_HOSTS ?? '')
+    .split(',')
+    .map((entry) => entry.trim())
+    .filter(Boolean);
+  if (['localhost', '127.0.0.1', '[::1]'].includes(host) || allowed.includes(host)) return;
+  console.error(
+    `Refusing to seed ${host || 'this database'}: it is not local. ` +
+      'If it is a development database, add its host to SEED_ALLOWED_HOSTS.',
+  );
+  process.exit(1);
+}
+
 async function main() {
+  assertSeedTarget();
   console.log('Seeding demo data…');
 
   // Re-running the seed replaces the demo event rather than duplicating it.

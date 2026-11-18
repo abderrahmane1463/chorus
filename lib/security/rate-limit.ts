@@ -20,9 +20,19 @@ type Bucket = { tokens: number; updatedAt: number };
 
 /** The limits, by what they protect. */
 export const RULES = {
-  /** Password guesses against one account, from anywhere. */
-  signInPerAccount: { limit: 10, windowMs: 15 * 60_000 },
-  /** Password guesses from one address, across accounts. */
+  /**
+   * Wrong passwords for one account from one address. Only failures count,
+   * and the address is part of the key, so someone guessing from elsewhere
+   * never locks the owner out of their own account.
+   */
+  signInPerAccountAddress: { limit: 10, windowMs: 15 * 60_000 },
+  /**
+   * Wrong passwords for one account from anywhere. Wide on purpose: it only
+   * slows guessing spread over many addresses, which the per-address limits
+   * cannot see.
+   */
+  signInPerAccount: { limit: 50, windowMs: 60 * 60_000 },
+  /** Wrong passwords from one address, across accounts. */
   signInPerAddress: { limit: 30, windowMs: 15 * 60_000 },
   /** New host accounts from one address. */
   signUpPerAddress: { limit: 5, windowMs: 60 * 60_000 },
@@ -90,6 +100,18 @@ export function take(rule: RuleName, subject: string): boolean {
   return true;
 }
 
+/**
+ * The buckets a password attempt counts against: one account from one
+ * address, one account from anywhere, and one address across accounts.
+ */
+export function passwordBuckets(email: string, address: string): Array<[RuleName, string]> {
+  return [
+    ['signInPerAccountAddress', `${email}|${address}`],
+    ['signInPerAccount', email],
+    ['signInPerAddress', address],
+  ];
+}
+
 /** Whether a try would be refused now, without spending one. */
 export function exhausted(rule: RuleName, subject: string): boolean {
   const bucket = buckets.get(`${rule}:${subject}`);
@@ -97,17 +119,48 @@ export function exhausted(rule: RuleName, subject: string): boolean {
 }
 
 /**
+ * Loopback, private and link-local addresses: the host's own proxies, never
+ * a visitor seen from the internet.
+ */
+function isInternalAddress(address: string): boolean {
+  const ip = address.toLowerCase().replace(/^::ffff:/, '');
+  const v4 = ip.match(/^(\d{1,3})\.(\d{1,3})\.\d{1,3}\.\d{1,3}$/);
+  if (v4) {
+    const [a, b] = [Number(v4[1]), Number(v4[2])];
+    return (
+      a === 10 ||
+      a === 127 ||
+      a === 0 ||
+      (a === 172 && b >= 16 && b <= 31) ||
+      (a === 192 && b === 168) ||
+      (a === 169 && b === 254) ||
+      (a === 100 && b >= 64 && b <= 127)
+    );
+  }
+  return ip === '::1' || ip === '::' || /^f[cd]/.test(ip) || /^fe[89ab]/.test(ip);
+}
+
+/**
  * The address a request came from.
  *
- * Behind the host's proxy the connection itself always comes from the
- * proxy, so the client is the first address in X-Forwarded-For, which that
- * proxy sets. Only meaningful behind a proxy that overwrites the header; a
- * client talking to Node directly could put anything there, which would
- * let it pick its own bucket but not raise its limit.
+ * Every proxy in front of the app appends the address it received the
+ * connection from to X-Forwarded-For, after whatever the client itself sent.
+ * So the list is read from the right: the first address that is not one of
+ * the host's own proxies is the one the internet-facing proxy saw, which a
+ * client cannot forge. Anything a client puts in the header sits to its left
+ * and is ignored. This holds however many proxies the host chains.
  */
 export function clientAddress(source: Headers): string {
-  const forwarded = source.get('x-forwarded-for')?.split(',')[0]?.trim();
-  return forwarded || source.get('x-real-ip') || 'local';
+  const hops = (source.get('x-forwarded-for') ?? '')
+    .split(',')
+    .map((hop) => hop.trim())
+    .filter(Boolean);
+  for (let i = hops.length - 1; i >= 0; i--) {
+    if (!isInternalAddress(hops[i])) return hops[i];
+  }
+  // Only internal hops (a local or private-network setup): the one nearest
+  // the client is the best guess there is.
+  return hops[0] || source.get('x-real-ip')?.trim() || 'local';
 }
 
 /** The calling request's address, from inside a Server Action. */

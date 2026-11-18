@@ -1,7 +1,14 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { z } from 'zod';
-import { clientAddress, exhausted, RULES, take } from '@/lib/security/rate-limit';
+import {
+  clientAddress,
+  exhausted,
+  passwordBuckets,
+  RULES,
+  take,
+  type RuleName,
+} from '@/lib/security/rate-limit';
 import { messageKey } from '@/lib/validations/message';
 import { acceptsAudience } from '@/lib/utils/event-status';
 import { toCsv } from '@/lib/utils/csv';
@@ -28,10 +35,31 @@ test('checking a limit does not spend a try', () => {
   assert.equal(take('signUpPerAddress', subject), true);
 });
 
-test('the client address is the first one the proxy forwarded', () => {
-  assert.equal(clientAddress(new Headers({ 'x-forwarded-for': '203.0.113.7, 10.0.0.1' })), '203.0.113.7');
+test('the client address is the last public hop, which a client cannot forge', () => {
+  const from = (xff: string) => clientAddress(new Headers({ 'x-forwarded-for': xff }));
+  // The proxy appended the real address after a value the client made up.
+  assert.equal(from('1.2.3.4, 203.0.113.7'), '203.0.113.7');
+  // A chain of the host's own proxies is skipped.
+  assert.equal(from('203.0.113.7, 127.0.0.1'), '203.0.113.7');
+  assert.equal(from('6.6.6.6, 203.0.113.7, 10.0.0.2, ::ffff:127.0.0.1'), '203.0.113.7');
+  // Rotating the made-up part never changes the key.
+  assert.equal(from('9.9.9.9, 203.0.113.7'), from('8.8.8.8, 203.0.113.7'));
+  // Only internal hops (local development): the nearest to the client.
+  assert.equal(from('192.168.1.20, 127.0.0.1'), '192.168.1.20');
   assert.equal(clientAddress(new Headers({ 'x-real-ip': '198.51.100.4' })), '198.51.100.4');
   assert.equal(clientAddress(new Headers()), 'local');
+});
+
+test('password limits are per account and address, so a stranger cannot lock the owner out', () => {
+  const email = `owner-${Math.random()}@example.test`;
+  const attacker = passwordBuckets(email, '203.0.113.66');
+  const owner = passwordBuckets(email, '198.51.100.10');
+  const fail = (buckets: Array<[RuleName, string]>) => buckets.forEach(([r, s]) => take(r, s));
+  const blocked = (buckets: Array<[RuleName, string]>) => buckets.some(([r, s]) => exhausted(r, s));
+
+  for (let i = 0; i < RULES.signInPerAccountAddress.limit; i++) fail(attacker);
+  assert.equal(blocked(attacker), true, 'the guesser is stopped');
+  assert.equal(blocked(owner), false, 'the owner, from their own address, is not');
 });
 
 test('only translation keys pass through as messages', () => {

@@ -134,6 +134,10 @@ Marketing Workshop**, code **MARKETING26**, with a multiple-choice poll, a word
 cloud, a 1–10 rating, a Q&A and a three-question quiz. Re-running replaces the
 demo event rather than duplicating it.
 
+The seed only writes to a local database, or to one whose host is listed in
+`SEED_ALLOWED_HOSTS` (comma-separated, in `.env.local`). Never list the live
+database: the demo password above is public.
+
 ---
 
 ## 7. Deploy to Vercel

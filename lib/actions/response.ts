@@ -107,6 +107,12 @@ export async function submitResponseAction(input: unknown): Promise<ActionResult
   if (gate?.status !== 'active') {
     return { ok: false, error: t('errors.questionClosed') };
   }
+  // Only survey questions are answered here. A quiz's questions go through
+  // submitQuizAnswerAction, which checks the question on screen and the
+  // clock; taking them here would skip both.
+  if (context.parentId && gate.type !== 'survey') {
+    return { ok: false, error: t('errors.answerNotValid') };
+  }
   // Still gathering the room: the question has not been shown yet.
   if (inLobby(gate)) {
     return { ok: false, error: t('errors.notStartedYet') };

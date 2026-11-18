@@ -10,7 +10,7 @@ import { users } from '@/db/schema';
 import { signIn } from '@/lib/auth';
 import { hashPassword } from '@/lib/auth/password';
 import { signInSchema, signUpSchema } from '@/lib/validations/auth';
-import { callerAddress, exhausted, take } from '@/lib/security/rate-limit';
+import { callerAddress, exhausted, passwordBuckets, take } from '@/lib/security/rate-limit';
 
 export type ActionResult = { ok: true } | { ok: false; error: string };
 
@@ -99,9 +99,9 @@ export async function signInAction(
     if (error instanceof AuthError) {
       // The attempt was refused either way; say which, so someone locked out
       // by too many tries does not keep retrying a password that is right.
-      const lockedOut =
-        exhausted('signInPerAccount', parsed.data.email) ||
-        exhausted('signInPerAddress', await callerAddress());
+      const lockedOut = passwordBuckets(parsed.data.email, await callerAddress()).some(
+        ([rule, subject]) => exhausted(rule, subject),
+      );
       return { ok: false, error: t(lockedOut ? 'errors.tooManyAttempts' : 'auth.badCredentials') };
     }
     throw error;
